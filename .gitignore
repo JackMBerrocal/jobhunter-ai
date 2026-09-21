@@ -11,6 +11,8 @@ ENV/
 # Playwright & browser downloads
 .cache/
 ms-playwright/
+data/browser_profile/
+data/backups/
 
 # Editor files
 .vscode/
