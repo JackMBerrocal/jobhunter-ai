@@ -1,0 +1,4143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JobHunter AI | Asistente de Búsqueda Laboral (Primer Empleo Remoto)</title>
+  <meta name="description" content="Agente autónomo profesional de búsqueda y postulación de empleo remoto para Ingenieros de Sistemas sin experiencia previa.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-base: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-surface-hover: #f1f5f9;
+      --border-color: #e2e8f0;
+      --border-focus: #4f46e5;
+      
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --primary-subtle: #eef2ff;
+      
+      --accent-emerald: #059669;
+      --accent-emerald-bg: #ecfdf5;
+      --accent-amber: #d97706;
+      --accent-amber-bg: #fffbeb;
+      --accent-rose: #e11d48;
+      --accent-rose-bg: #fff1f2;
+      --accent-cyan: #0284c7;
+      --accent-cyan-bg: #f0f9ff;
+      
+      --text-main: #0f172a;
+      --text-secondary: #334155;
+      --text-muted: #64748b;
+      
+      --font-sans: 'Outfit', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-card: 0 2px 8px -1px rgba(15, 23, 42, 0.06), 0 1px 4px -1px rgba(15, 23, 42, 0.04);
+      --shadow-hover: 0 8px 20px -3px rgba(15, 23, 42, 0.09), 0 3px 8px -2px rgba(15, 23, 42, 0.04);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    /* Header */
+    header {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 0.85rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+    }
+
+    .brand-logo svg {
+      width: 24px;
+      height: 24px;
+      fill: #ffffff;
+    }
+
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.2;
+    }
+
+    .brand-subtitle {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Botones */
+    .btn {
+      font-family: var(--font-sans);
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 0.55rem 1.15rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
+    }
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      border-color: var(--border-color);
+    }
+    .btn-secondary:hover {
+      background: var(--bg-surface-hover);
+      color: var(--text-main);
+      border-color: #cbd5e1;
+    }
+
+    .btn-connect {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-color: #bfdbfe;
+    }
+    .btn-connect:hover {
+      background: #dbeafe;
+      color: #1e40af;
+      transform: translateY(-1px);
+    }
+
+    .btn-sm {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.8rem;
+    }
+
+    /* Barra de Diagnóstico / Salud del Sistema */
+    .health-bar {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.75rem 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.82rem;
+    }
+
+    .health-items {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .health-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .health-indicator {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 0 3px var(--accent-emerald-bg);
+    }
+
+    .pulse {
+      animation: pulseAnim 2s infinite;
+    }
+    @keyframes pulseAnim {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.7); }
+      70% { transform: scale(1.05); box-shadow: 0 0 0 6px rgba(5, 150, 105, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
+    }
+
+    /* Layout Principal */
+    .container {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem 3rem 2rem;
+      flex: 1;
+      width: 100%;
+    }
+
+    /* Tarjetas de Métricas */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 1.5rem;
+    }
+
+    .metric-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.1rem 1.3rem;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+    }
+    .metric-card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+    }
+
+    .metric-info h3 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .metric-info .value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1;
+    }
+    .metric-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-top: 6px;
+      display: inline-block;
+    }
+
+    /* Pestañas de Navegación */
+    .nav-tabs {
+      display: flex;
+      gap: 6px;
+      border-bottom: 2px solid var(--border-color);
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .tab-btn {
+      padding: 0.75rem 1.1rem;
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover {
+      color: var(--text-main);
+    }
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    .tab-counter {
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 0.76rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      line-height: 1.2;
+    }
+    .tab-btn.active .tab-counter {
+      background: #e0e7ff;
+      color: #4338ca;
+      border-color: #c7d2fe;
+    }
+
+    /* Contenido de Pestañas */
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Switch Toggle Styles */
+    .switch-toggle {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .switch-toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .switch-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #cbd5e1;
+      transition: .25s;
+      border-radius: 24px;
+    }
+    .switch-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .25s;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    }
+    input:checked + .switch-slider {
+      background-color: var(--accent-emerald, #10b981);
+    }
+    input:checked + .switch-slider:before {
+      transform: translateX(22px);
+    }
+
+    /* Role Cards */
+    .role-card {
+      background: #ffffff;
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .role-card:hover {
+      border-color: #94a3b8;
+      box-shadow: var(--shadow-sm);
+    }
+    .role-card.paused {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+      border-style: dashed;
+      opacity: 0.75;
+    }
+    .keyword-pill {
+      display: inline-block;
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 0.72rem;
+      padding: 2px 7px;
+      border-radius: 4px;
+      margin-right: 4px;
+      margin-bottom: 4px;
+      font-family: var(--font-mono);
+    }
+
+    /* Consola de Telemetría en Vivo */
+    .console-card {
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-card);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+    }
+
+    .console-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #334155;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+
+    .console-logs {
+      max-height: 120px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 4px;
+      line-height: 1.5;
+    }
+
+    .console-line {
+      color: #e2e8f0;
+    }
+    .console-line.success { color: #34d399; }
+    .console-line.warning { color: #fbbf24; }
+    .console-line.error { color: #f87171; }
+
+    /* Barra de Herramientas y Filtros */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 1.2rem;
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .badge-filter {
+      padding: 0.4rem 0.85rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      transition: all 0.15s;
+    }
+    .badge-filter:hover, .badge-filter.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    /* Tarjetas de Vacantes */
+    .jobs-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .job-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.3rem;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: all 0.2s ease;
+    }
+    .job-card:hover {
+      box-shadow: var(--shadow-hover);
+      border-color: #cbd5e1;
+    }
+
+    .job-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .job-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.3;
+    }
+
+    .job-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 4px;
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+    }
+
+    .platform-pill {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .platform-computrabajo { background: #fee2e2; color: #b91c1c; }
+    .platform-linkedin { background: #dbeafe; color: #1d4ed8; }
+    .platform-bumeran { background: #fef3c7; color: #b45309; }
+    .platform-getonbrd { background: #dcfce7; color: #15803d; }
+    .platform-remotetech { background: #e0e7ff; color: #4338ca; }
+    .platform-torre { background: #f3e8ff; color: #7e22ce; }
+    .platform-laborum { background: #ccfbf1; color: #0f766e; }
+    .platform-freelancer { background: #e0f2fe; color: #0369a1; }
+
+    /* Estilos del Módulo Freelance & Gigs */
+    .freelance-header-card {
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4338ca 100%);
+      border-radius: var(--radius-md);
+      padding: 1.4rem 1.8rem;
+      color: #ffffff;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 8px 24px rgba(67, 56, 202, 0.25);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+    .freelance-generator-box {
+      background: #ffffff;
+      border: 1px solid #e0e7ff;
+      border-radius: var(--radius-md);
+      padding: 1.4rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-card);
+    }
+    .freelance-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 16px;
+    }
+    .freelance-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.3rem;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .freelance-card:hover {
+      box-shadow: var(--shadow-hover);
+      border-color: #a5b4fc;
+      transform: translateY(-2px);
+    }
+    .budget-pill {
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .bid-calc-pill {
+      font-size: 0.76rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: #eef2ff;
+      color: #4338ca;
+      border: 1px solid #c7d2fe;
+    }
+    .time-calc-pill {
+      font-size: 0.76rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: #fff7ed;
+      color: #c2410c;
+      border: 1px solid #ffedd5;
+    }
+
+    /* Banner y Control de Búsqueda Continua 24/7 */
+    .continuous-card {
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.2rem 1.6rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      transition: all 0.3s ease;
+    }
+    .continuous-card.active {
+      background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+      border-color: #86efac;
+      box-shadow: 0 4px 18px rgba(34, 197, 94, 0.12);
+    }
+    .policy-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 1.25rem;
+    }
+    .policy-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+    }
+    .badge-remote { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+    .badge-salary-pen { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+    .badge-salary-usd { background: #faf5ff; color: #6b21a8; border-color: #e9d5ff; }
+    .badge-profile { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+
+    .score-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+    .score-high { background: var(--accent-emerald-bg); color: var(--accent-emerald); border: 1px solid rgba(5,150,105,0.25); }
+    .score-medium { background: var(--accent-amber-bg); color: var(--accent-amber); border: 1px solid rgba(217,119,6,0.25); }
+    .score-low { background: var(--accent-rose-bg); color: var(--accent-rose); border: 1px solid rgba(225,29,72,0.25); }
+
+    /* Matriz de Cumplimiento (Lo que sí / Lo que no) */
+    .fit-matrix {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius-sm);
+      padding: 0.9rem 1.1rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      font-size: 0.83rem;
+    }
+    @media (max-width: 800px) {
+      .fit-matrix { grid-template-columns: 1fr; }
+    }
+
+    .matrix-col h4 {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .col-fulfilled h4 { color: var(--accent-emerald); }
+    .col-missing h4 { color: var(--accent-amber); }
+
+    .matrix-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .matrix-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      line-height: 1.35;
+      color: var(--text-secondary);
+    }
+
+    .strategy-box {
+      background: #eff6ff;
+      border-left: 3px solid #3b82f6;
+      padding: 0.5rem 0.8rem;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.8rem;
+      color: #1e40af;
+      margin-top: 6px;
+      grid-column: 1 / -1;
+      line-height: 1.4;
+    }
+
+    .job-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 8px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    /* Modal emergente */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(3px);
+    }
+    .modal-box {
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      max-width: 540px;
+      width: 90%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      border: 1px solid var(--border-color);
+    }
+    .modal-box.modal-large {
+      max-width: 820px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 2rem;
+    }
+    .portal-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .portal-close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+      line-height: 1;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .portal-close-btn:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+    .portal-all-banner {
+      background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      gap: 12px;
+    }
+    .portal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .portal-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+    }
+    .portal-card:hover {
+      border-color: #cbd5e1;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      background: #ffffff;
+    }
+    .portal-card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .portal-icon {
+      font-size: 1.8rem;
+      line-height: 1;
+      background: #ffffff;
+      padding: 8px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+    }
+    .portal-info {
+      flex: 1;
+    }
+    .portal-name {
+      font-weight: 700;
+      font-size: 0.98rem;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .portal-tag {
+      font-size: 0.72rem;
+      padding: 2px 7px;
+      border-radius: 12px;
+      background: #e2e8f0;
+      color: #475569;
+      font-weight: 600;
+    }
+    .portal-desc {
+      font-size: 0.82rem;
+      color: #64748b;
+      margin-top: 3px;
+      line-height: 1.35;
+    }
+    .portal-card-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid #f1f5f9;
+      padding-top: 10px;
+      margin-top: 4px;
+    }
+    .portal-status-badge {
+      font-size: 0.78rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .portal-status-badge.connected {
+      color: #16a34a;
+    }
+    .portal-status-badge.pending {
+      color: #ca8a04;
+    }
+    .btn-portal-open {
+      padding: 6px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: 8px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: #1e293b;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-portal-open:hover {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #2563eb;
+    }
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .toast-item {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 12px 18px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: auto;
+      border: 1px solid #334155;
+    }
+    .modal-box h3 { margin-bottom: 12px; font-size: 1.25rem; }
+    .modal-box p { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 16px; }
+    .modal-box ol { margin-left: 20px; font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+    /* Estilos del Rastreador de Origen & Correos */
+    .tracer-hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #ffffff;
+      border-radius: 14px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.3);
+      border: 1px solid #334155;
+      position: relative;
+      overflow: hidden;
+    }
+    .tracer-hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .tracer-chip {
+      background: rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .tracer-chip:hover {
+      background: rgba(99, 102, 241, 0.3);
+      border-color: #818cf8;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+    .trace-pipeline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 12px 0;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .pipeline-node {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .pipeline-sep {
+      color: #64748b;
+      font-size: 0.85rem;
+    }
+    .tracer-result-card {
+      background: #ffffff;
+      color: var(--text-main);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-top: 14px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Encabezado -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
+      </div>
+      <div>
+        <div class="brand-title">JobHunter AI</div>
+        <div class="brand-subtitle" id="headerProfileSubtitle">Ingeniero de Sistemas • Primer Empleo Remoto</div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-connect" onclick="openConnectModal()">
+        🔑 Conectar Cuentas en Navegador
+      </button>
+      <button class="btn btn-secondary" onclick="scanEmails()" id="btnScanEmails">
+        📬 Escanear Correos
+      </button>
+      <button class="btn btn-primary" onclick="triggerJobSearch()" id="btnSearchJobs">
+        ⚡ Buscar Vacantes Ahora
+      </button>
+    </div>
+  </header>
+
+  <!-- Barra de Diagnóstico de Salud del Sistema (Tiempo Real) -->
+  <div class="health-bar">
+    <div class="health-items">
+      <div class="health-item">
+        <div class="health-indicator pulse"></div>
+        <span id="healthAgentStatus">🟢 Agente Operativo y Listo</span>
+      </div>
+      <div class="health-item">
+        <span>💾 SQLite:</span> <strong id="healthDb">Conectado (NullPool)</strong>
+      </div>
+      <div class="health-item">
+        <span>🌐 Navegador:</span> <strong id="healthBrowser">LibreWolf (Predeterminado)</strong>
+      </div>
+      <div class="health-item">
+        <span>👤 Candidato:</span> <strong id="healthUser">jmberrocale@gmail.com (0 exp)</strong>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <label style="font-size: 0.8rem; color: var(--text-muted);">Ver navegador en pantalla:</label>
+      <input type="checkbox" id="chkHeadless" onchange="toggleBrowserVisibility(this.checked)" style="cursor: pointer;">
+    </div>
+  </div>
+
+  <!-- Contenedor Principal -->
+  <main class="container">
+
+    <!-- Badges de Políticas Activas (100% Remoto Estricto y Salarios) -->
+    <div class="policy-badges">
+      <div class="policy-badge badge-remote">
+        <span>🏠</span> 100% Remoto Estricto (Sin Oficina)
+      </div>
+      <div class="policy-badge badge-salary-pen">
+        <span>🇵🇪</span> Ofertas en Perú: Soles (&gt; S/ 2,000 PEN)
+      </div>
+      <div class="policy-badge badge-salary-usd">
+        <span>🌎</span> Fuera de Perú: Dólares (&gt; $800 USD)
+      </div>
+      <div class="policy-badge badge-profile">
+        <span>🎓</span> Ingeniero de Sistemas • 0 Exp Formal (Proyectos GitHub & QA)
+      </div>
+    </div>
+
+    <!-- Tarjeta de Control: Búsqueda Continua 24/7 (Hasta Conseguir Empleo) -->
+    <div class="continuous-card" id="continuousBanner">
+      <div style="flex: 1; min-width: 280px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+          <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main);">
+            🔄 Búsqueda Continua 24/7 (Hasta Conseguir Trabajo)
+          </h2>
+          <span class="metric-badge" id="continuousCycleText" style="background:#eef2ff; color:#4338ca; font-size:0.75rem;">
+            0 ciclos
+          </span>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px;">
+          El agente opera autónomamente en segundo plano explorando <strong>Torre.co</strong>, <strong>Get on Board</strong>, <strong>Remote Tech (WWR / Himalayas)</strong>, <strong>Laborum Perú</strong>, <strong>Computrabajo</strong>, <strong>Bumeran</strong> y <strong>LinkedIn</strong>, respondiendo preguntas y monitoreando ofertas en Gmail.
+        </p>
+        <div id="continuousStatusText" style="font-size: 0.82rem; display: flex; align-items: center; gap: 8px;">
+          <span style="color: var(--text-muted);">●</span> <strong>Modo Pausado:</strong> Presiona el botón para activar el rastreo ininterrumpido.
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+        <button class="btn btn-primary" id="btnToggleContinuous" onclick="toggleContinuousHunter()" style="padding: 0.65rem 1.25rem; font-size: 0.92rem; font-weight: 600;">
+          ▶️ Iniciar Búsqueda Continua 24/7
+        </button>
+        <span id="continuousNextRun" style="font-size: 0.78rem; color: var(--text-muted); font-family: var(--font-mono);">
+          En espera de activación
+        </span>
+      </div>
+    </div>
+
+    <!-- Tarjetas de Métricas -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-info">
+          <h3>Vacantes Detectadas</h3>
+          <div class="value" id="statTotalJobs">0</div>
+          <span class="metric-badge" style="background:#f1f5f9; color:#475569;">100% Remotas</span>
+        </div>
+        <div style="font-size: 2rem;">💼</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-info">
+          <h3>Postulaciones Enviadas</h3>
+          <div class="value" id="statAppliedJobs">0</div>
+          <span class="metric-badge" style="background:var(--accent-emerald-bg); color:var(--accent-emerald);">Enviadas por el Agente</span>
+        </div>
+        <div style="font-size: 2rem;">🚀</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-info">
+          <h3>En Cola de Postulación</h3>
+          <div class="value" id="statQueueSize">0</div>
+          <span class="metric-badge" style="background:var(--accent-cyan-bg); color:var(--accent-cyan);">Procesamiento secuencial</span>
+        </div>
+        <div style="font-size: 2rem;">⏳</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-info">
+          <h3>Entrevistas / Contactos</h3>
+          <div class="value" id="statInterviews">0</div>
+          <span class="metric-badge" style="background:var(--accent-amber-bg); color:var(--accent-amber);">En bandeja de Gmail</span>
+        </div>
+        <div style="font-size: 2rem;">✉️</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-info">
+          <h3>Expiradas / Descartadas</h3>
+          <div class="value" id="statExpiredJobs" style="color: #64748b;">0</div>
+          <span class="metric-badge" style="background:#fef2f2; color:#b91c1c;">Filtradas Automáticamente</span>
+        </div>
+        <div style="font-size: 2rem;">🛡️</div>
+      </div>
+    </div>
+
+    <!-- Consola de Telemetría en Vivo -->
+    <div class="console-card">
+      <div class="console-header">
+        <span>TELEMETRÍA DEL AGENTE EN VIVO (PLAYWRIGHT & SCRAPERS)</span>
+        <span id="currentProcessingText" style="color: #38bdf8;">En espera</span>
+      </div>
+      <div class="console-logs" id="consoleLogs">
+        <div class="console-line">Iniciando sistema...</div>
+      </div>
+    </div>
+
+    <!-- Pestañas de Navegación -->
+    <div class="nav-tabs">
+      <button class="tab-btn active" id="btnTabJobs" onclick="switchTab('jobsTab', this)">
+        💼 Vacantes Analizadas
+      </button>
+      <button class="tab-btn" id="btnTabFreelance" onclick="switchTab('freelanceTab', this)">
+        ⚡ Proyectos Freelance <span class="tab-counter" id="tabFreelanceCount">0</span>
+      </button>
+      <button class="tab-btn" id="btnTabRoles" onclick="switchTab('targetRolesTab', this)">
+        🎯 Puestos a Postular <span class="tab-counter" id="tabRolesCount">6</span>
+      </button>
+      <button class="tab-btn" id="btnTabApplied" onclick="switchTab('appliedTab', this)">
+        🚀 Mis Postulaciones <span class="tab-counter" id="tabAppliedCount">4</span>
+      </button>
+      <button class="tab-btn" id="btnTabEmails" onclick="switchTab('emailsTab', this)">
+        📬 Bandeja de Entrevistas <span class="tab-counter" id="tabEmailCount">0</span>
+      </button>
+      <button class="tab-btn" id="btnTabProfile" onclick="switchTab('profileTab', this)">
+        👤 Mi Perfil de Sistemas
+      </button>
+    </div>
+
+    <!-- Pestaña 1: Vacantes -->
+    <div id="jobsTab" class="tab-content active">
+      <div class="toolbar" style="flex-direction: column; align-items: stretch; gap: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <div class="filter-group">
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Plataforma:</span>
+            <div class="badge-filter active" onclick="filterPlatform('all', this)">Todas</div>
+            <div class="badge-filter" onclick="filterPlatform('getonbrd', this)">Get on Board</div>
+            <div class="badge-filter" onclick="filterPlatform('torre', this)">Torre.co</div>
+            <div class="badge-filter" onclick="filterPlatform('remotetech', this)">Remote Tech</div>
+            <div class="badge-filter" onclick="filterPlatform('computrabajo', this)">Computrabajo</div>
+            <div class="badge-filter" onclick="filterPlatform('linkedin', this)">LinkedIn</div>
+            <div class="badge-filter" onclick="filterPlatform('bumeran', this)">Bumeran</div>
+            <div class="badge-filter" onclick="filterPlatform('laborum', this)">Laborum</div>
+          </div>
+
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary btn-sm" onclick="cleanExpiredJobs()" title="Comprueba que los enlaces sigan abiertos en los portales">
+              🛡️ Auditar y Descartar Expiradas
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="purgeInvalidJobs()">
+              🧹 Limpiar Duplicados / Basura
+            </button>
+          </div>
+        </div>
+
+        <!-- Filtro Dinámico de Puestos Laborales Objetivo -->
+        <div class="filter-group" style="padding-top: 8px; border-top: 1px solid #e2e8f0; flex-wrap: wrap; gap: 6px;">
+          <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-right: 4px;">Puesto Objetivo:</span>
+          <div class="badge-filter active" onclick="filterRole('all', this)">Todos los Puestos</div>
+          <div class="badge-filter" onclick="filterRole('qa_tester', this)">🧪 QA / Calidad</div>
+          <div class="badge-filter" onclick="filterRole('desarrollador_jr', this)">💻 Desarrollo</div>
+          <div class="badge-filter" onclick="filterRole('soporte_ti', this)">🛠️ Soporte TI</div>
+          <div class="badge-filter" onclick="filterRole('practicante_sistemas', this)">🎓 Practicante</div>
+          <div class="badge-filter" onclick="filterRole('analista_datos', this)">📊 Datos</div>
+          <div class="badge-filter" onclick="filterRole('ingeniero_sistemas', this)">⚙️ Sistemas</div>
+        </div>
+      </div>
+
+      <div class="jobs-list" id="jobsList">
+        <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+          Cargando vacantes analizadas...
+        </div>
+      </div>
+    </div>
+
+    <!-- Pestaña 2: Puestos a Postular (Gestor de Roles Objetivo) -->
+    <div id="targetRolesTab" class="tab-content">
+      <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 1rem;">
+          <div>
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
+              <span>🎯</span> Puestos Laborales a los que Postula el Agente
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+              Activa o pausa los puestos a los que deseas que el agente busque y postule automáticamente 24/7. También puedes agregar nuevos cargos personalizados.
+            </p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="badge" id="badgeActiveRolesCount" style="background: #dcfce7; color: #15803d; font-weight: 700; font-size: 0.82rem; padding: 6px 12px; border: 1px solid #bbf7d0;">
+              🟢 6 Puestos Activos
+            </span>
+          </div>
+        </div>
+
+        <!-- Banner Explicativo -->
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-sm); padding: 0.85rem 1rem; margin-bottom: 1.5rem; font-size: 0.82rem; color: #1e40af; display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.3rem;">💡</span>
+          <div>
+            <strong>Control Total de tu Búsqueda:</strong> Si desactivas un puesto (por ejemplo, si hoy solo quieres buscar <strong>Soporte TI</strong> o <strong>QA Tester</strong>), el agente apagará la postulación a desarrollo y solo buscará ofertas de los puestos que mantengas activos.
+          </div>
+        </div>
+
+        <!-- Grid de Tarjetas de Puestos -->
+        <div id="targetRolesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; margin-bottom: 1.5rem;">
+          <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+            Cargando puestos objetivo...
+          </div>
+        </div>
+
+        <!-- Formulario para Agregar Nuevo Puesto -->
+        <div style="background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: var(--radius-md); padding: 1.2rem;">
+          <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0 0 6px 0; display: flex; align-items: center; gap: 6px;">
+            <span>➕</span> Agregar un Nuevo Puesto de Trabajo Personalizado
+          </h4>
+          <p style="font-size: 0.78rem; color: var(--text-secondary); margin: 0 0 12px 0;">
+            ¿Deseas que el agente busque un cargo específico? Escribe el título del puesto y las palabras clave asociadas.
+          </p>
+          <div style="display: grid; grid-template-columns: 1.5fr 2fr 1.2fr auto; gap: 10px; align-items: end;">
+            <div>
+              <label style="font-size: 0.76rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Nombre del Cargo / Puesto:</label>
+              <input type="text" id="newRoleName" placeholder="Ej: Administrador de Redes Junior" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.82rem;">
+            </div>
+            <div>
+              <label style="font-size: 0.76rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Palabras Clave (separadas por coma):</label>
+              <input type="text" id="newRoleKeywords" placeholder="Ej: redes, cisco, mikrotik, lan, vpn" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.82rem;">
+            </div>
+            <div>
+              <label style="font-size: 0.76rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Categoría:</label>
+              <select id="newRoleCategory" style="width: 100%; padding: 0.5rem 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.82rem; background: #fff;">
+                <option value="Sistemas & TI">⚙️ Sistemas & TI</option>
+                <option value="Desarrollo & Programación">💻 Desarrollo & Software</option>
+                <option value="Calidad & Testing">🧪 Testing / QA</option>
+                <option value="Soporte & Operaciones">🛠️ Soporte TI & Helpdesk</option>
+                <option value="Datos & Analítica">📊 Datos & BI</option>
+                <option value="Cloud & DevOps">☁️ Cloud / DevOps</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="addNewRoleFromUI()" style="height: 38px; display: flex; align-items: center; gap: 6px;">
+              <span>+</span> Agregar Puesto
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pestaña 3: Mis Postulaciones y Registros Realizados -->
+    <div id="appliedTab" class="tab-content">
+
+      <!-- HERO: RASTREADOR UNIVERSAL DE ORIGEN & CORREOS -->
+      <div class="tracer-hero">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 0.8rem;">
+          <div>
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); padding: 3px 10px; border-radius: 20px; font-size: 0.76rem; color: #a5b4fc; font-weight: 600; margin-bottom: 8px;">
+              <span>⚡</span> Trazabilidad Inversa Inteligente
+            </div>
+            <h3 style="font-size: 1.3rem; font-weight: 700; margin: 0 0 6px 0; display: flex; align-items: center; gap: 8px;">
+              <span>🔍</span> Rastreador de Origen: ¿De dónde vino ese correo o evaluación?
+            </h3>
+            <p style="font-size: 0.85rem; color: #94a3b8; margin: 0; max-width: 800px; line-height: 1.45;">
+              Si te llegó un correo de reclutador o evaluación (ej: <strong>SOLGAS</strong> vía <em>evaluar.com</em>, <strong>Monnet</strong> vía <em>buk.pe</em>, <strong>Falabella</strong> vía <em>AIRA</em>), escribe aquí el nombre de la empresa, el remitente o el texto y rastrearemos de inmediato la oferta oficial, el portal de procedencia y el enlace directo.
+            </p>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+          <input type="text" id="tracerInput" placeholder="Pega el nombre de la empresa, remitente o asunto (ej: SOLGAS, Monnet, evaluar.com, buk.pe, sostenibilidad...)" style="flex: 1; min-width: 260px; padding: 0.7rem 1rem; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #f8fafc; font-size: 0.88rem; font-family: inherit;" onkeydown="if(event.key==='Enter') executeTracerLookup()">
+          <button class="btn btn-primary" onclick="executeTracerLookup()" style="padding: 0.7rem 1.4rem; background: #4f46e5; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);">
+            <span>🔎</span> Rastrear Vacante
+          </button>
+          <button class="btn btn-secondary" onclick="clearTracerLookup()" id="btnClearTracer" style="display: none; padding: 0.7rem 1rem; border-radius: 8px; border: 1px solid #475569; color: #cbd5e1; background: #1e293b; cursor: pointer;">
+            Limpiar
+          </button>
+        </div>
+
+        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 0.76rem; color: #94a3b8;">
+          <span style="font-weight: 600;">💡 Búsquedas rápidas:</span>
+          <button type="button" class="tracer-chip" onclick="quickTracer('SOLGAS')">🏢 SOLGAS S.A.</button>
+          <button type="button" class="tracer-chip" onclick="quickTracer('Monnet')">🏢 Monnet Payments</button>
+          <button type="button" class="tracer-chip" onclick="quickTracer('evaluar.com')">🧪 evaluar.com</button>
+          <button type="button" class="tracer-chip" onclick="quickTracer('buk.pe')">📑 buk.pe</button>
+          <button type="button" class="tracer-chip" onclick="quickTracer('Valtx')">🏢 Valtx</button>
+          <button type="button" class="tracer-chip" onclick="quickTracer('AIRA')">🤖 AIRA (Falabella/Entel)</button>
+        </div>
+
+        <!-- Contenedor dinámico de resultados de trazabilidad -->
+        <div id="tracerResultsContainer" style="display: none;"></div>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 1.2rem;">
+          <div>
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
+              <span>🚀</span> Registro de Postulaciones y Cuentas
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+              Auditoría en tiempo real: Dónde se registró el agente, con qué oferta laboral exacta fue y el anuncio de la propuesta.
+            </p>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <button class="btn btn-primary btn-sm" onclick="autoConfirmAllApplications()" id="btnAutoConfirmAll" style="background: #16a34a; border-color: #15803d; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(22,163,74,0.3);" title="Completa y confirma automáticamente con IA todas las vacantes pendientes">
+              <span>⚡</span> Auto-Confirmar y Postular Todo con IA
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="fetchAppliedJobs()">
+              🔄 Actualizar Registro
+            </button>
+          </div>
+        </div>
+
+        <!-- Filtros rápidos para postulaciones y barra de búsqueda en tiempo real -->
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="badge-filter active" id="appFilterAll" onclick="filterApplications('all', this)">
+              Todas (<span id="countAppAll">0</span>)
+            </button>
+            <button class="badge-filter" id="appFilterSuccess" onclick="filterApplications('success', this)">
+              🟢 Exitosas (<span id="countAppSuccess">0</span>)
+            </button>
+            <button class="badge-filter" id="appFilterReview" onclick="filterApplications('requires_manual_action', this)">
+              🟡 Requieren Revisión (<span id="countAppReview">0</span>)
+            </button>
+            <button class="badge-filter" id="appFilterEmails" onclick="filterApplications('with_emails', this)" style="background:#f0fdf4; border-color:#86efac; color:#166534;">
+              📬 Con Respuestas (<span id="countAppEmails">0</span>)
+            </button>
+          </div>
+          <div style="min-width: 250px; flex: 1; max-width: 380px;">
+            <input type="text" id="appSearchInput" placeholder="🔍 Filtrar postulaciones por empresa, título o portal..." oninput="filterApplicationsByText(this.value)" style="width: 100%; padding: 0.45rem 0.8rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.82rem; font-family: inherit;">
+          </div>
+        </div>
+
+        <div class="jobs-list" id="appliedJobsList">
+          <div style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+            Cargando historial de postulaciones y registros...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pestaña 2: Correos de Reclutadores -->
+    <div id="emailsTab" class="tab-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 style="font-size: 1.1rem;">Mensajes Detectados en Gmail</h3>
+        <button class="btn btn-secondary btn-sm" onclick="scanEmails()">Actualizar Bandeja</button>
+      </div>
+      <div class="jobs-list" id="emailsList">
+        <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+          No hay mensajes de reclutadores pendientes por ahora. Presiona 'Escanear Correos'.
+        </div>
+      </div>
+    </div>
+
+    <!-- Pestaña 3: Perfil del Candidato -->
+    <div id="profileTab" class="tab-content">
+      <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; max-width: 800px;">
+        <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Información del Candidato (Ingeniero de Sistemas)</h3>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.2rem;">Configura tu perfil y sube tu CV para que el agente complete formularios y adjunte tus documentos automáticamente.</p>
+
+        <!-- Tarjeta de Currículum Vitae (CV) -->
+        <div style="background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: var(--radius-md); padding: 1.2rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="font-size: 1.8rem; background: #eff6ff; padding: 6px 10px; border-radius: 8px;">📄</div>
+              <div>
+                <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0;">Currículum Vitae (CV) para Postulaciones</h4>
+                <p style="font-size: 0.78rem; color: var(--text-secondary); margin: 2px 0 0 0;">El agente adjuntará este archivo automáticamente en Get on Board, Computrabajo y portales externos.</p>
+              </div>
+            </div>
+            <a href="/api/profile/cv/download" target="_blank" class="btn btn-secondary btn-sm" id="btnDownloadCv" style="display: none; text-decoration: none;">
+              👁️ Ver / Descargar CV
+            </a>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; background: #ffffff; padding: 0.75rem 1rem; border-radius: 6px; border: 1px solid var(--border-color); margin-top: 12px;">
+            <div id="cvStatusText" style="font-size: 0.85rem; color: var(--text-main); font-weight: 500;">
+              ⏳ Verificando CV activo...
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="file" id="cvFileInput" accept=".pdf,.docx,.doc" style="display: none;" onchange="uploadCvFile(this)">
+              <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('cvFileInput').click()" id="btnUploadCv">
+                📤 Subir o Cambiar mi CV (PDF)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta de Credenciales y Auto-Registro -->
+        <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: var(--radius-md); padding: 1.2rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="font-size: 1.8rem; background: #f0fdf4; padding: 6px 10px; border-radius: 8px; border: 1px solid #bbf7d0;">🔐</div>
+              <div>
+                <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0;">Auto-Registro y Acceso en Portales</h4>
+                <p style="font-size: 0.78rem; color: var(--text-secondary); margin: 2px 0 0 0;">Credenciales que usa el agente para registrarte o iniciar sesión automáticamente en empresas y portales.</p>
+              </div>
+            </div>
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <span class="badge" style="background: #e0f2fe; color: #0369a1; font-weight: 600; font-size: 0.72rem;">1º Cuenta de Google</span>
+              <span class="badge" style="background: #dcfce7; color: #15803d; font-weight: 600; font-size: 0.72rem;">2º Clave Michael23@*</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; background: #ffffff; padding: 1rem; border-radius: 6px; border: 1px solid var(--border-color);">
+            <div>
+              <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Correo para Registro:</label>
+              <input type="email" id="authEmailInput" value="jmberrocale@gmail.com" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #f8fafc;" readonly>
+            </div>
+            <div>
+              <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Contraseña Universal de Registro:</label>
+              <div style="display: flex; gap: 6px;">
+                <input type="password" id="authPasswordInput" value="Michael23@*" style="flex: 1; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; font-family: monospace;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="togglePasswordVisibility()" id="btnTogglePw" title="Ver / Ocultar">👁️</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="saveAuthCredentials()">💾 Guardar</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Herramienta de Prueba en Vivo de Registro -->
+          <div style="margin-top: 12px; background: #ffffff; padding: 0.9rem 1rem; border-radius: 6px; border: 1px solid var(--border-color);">
+            <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">🚀 Probar Auto-Registro en cualquier Portal o Enlace:</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="url" id="testPortalUrl" placeholder="https://ejemplo.com/registro o enlace de vacante..." style="flex: 1; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.82rem;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="testPortalAuth()" id="btnTestPortal">⚡ Probar Auto-Registro</button>
+            </div>
+            <div id="portalTestResult" style="display: none; margin-top: 8px; padding: 6px 10px; border-radius: 4px; font-size: 0.78rem;"></div>
+          </div>
+        </div>
+
+        <form id="profileForm" onsubmit="saveProfile(event)" style="display: grid; gap: 14px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div>
+              <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Nombre Completo:</label>
+              <input type="text" id="profFullName" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit;">
+            </div>
+            <div>
+              <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Correo Gmail:</label>
+              <input type="email" id="profEmail" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div>
+              <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Teléfono:</label>
+              <input type="text" id="profPhone" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit;">
+            </div>
+            <div>
+              <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Carrera / Grado:</label>
+              <input type="text" id="profDegree" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div>
+              <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">🔗 Perfil de LinkedIn:</label>
+              <input type="url" id="profLinkedin" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit;" placeholder="https://www.linkedin.com/in/jackmberrocal">
+            </div>
+            <div>
+              <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">🐙 Perfil de GitHub (Proyectos Reales):</label>
+              <input type="url" id="profGithub" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit;" placeholder="https://github.com/JackMBerrocal">
+            </div>
+          </div>
+
+          <div>
+            <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Pretensiones Salariales (🇵🇪 Soles S/ 2,200 - 2,800 en Perú | 🌎 Dólares $850 - 1,200 USD Internacional):</label>
+            <input type="text" id="profSalary" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit;">
+          </div>
+
+          <div>
+            <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Argumento de Compensación por falta de experiencia formal:</label>
+            <textarea id="profWhyHire" rows="3" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit; font-size: 0.85rem;"></textarea>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+            <button type="submit" class="btn btn-primary">Guardar Perfil</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Pestaña Freelance: Proyectos Rápidos en Español -->
+    <div id="freelanceTab" class="tab-content">
+      <!-- Header Banner Freelance -->
+      <div class="freelance-header-card">
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+            <span style="font-size: 1.5rem;">⚡</span>
+            <h2 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Centro de Oportunidades Freelance & Proyectos Rápidos</h2>
+            <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">100% en Español</span>
+          </div>
+          <p style="margin: 0; font-size: 0.88rem; color: #e0e7ff; max-width: 720px; line-height: 1.45;">
+            Monitorea proyectos puntuales de automatización con Python, tableros en Power BI, pruebas de QA y bases de datos SQL para generar ingresos inmediatos en USD/Soles mientras se formalizan las vacantes a tiempo completo.
+          </p>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button class="btn btn-secondary" onclick="scanFreelanceProjects()" id="btnScanFreelance" style="background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); color: #ffffff; font-weight: 600;">
+            🔄 Escanear Nuevos Proyectos
+          </button>
+          <button class="btn btn-primary" onclick="toggleExternalProposalBox()" style="background: #ffffff; color: #4338ca; border: none; font-weight: 700;">
+            ✍️ Generar Propuesta de Workana/Upwork
+          </button>
+        </div>
+      </div>
+
+      <!-- Panel de Control: Auto-Bid Autónomo en Tiempo Real (Modo 2) -->
+      <div id="autobidBannerCard" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); border-radius: 12px; padding: 18px 22px; color: #ffffff; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; border: 1px solid rgba(99, 102, 241, 0.35); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div id="autobidPulseIcon" style="width: 46px; height: 46px; border-radius: 50%; background: rgba(99, 102, 241, 0.25); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; border: 1px solid rgba(129, 140, 248, 0.4);">
+            ⚡
+          </div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px; flex-wrap: wrap;">
+              <h3 style="margin: 0; font-size: 1.12rem; font-weight: 700; color: #ffffff;">Auto-Bid Autónomo 24/7 (Modo 2: Primer Ofertante)</h3>
+              <span id="autobidStatusBadge" style="background: #334155; color: #94a3b8; font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase;">
+                ⏸️ Pausado
+              </span>
+            </div>
+            <p style="margin: 0; font-size: 0.84rem; color: #cbd5e1; line-height: 1.45;">
+              Monitorea Freelancer.com activamente en tiempo real para ofertar de forma automática en los primeros minutos de publicación.
+              <span style="display: block; margin-top: 3px; color: #94a3b8; font-size: 0.8rem;">
+                🛡️ Tarifa mínima: <strong style="color: #6ee7b7;">$<span id="abMinHourly">15</span> USD/hr</strong> • Cuota: <strong style="color: #6ee7b7;"><span id="abBidsToday">0</span>/<span id="abMaxDaily">4</span> ofertas hoy</strong> • Escaneo continuo cada <span id="abInterval">75</span>s
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <button id="btnToggleAutoBid" onclick="toggleAutoBidMode()" class="btn btn-primary" style="background: #4f46e5; border-color: #4338ca; font-weight: 700; font-size: 0.88rem; padding: 8px 18px; border-radius: 8px;">
+            ⚡ Activar Modo 2 (Auto-Bid)
+          </button>
+          <button id="btnAutoBidAllPending" onclick="autoBidAllPendingFreelance()" class="btn btn-secondary" style="background: rgba(99, 102, 241, 0.25); border-color: #818cf8; color: #e0e7ff; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; font-weight: 600;" title="Oferta automáticamente a todos los proyectos freelance pendientes">
+            ⚡ Postular a Todos los Pendientes
+          </button>
+          <button onclick="viewAutoAppliedProjects()" class="btn btn-secondary" style="background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #6ee7b7; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; font-weight: 600;">
+            📋 Ver Auto-Ofertados (<span id="abBannerCount">0</span>)
+          </button>
+          <button onclick="openAutoBidConfigModal()" class="btn btn-secondary" style="background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.3); color: #ffffff; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px;">
+            ⚙️ Reglas & Límites
+          </button>
+        </div>
+      </div>
+
+      <!-- Generador Rápido de Propuestas para Proyectos Pegados (Workana, Upwork, etc.) -->
+      <div id="externalProposalBox" class="freelance-generator-box" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1.2rem;">🪄</span>
+            <strong style="font-size: 1rem; color: #1e1b4b;">Generador de Propuesta Ganadora para cualquier Proyecto Externo</strong>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="toggleExternalProposalBox()">Cerrar</button>
+        </div>
+        <p style="font-size: 0.84rem; color: var(--text-secondary); margin-bottom: 14px;">
+          ¿Viste un proyecto en Workana, Upwork o LinkedIn? Pega aquí el título y requerimiento para que la IA arme tu cotización justa en USD y tu propuesta técnica enfocada en resolver el problema en 48 horas.
+        </p>
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Título del Proyecto:</label>
+            <input type="text" id="extProjTitle" placeholder="Ej: Script en Python para scraping de catálogo web a Excel" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit;">
+          </div>
+          <div>
+            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Presupuesto Cliente:</label>
+            <input type="text" id="extProjBudget" placeholder="Ej: $100 USD o $50 - $200" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit;">
+          </div>
+          <div>
+            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Nombre del Cliente:</label>
+            <input type="text" id="extProjClient" placeholder="Ej: Juan o Estimado Cliente" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit;">
+          </div>
+        </div>
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Requerimiento / Descripción del Cliente:</label>
+          <textarea id="extProjDesc" rows="4" placeholder="Pega aquí el texto que puso el cliente solicitando el trabajo..." style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit; font-size: 0.85rem;"></textarea>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button class="btn btn-primary" onclick="generateExternalProposal()" id="btnGenerateExtProposal">
+            ⚡ Generar Propuesta Comercial con IA
+          </button>
+        </div>
+        <!-- Resultado de la propuesta externa -->
+        <div id="extProposalResult" style="display: none; margin-top: 14px; padding-top: 14px; border-top: 1px dashed #cbd5e1;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span class="bid-calc-pill" id="extResultBid">$85 USD</span>
+              <span class="time-calc-pill" id="extResultTimeline">48 horas</span>
+              <span class="portal-tag" id="extResultCategory">python_automation</span>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="copyExternalProposalText()" style="background: #059669; border-color: #047857;">
+              📋 Copiar Propuesta
+            </button>
+          </div>
+          <pre id="extProposalText" style="white-space: pre-wrap; font-family: inherit; font-size: 0.88rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; color: #1e293b; line-height: 1.55;"></pre>
+        </div>
+      </div>
+
+      <!-- Filtros de Proyectos Freelance -->
+      <div class="toolbar" style="flex-direction: column; align-items: stretch; gap: 10px; margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <div class="filter-group">
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Especialidad:</span>
+            <div class="badge-filter active" onclick="filterFreelanceCategory('all', this)">Todas</div>
+            <div class="badge-filter" onclick="filterFreelanceCategory('customer_support_whatsapp', this)">💬 WhatsApp & Chat</div>
+            <div class="badge-filter" onclick="filterFreelanceCategory('sales_setter_crm', this)">🎯 Setter & Ventas</div>
+            <div class="badge-filter" onclick="filterFreelanceCategory('ai_chatbot_system', this)">🤖 Chatbots & IA</div>
+            <div class="badge-filter" onclick="filterFreelanceCategory('python_automation', this)">🐍 Python & Scraping</div>
+            <div class="badge-filter" onclick="filterFreelanceCategory('power_bi_data', this)">📊 Power BI & Datos</div>
+            <div class="badge-filter" onclick="filterFreelanceCategory('qa_testing', this)">🧪 QA Testing & APIs</div>
+            <div class="badge-filter" onclick="filterFreelanceCategory('sql_database', this)">🗄️ SQL & Bases de Datos</div>
+            <div class="badge-filter" onclick="filterFreelanceCategory('web_dev', this)">🌐 Desarrollo Web</div>
+          </div>
+          <div class="filter-group">
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Plataforma:</span>
+            <div class="badge-filter active" onclick="filterFreelancePlatform('all', this)">Todas</div>
+            <div class="badge-filter" onclick="filterFreelancePlatform('freelancer', this)">Freelancer.com</div>
+            <div class="badge-filter" onclick="filterFreelancePlatform('getonbrd', this)">Get on Board</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px; border-top: 1px solid #f1f5f9; padding-top: 8px;">
+          <div class="filter-group" id="filterStatusGroup">
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Estado:</span>
+            <div class="badge-filter active" id="flStatusAll" onclick="filterFreelanceStatus('all', this)">Todos</div>
+            <div class="badge-filter" id="flStatusAuto" onclick="filterFreelanceStatus('auto_applied', this)" style="background: #ecfdf5; border-color: #6ee7b7; color: #065f46; font-weight: 700;">⚡ Auto-Ofertados (<span id="flStatusAutoCount">0</span>)</div>
+            <div class="badge-filter" id="flStatusApplied" onclick="filterFreelanceStatus('applied', this)">✅ Postulados Manualmente</div>
+            <div class="badge-filter" id="flStatusReady" onclick="filterFreelanceStatus('proposal_generated', this)">⚡ Con Propuesta Lista</div>
+            <div class="badge-filter" id="flStatusOpen" onclick="filterFreelanceStatus('open', this)">⏳ Pendientes</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid de Proyectos Freelance -->
+      <div id="freelanceProjectsContainer" class="freelance-grid">
+        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
+          Cargando oportunidades freelance...
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Modal para Conexión de Cuentas en Navegador -->
+  <div class="modal-overlay" id="connectModal">
+    <div class="modal-box modal-large">
+      <div class="portal-modal-header">
+        <div>
+          <h3 style="margin-bottom:4px; font-size:1.35rem;">🔑 Centro de Conexión de Redes y Portales</h3>
+          <p style="margin-bottom:0; font-size:0.88rem; color:var(--text-secondary);">
+            Inicia sesión en tus bolsas de empleo. LibreWolf abrirá las plataformas para gestionar y mantener tus sesiones de búsqueda laboral.
+          </p>
+        </div>
+        <button class="portal-close-btn" onclick="closeConnectModal()" title="Cerrar">&times;</button>
+      </div>
+
+      <!-- Banner de Apertura Global -->
+      <div class="portal-all-banner">
+        <div>
+          <strong style="font-size:0.95rem; color:#1e3a8a; display:block;">🚀 Conectar Todas las Redes (8 Portales en Pestañas)</strong>
+          <span style="font-size:0.82rem; color:#475569;">Abre una ventana de LibreWolf con pestañas paralelas para LinkedIn, Computrabajo, Bumeran, Laborum, Torre, Get on Board, Indeed y Gmail.</span>
+        </div>
+        <button class="btn btn-primary" onclick="launchLoginBrowser('all')" id="btnOpenAllPortals" style="white-space:nowrap; padding:9px 18px; font-weight:700;">
+          🚀 Abrir Todos los Portales
+        </button>
+      </div>
+
+      <!-- Grid dinámico de portales individuales -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <span style="font-size:0.85rem; font-weight:700; color:#334155; text-transform:uppercase; letter-spacing:0.5px;">Portales de Empleo Soportados</span>
+        <button class="btn btn-secondary" onclick="loadPortalStatuses()" style="padding:4px 10px; font-size:0.75rem;">🔄 Refrescar Estados</button>
+      </div>
+
+      <div class="portal-grid" id="portalGridContainer">
+        <!-- Renderizado dinámicamente -->
+        <div style="text-align:center; padding:20px; color:#64748b; grid-column:1/-1;">Cargando portales...</div>
+      </div>
+
+      <div class="modal-actions" style="margin-top:12px; border-top:1px solid #f1f5f9; padding-top:12px;">
+        <button class="btn btn-secondary" onclick="closeConnectModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Visualizar Anuncio y Propuesta Laboral Completa -->
+  <div class="modal-overlay" id="jobProposalModal" style="display:none;">
+    <div class="modal-box modal-large" style="max-width:850px;">
+      <div class="portal-modal-header">
+        <div>
+          <span class="portal-tag" id="proposalPlatformTag" style="background:#e0f2fe; color:#0369a1; font-weight:700;">PORTAL</span>
+          <h3 id="proposalModalTitle" style="margin-top:6px; margin-bottom:4px; font-size:1.3rem; color:#0f172a;">Título de la Oferta</h3>
+          <div style="font-size:0.88rem; color:var(--text-secondary);" id="proposalModalSubtitle">
+            Empresa • Ubicación • Salario
+          </div>
+        </div>
+        <button class="portal-close-btn" onclick="closeJobProposalModal()" title="Cerrar">&times;</button>
+      </div>
+
+      <!-- Fila de Auditoría de Registro -->
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 16px; margin-bottom:16px; font-size:0.85rem;">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
+          <div>
+            <span style="color:#64748b; font-size:0.75rem; font-weight:700; text-transform:uppercase; display:block;">🌐 Portal / Sitio de Registro:</span>
+            <span style="font-weight:600; color:#0f172a;" id="proposalPortalDomain">-</span>
+          </div>
+          <div>
+            <span style="color:#64748b; font-size:0.75rem; font-weight:700; text-transform:uppercase; display:block;">🔐 Cuenta Utilizada:</span>
+            <span style="font-weight:600; color:#0f172a;" id="proposalAccountUsed">jmberrocale@gmail.com</span>
+          </div>
+          <div>
+            <span style="color:#64748b; font-size:0.75rem; font-weight:700; text-transform:uppercase; display:block;">📅 Fecha y Hora de Postulación:</span>
+            <span style="font-weight:600; color:#0f172a;" id="proposalCreatedAt">-</span>
+          </div>
+          <div>
+            <span style="color:#64748b; font-size:0.75rem; font-weight:700; text-transform:uppercase; display:block;">📋 Estado:</span>
+            <span id="proposalStatusBadge" style="font-weight:600;">-</span>
+          </div>
+        </div>
+        <div id="proposalNotesContainer" style="margin-top:8px; border-top:1px dashed #cbd5e1; padding-top:6px; font-size:0.82rem; color:#475569;">
+          <strong>Notas del Agente:</strong> <span id="proposalNotesText">-</span>
+        </div>
+      </div>
+
+      <!-- Texto del Anuncio de la Oferta -->
+      <div style="margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <h4 style="font-size:0.95rem; font-weight:700; margin:0; color:#1e293b; display:flex; align-items:center; gap:6px;">
+            <span>📜</span> Anuncio Oficial / Propuesta Laboral de la Empresa
+          </h4>
+        </div>
+        <div id="proposalFullDescription" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:14px; max-height:280px; overflow-y:auto; font-size:0.88rem; line-height:1.6; color:#334155; white-space:pre-line;">
+          Cargando anuncio...
+        </div>
+      </div>
+
+      <!-- Evaluación IA de la Oferta -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:12px;">
+          <strong style="color:#15803d; font-size:0.82rem; text-transform:uppercase;">✔ Lo que cumplimos:</strong>
+          <ul id="proposalFulfilledList" style="margin:6px 0 0 16px; font-size:0.82rem; color:#166534; line-height:1.4;"></ul>
+        </div>
+        <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:12px;">
+          <strong style="color:#b91c1c; font-size:0.82rem; text-transform:uppercase;">✖ Puntos a compensar:</strong>
+          <ul id="proposalMissingList" style="margin:6px 0 0 16px; font-size:0.82rem; color:#991b1b; line-height:1.4;"></ul>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="border-top:1px solid #f1f5f9; padding-top:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <button class="btn btn-secondary" onclick="closeJobProposalModal()">Cerrar</button>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-secondary" id="btnProposalQuestions" onclick="openQuestionsModal(currentJobProposalAppId, currentJobProposalJobId)" style="background:#f0f9ff; border-color:#bae6fd; color:#0369a1; font-size:0.85rem; display:inline-flex; align-items:center; gap:6px;">
+            📄 Postulación con CV Oficial
+          </button>
+          <a id="proposalViewerLink" href="#" target="_blank" class="btn btn-secondary" style="background:#f0fdf4; border-color:#86efac; color:#166534; font-size:0.85rem; display:inline-flex; align-items:center; gap:6px;" title="Abre el anuncio completo en pestaña protegida sin bloqueos 403">
+            🛡️ Abrir en Pestaña Nueva (Visor Seguro)
+          </a>
+          <a id="proposalOfficialLink" href="#" target="_blank" class="btn btn-primary" style="display:inline-flex; align-items:center; gap:6px; font-size:0.85rem;">
+            🌐 Ver Portal Externo
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Responder Preguntas de la Empresa y Completar Postulación -->
+  <div class="modal-overlay" id="questionsModal" style="display:none;">
+    <div class="modal-box modal-large" style="max-width:820px;">
+      <div class="portal-modal-header" style="border-bottom:1px solid #f1f5f9; padding-bottom:12px; margin-bottom:14px;">
+        <div>
+          <span style="background:#7e22ce; color:#fff; font-size:0.75rem; font-weight:700; padding:3px 8px; border-radius:4px; text-transform:uppercase;" id="questionsPortalBadge">COMPUTRABAJO</span>
+          <h3 id="questionsJobTitle" style="margin-top:6px; margin-bottom:4px; font-size:1.25rem; color:#0f172a;">Postulación & Preguntas del Empleador</h3>
+          <div style="font-size:0.85rem; color:var(--text-secondary);" id="questionsCompanySub">Empresa • Modalidad</div>
+        </div>
+        <button class="portal-close-btn" onclick="closeQuestionsModal()" title="Cerrar">&times;</button>
+      </div>
+
+      <div id="modalQuestionsBanner" style="background:#faf5ff; border:1px solid #e9d5ff; border-radius:8px; padding:12px 16px; margin-bottom:16px; font-size:0.85rem; color:#581c87; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <span id="modalQuestionsBannerText">💡 <strong>Respuestas basadas en tu CV oficial:</strong> Información redactada con rigor técnico según tu título de Ingeniería de Sistemas (Jack Michael Berrocal).</span>
+        <button class="btn btn-secondary btn-sm" onclick="reloadModalQuestions()" style="font-size:0.78rem; background:#fff; border-color:#d8b4fe; color:#6b21a8; cursor:pointer;">
+          ✨ Regenerar con IA
+        </button>
+      </div>
+
+      <div id="modalQuestionsList" style="display:flex; flex-direction:column; gap:14px; max-height:460px; overflow-y:auto; padding-right:4px;">
+        <div style="text-align:center; padding:2rem; color:#7e22ce;">Cargando información de la postulación...</div>
+      </div>
+
+      <div style="margin-top:14px;">
+        <label style="font-size:0.8rem; font-weight:600; color:#475569; display:block; margin-bottom:4px;">Nota adicional para la postulación (opcional):</label>
+        <input type="text" id="modalCustomNote" placeholder="Ej: Postulación completada con CV oficial y carta de presentación de Sistemas." style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.83rem;">
+      </div>
+
+      <div class="modal-actions" style="border-top:1px solid #f1f5f9; padding-top:14px; margin-top:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <button class="btn btn-secondary" onclick="closeQuestionsModal()">Cerrar</button>
+        <button class="btn btn-primary" id="btnSaveModalQuestions" onclick="submitModalQuestions()" style="background:#7e22ce; border-color:#6b21a8; font-weight:700; cursor:pointer;">
+          🚀 Guardar y Completar Postulación
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Visualizar Propuesta Freelance con IA -->
+  <div class="modal-overlay" id="freelanceProposalModal" style="display:none;">
+    <div class="modal-box modal-large" style="max-width:850px;">
+      <div class="portal-modal-header">
+        <div>
+          <span class="portal-tag" id="fModalPlatformTag" style="background:#e0f2fe; color:#0369a1; font-weight:700;">FREELANCER</span>
+          <h3 id="fModalTitle" style="margin-top:6px; margin-bottom:4px; font-size:1.3rem; color:#0f172a;">Título del Proyecto</h3>
+          <div style="font-size:0.88rem; color:var(--text-secondary);" id="fModalSubtitle">
+            Cliente • Presupuesto • Tiempo de entrega sugerido
+          </div>
+        </div>
+        <button class="portal-close-btn" onclick="closeFreelanceProposalModal()" title="Cerrar">&times;</button>
+      </div>
+
+      <!-- Banner de Cotización y Tiempos -->
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 16px; margin-bottom:16px; font-size:0.85rem;">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px;">
+          <div>
+            <span style="color:#64748b; font-size:0.75rem; font-weight:700; text-transform:uppercase; display:block;">💰 Presupuesto Cliente:</span>
+            <span style="font-weight:700; color:#047857; font-size:0.95rem;" id="fModalBudget">-</span>
+          </div>
+          <div>
+            <span style="color:#64748b; font-size:0.75rem; font-weight:700; text-transform:uppercase; display:block;">🎯 Oferta / Bid Recomendado:</span>
+            <span style="font-weight:700; color:#4338ca; font-size:0.95rem;" id="fModalSuggestedBid">-</span>
+          </div>
+          <div>
+            <span style="color:#64748b; font-size:0.75rem; font-weight:700; text-transform:uppercase; display:block;">⏱️ Tiempo de Entrega:</span>
+            <span style="font-weight:700; color:#c2410c; font-size:0.95rem;" id="fModalSuggestedTimeline">-</span>
+          </div>
+          <div>
+            <span style="color:#64748b; font-size:0.75rem; font-weight:700; text-transform:uppercase; display:block;">🏷️ Categoría Técnica:</span>
+            <span style="font-weight:600; color:#0f172a;" id="fModalCategory">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Descripción del Proyecto -->
+      <div style="margin-bottom:16px;">
+        <h4 style="font-size:0.9rem; font-weight:700; margin:0 0 6px 0; color:#1e293b;">
+          📋 Requerimiento del Cliente
+        </h4>
+        <div id="fModalDescription" style="background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; padding:12px; max-height:140px; overflow-y:auto; font-size:0.85rem; line-height:1.5; color:#334155; white-space:pre-line;">
+        </div>
+      </div>
+
+      <!-- Propuesta Ganadora Generada con IA -->
+      <div style="margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <h4 style="font-size:0.95rem; font-weight:700; margin:0; color:#1e293b; display:flex; align-items:center; gap:6px;">
+            <span>⚡</span> Propuesta Comercial Lista para Enviar (Personalizada con tu Perfil y Certificaciones)
+          </h4>
+          <button class="btn btn-primary btn-sm" onclick="copyFreelanceProposalFromModal()" style="background:#059669; border-color:#047857; font-weight:700;">
+            📋 Copiar Propuesta
+          </button>
+        </div>
+        <textarea id="fModalProposalText" rows="10" style="width:100%; padding:14px; border:1px solid #c7d2fe; border-radius:8px; font-family:inherit; font-size:0.88rem; line-height:1.6; color:#1e293b; background:#faf5ff;"></textarea>
+      </div>
+
+      <div class="modal-actions" style="border-top:1px solid #f1f5f9; padding-top:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <button class="btn btn-secondary" onclick="closeFreelanceProposalModal()">Cerrar</button>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-secondary" id="btnMarkFreelanceApplied" onclick="markCurrentFreelanceApplied()" style="border-color:#86efac; color:#166534; font-size:0.85rem;">
+            ✅ Marcar como Postulado
+          </button>
+          <a id="fModalOpenBrowserLink" href="#" target="_blank" class="btn btn-primary" style="background:#2563eb; font-size:0.85rem; display:inline-flex; align-items:center; gap:6px;">
+            🦊 Abrir Proyecto en LibreWolf ↗
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Configuración de Auto-Bid Autónomo (Modo 2) -->
+  <div class="modal-overlay" id="autobidConfigModal" style="display:none;">
+    <div class="modal-box" style="max-width:650px;">
+      <div class="portal-modal-header">
+        <div>
+          <span class="portal-tag" style="background:#e0e7ff; color:#4338ca; font-weight:700;">MODO 2 AUTÓNOMO</span>
+          <h3 style="margin-top:6px; margin-bottom:4px; font-size:1.25rem; color:#0f172a;">Reglas y Guardarraíles de Auto-Bid 24/7</h3>
+          <div style="font-size:0.85rem; color:var(--text-secondary);">
+            Configura los filtros para que el agente oferte de forma inteligente y segura.
+          </div>
+        </div>
+        <button class="portal-close-btn" onclick="closeAutoBidConfigModal()" title="Cerrar">&times;</button>
+      </div>
+
+      <div style="padding: 16px 0;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+          <div>
+            <label style="font-size: 0.8rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">
+              Tarifa Mínima por Hora ($ USD):
+            </label>
+            <input type="number" id="cfgMinHourly" min="5" max="200" step="1" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem;">
+            <span style="font-size: 0.72rem; color: #64748b;">Descarta ofertas por debajo de este valor (ej: $15 USD/hr).</span>
+          </div>
+
+          <div>
+            <label style="font-size: 0.8rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">
+              Presupuesto Mínimo Proyecto Fijo ($ USD):
+            </label>
+            <input type="number" id="cfgMinFixed" min="10" max="10000" step="5" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem;">
+            <span style="font-size: 0.72rem; color: #64748b;">Evita micro-gigs abusivos (ej: mínimo $50 USD).</span>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+          <div>
+            <label style="font-size: 0.8rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">
+              Cupo Máximo Diario de Ofertas:
+            </label>
+            <input type="number" id="cfgMaxDailyBids" min="1" max="50" step="1" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem;">
+            <span style="font-size: 0.72rem; color: #64748b;">Protege tus créditos mensuales de Freelancer.com.</span>
+          </div>
+
+          <div>
+            <label style="font-size: 0.8rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">
+              Intervalo de Escaneo Continuo (segundos):
+            </label>
+            <input type="number" id="cfgCheckInterval" min="45" max="600" step="5" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem;">
+            <span style="font-size: 0.72rem; color: #64748b;">Recomendado: 60 - 90 seg para ser primer ofertante.</span>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 0.8rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 6px;">
+            Especialidades Autorizadas para Auto-Bid:
+          </label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 0.85rem;">
+            <label><input type="checkbox" id="cat_whatsapp" value="customer_support_whatsapp"> 💬 WhatsApp & Chat Support</label>
+            <label><input type="checkbox" id="cat_setter" value="sales_setter_crm"> 🎯 Setter de Ventas & CRM</label>
+            <label><input type="checkbox" id="cat_chatbot" value="ai_chatbot_system"> 🤖 Chatbots & Sistemas IA</label>
+            <label><input type="checkbox" id="cat_powerbi" value="power_bi_data"> 📊 Power BI & Datos</label>
+            <label><input type="checkbox" id="cat_qa" value="qa_testing"> 🧪 QA Testing & APIs</label>
+            <label><input type="checkbox" id="cat_sql" value="sql_database"> 🗄️ SQL & Bases de Datos</label>
+            <label><input type="checkbox" id="cat_web" value="web_dev"> 🌐 Desarrollo Web</label>
+            <label><input type="checkbox" id="cat_python" value="python_automation"> 🐍 Python & Automatización</label>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size: 0.8rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">
+            Token Personal de API Freelancer.com (Opcional para envío &lt; 1s):
+          </label>
+          <input type="password" id="cfgApiToken" placeholder="Pega aquí tu Developer Auth Token si deseas envío instantáneo vía API" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; font-family: monospace;">
+          <span style="font-size: 0.72rem; color: #64748b;">Si no dispones de token, el agente opera mediante la sesión de tu navegador.</span>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="border-top:1px solid #f1f5f9; padding-top:12px; display:flex; justify-content:flex-end; gap:10px;">
+        <button class="btn btn-secondary" onclick="closeAutoBidConfigModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveAutoBidConfig()" style="background:#4338ca; border-color:#3730a3; font-weight:700;">
+          💾 Guardar Reglas de Auto-Bid
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    let currentPlatformFilter = 'all';
+    let currentRoleFilter = 'all';
+    let currentProfile = {};
+    let currentFreelanceCategory = 'all';
+    let currentFreelancePlatform = 'all';
+    let currentFreelanceStatus = 'all';
+    let freelanceProjectsData = [];
+    let currentFreelanceModalProject = null;
+
+    // Iniciar datos y polling
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchHealth();
+      fetchStats();
+      fetchJobs();
+      fetchTargetRoles();
+      fetchAppliedJobs();
+      fetchFreelanceProjects();
+      fetchAutoBidStatus();
+      fetchProfile();
+      fetchLogs();
+      fetchContinuousStatus();
+      
+      // Polling cada 3 segundos
+      setInterval(() => {
+        fetchHealth();
+        fetchStats();
+        fetchLogs();
+        fetchContinuousStatus();
+        const flTab = document.getElementById('freelanceTab');
+        if (flTab && flTab.classList.contains('active')) {
+          fetchAutoBidStatus();
+        }
+      }, 3000);
+    });
+
+    async function fetchHealth() {
+      try {
+        const res = await fetch('/api/system/health');
+        if (!res.ok) return;
+        const data = await res.json();
+        
+        document.getElementById('healthAgentStatus').innerText = data.agent.current_action || '🟢 Agente Operativo';
+        document.getElementById('healthUser').innerText = `${data.candidate.email} (${data.candidate.degree})`;
+        document.getElementById('chkHeadless').checked = !data.browser_engine.headless;
+      } catch (err) {
+        console.error('Error fetching health:', err);
+      }
+    }
+
+    async function fetchStats() {
+      try {
+        const res = await fetch('/api/stats');
+        if (!res.ok) return;
+        const data = await res.json();
+        
+        document.getElementById('statTotalJobs').innerText = data.total_jobs;
+        document.getElementById('statAppliedJobs').innerText = data.applied_jobs;
+        document.getElementById('statQueueSize').innerText = data.queue_size;
+        document.getElementById('statInterviews').innerText = data.interviews;
+        if (document.getElementById('statExpiredJobs')) {
+          document.getElementById('statExpiredJobs').innerText = data.expired_jobs || 0;
+        }
+
+        if (data.active_roles_count !== undefined) {
+          const rBadge = document.getElementById('badgeActiveRolesCount');
+          if (rBadge) rBadge.innerText = `🟢 ${data.active_roles_count} Puestos Activos`;
+          const tRolesCount = document.getElementById('tabRolesCount');
+          if (tRolesCount) tRolesCount.innerText = data.active_roles_count;
+        }
+        if (data.applied_jobs !== undefined) {
+          const tAppCount = document.getElementById('tabAppliedCount');
+          if (tAppCount) tAppCount.innerText = data.applied_jobs;
+        }
+        if (data.freelance_count !== undefined) {
+          const tFreelanceCount = document.getElementById('tabFreelanceCount');
+          if (tFreelanceCount) tFreelanceCount.innerText = data.freelance_count;
+        }
+        
+        if (data.current_processing_job) {
+          document.getElementById('currentProcessingText').innerText = `⚡ Postulando a: ${data.current_processing_job}`;
+        } else if (data.is_running) {
+          document.getElementById('currentProcessingText').innerText = `🔎 ${data.current_action}`;
+        } else {
+          document.getElementById('currentProcessingText').innerText = `🟢 Listo`;
+        }
+      } catch (err) {
+        console.error('Error fetching stats:', err);
+      }
+    }
+
+    async function fetchJobs() {
+      try {
+        let url = `/api/jobs?platform=${currentPlatformFilter}`;
+        if (currentRoleFilter && currentRoleFilter !== 'all') {
+          url += `&role=${encodeURIComponent(currentRoleFilter)}`;
+        }
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const jobs = await res.json();
+        renderJobs(jobs);
+      } catch (err) {
+        console.error('Error fetching jobs:', err);
+      }
+    }
+
+    function filterRole(roleId, el) {
+      currentRoleFilter = roleId;
+      const toolbar = el.parentElement;
+      if (toolbar) {
+        toolbar.querySelectorAll('.badge-filter').forEach(b => b.classList.remove('active'));
+      }
+      el.classList.add('active');
+      fetchJobs();
+    }
+
+    function renderJobs(jobs) {
+      const container = document.getElementById('jobsList');
+      if (!jobs || jobs.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 3rem; background: #fff; border-radius: 12px; border: 1px solid var(--border-color);">
+            <div style="font-size: 2.5rem; margin-bottom: 10px;">🔍</div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 6px;">No hay vacantes para el filtro seleccionado</h3>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 16px;">Prueba cambiando el puesto laboral o plataforma, o haz clic para explorar nuevos avisos.</p>
+            <button class="btn btn-primary" onclick="triggerJobSearch()">⚡ Iniciar Búsqueda Ahora</button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = jobs.map(j => {
+        const scoreClass = j.match_score >= 80 ? 'score-high' : (j.match_score >= 60 ? 'score-medium' : 'score-low');
+        const fulfilledHtml = (j.cumplimos || []).map(f => `<li><span style="color:var(--accent-emerald)">✓</span> ${f}</li>`).join('');
+        const missingHtml = (j.no_cumplimos || []).map(m => `<li><span style="color:var(--accent-amber)">!</span> ${m}</li>`).join('');
+        
+        const isApplied = j.status === 'applied';
+        const isQueued = j.status === 'queued';
+
+        let applyBtnText = '⚡ Postular con Agente';
+        let applyDisabled = '';
+        if (isApplied) {
+          applyBtnText = '✅ ¡Postulación Enviada!';
+          applyDisabled = 'disabled style="background:var(--accent-emerald-bg); color:var(--accent-emerald); border-color:transparent; cursor:default;"';
+        } else if (isQueued) {
+          applyBtnText = '⏳ En fila para postular...';
+          applyDisabled = 'disabled style="opacity:0.7; cursor:wait;"';
+        }
+
+        const roleTagHtml = j.target_role ? `
+          <div style="display:flex; align-items:center; gap:6px; margin-top:6px; flex-wrap:wrap;">
+            <span class="badge" style="background:#eff6ff; color:#1d4ed8; font-weight:700; font-size:0.74rem; border:1px solid #bfdbfe;">
+              ${j.target_role_icon || '🎯'} ${j.target_role}
+            </span>
+            ${j.target_role_enabled ? `
+              <span class="badge" style="background:#dcfce7; color:#15803d; font-size:0.7rem; font-weight:600;">
+                ✅ Puesto Activo para Postular
+              </span>
+            ` : `
+              <span class="badge" style="background:#f1f5f9; color:#64748b; font-size:0.7rem; font-weight:600;">
+                ⏸️ Puesto Pausado en Preferencias
+              </span>
+            `}
+          </div>
+        ` : '';
+
+        return `
+          <div class="job-card" id="job-card-${j.id}">
+            <div class="job-card-header">
+              <div>
+                <div class="job-title">${j.title}</div>
+                <div class="job-meta">
+                  <span class="platform-pill platform-${j.platform}">${j.platform}</span>
+                  <strong>🏢 ${j.company}</strong>
+                  <span>📍 ${j.location}</span>
+                  ${j.salary ? `<span>💰 ${j.salary}</span>` : ''}
+                  <span style="color: var(--text-muted); font-size: 0.78rem;">${j.created_at}</span>
+                </div>
+                ${roleTagHtml}
+              </div>
+              <div class="score-badge ${scoreClass}">
+                🎯 ${j.match_score}% Afinidad
+              </div>
+            </div>
+
+            <!-- Matriz de Idoneidad para Primer Empleo -->
+            <div class="fit-matrix">
+              <div class="matrix-col col-fulfilled">
+                <h4>🟢 Lo que SÍ Cumplimos:</h4>
+                <ul class="matrix-list">${fulfilledHtml || '<li>Formación en Ingeniería de Sistemas</li>'}</ul>
+              </div>
+              <div class="matrix-col col-missing">
+                <h4>🟠 Lo que NO Cumplimos:</h4>
+                <ul class="matrix-list">${missingHtml || '<li>0 años de experiencia formal previa</li>'}</ul>
+              </div>
+              ${j.estrategia ? `<div class="strategy-box"><strong>💡 Estrategia del Agente:</strong> ${j.estrategia}</div>` : ''}
+            </div>
+
+            <div class="job-footer">
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <a href="/view/job/${j.id}" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; background:#f0fdf4; border-color:#86efac; color:#166534;" title="Visor protegido sin error 403">
+                  🛡️ Visor Seguro (Sin 403)
+                </a>
+                <a href="${j.url ? j.url.split('#')[0] : '#'}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" class="btn btn-secondary btn-sm" style="font-size: 0.8rem;">
+                  🔗 Web ${j.platform}
+                </a>
+                <button class="btn btn-secondary btn-sm" onclick="discardJob(${j.id})" title="Descartar esta vacante" style="color: #ef4444; border-color: #fca5a5; font-size: 0.8rem;">
+                  🚫 Descartar
+                </button>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="applyToJob(${j.id})" ${applyDisabled}>
+                ${applyBtnText}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function fetchTargetRoles() {
+      try {
+        const res = await fetch('/api/profile/roles');
+        if (!res.ok) return;
+        const data = await res.json();
+        renderTargetRoles(data.roles || []);
+        
+        const countBadge = document.getElementById('badgeActiveRolesCount');
+        if (countBadge) countBadge.innerText = `🟢 ${data.active_count || 0} Puestos Activos`;
+        const tabCount = document.getElementById('tabRolesCount');
+        if (tabCount) tabCount.innerText = data.active_count || 0;
+      } catch (err) {
+        console.error('Error loading roles:', err);
+      }
+    }
+
+    function renderTargetRoles(roles) {
+      const grid = document.getElementById('targetRolesGrid');
+      if (!grid) return;
+      if (!roles || roles.length === 0) {
+        grid.innerHTML = '<div style="color:var(--text-muted); padding:1.5rem; text-align:center;">No hay puestos configurados.</div>';
+        return;
+      }
+
+      grid.innerHTML = roles.map(r => {
+        const isPaused = !r.enabled;
+        const keywordsHtml = (r.keywords || []).map(k => `<span class="keyword-pill">${k}</span>`).join('');
+        return `
+          <div class="role-card ${isPaused ? 'paused' : ''}" id="role-card-${r.id}">
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:8px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:1.6rem;">${r.icon || '💼'}</span>
+                  <div>
+                    <h4 style="font-size:0.95rem; font-weight:700; color:var(--text-main); margin:0;">${r.name}</h4>
+                    <span style="font-size:0.75rem; color:var(--text-secondary); font-weight:600;">${r.category || 'Tecnología'}</span>
+                  </div>
+                </div>
+                <label class="switch-toggle" title="${r.enabled ? 'Pausar postulación a este puesto' : 'Activar postulación a este puesto'}">
+                  <input type="checkbox" ${r.enabled ? 'checked' : ''} onchange="toggleRole('${r.id}', this.checked)">
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+
+              <div style="margin: 8px 0;">
+                <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600; display:block; margin-bottom:4px;">Palabras clave asociadas:</span>
+                <div>${keywordsHtml}</div>
+              </div>
+
+              <div style="font-size:0.75rem; color:var(--text-secondary); background:#f8fafc; padding:4px 8px; border-radius:4px; border:1px solid #e2e8f0; font-family:var(--font-mono);">
+                🔍 Búsqueda: <strong>"${r.search_query || r.name}"</strong>
+              </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; padding-top:10px; border-top:1px solid #f1f5f9; margin-top:8px;">
+              <span style="font-size:0.76rem; font-weight:600; color:${r.enabled ? 'var(--accent-emerald)' : '#64748b'};">
+                ${r.enabled ? '● Postulación 24/7 Activa' : '○ Puesto Pausado'}
+              </span>
+              <button class="btn btn-secondary btn-sm" onclick="deleteRoleFromUI('${r.id}')" title="Eliminar este puesto" style="padding:2px 8px; font-size:0.75rem; color:#ef4444; border-color:#fca5a5;">
+                🗑️ Eliminar
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function toggleRole(roleId, isChecked) {
+      try {
+        const res = await fetch(`/api/profile/roles/toggle/${roleId}`, { method: 'POST' });
+        const data = await res.json();
+        fetchTargetRoles();
+        fetchStats();
+        fetchJobs();
+      } catch (err) {
+        alert('Error al actualizar estado del puesto: ' + err);
+      }
+    }
+
+    async function addNewRoleFromUI() {
+      const nameInput = document.getElementById('newRoleName');
+      const kwInput = document.getElementById('newRoleKeywords');
+      const catSelect = document.getElementById('newRoleCategory');
+
+      const name = nameInput.value.trim();
+      if (!name) {
+        alert('Por favor escribe el nombre del cargo o puesto.');
+        return;
+      }
+
+      const rawKws = kwInput.value.trim();
+      const keywords = rawKws ? rawKws.split(',').map(s => s.trim().toLowerCase()).filter(Boolean) : [];
+      const category = catSelect.value;
+
+      try {
+        const res = await fetch('/api/profile/roles/add', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ name, keywords, category })
+        });
+        if (!res.ok) {
+          alert('Error al agregar puesto.');
+          return;
+        }
+        nameInput.value = '';
+        kwInput.value = '';
+        fetchTargetRoles();
+        fetchStats();
+        fetchJobs();
+      } catch (err) {
+        alert('Error al guardar nuevo puesto: ' + err);
+      }
+    }
+
+    async function deleteRoleFromUI(roleId) {
+      if (!confirm('¿Deseas eliminar este puesto de tus preferencias? El agente ya no postulará a este cargo.')) return;
+      try {
+        const res = await fetch(`/api/profile/roles/${roleId}`, { method: 'DELETE' });
+        if (res.ok) {
+          fetchTargetRoles();
+          fetchStats();
+          fetchJobs();
+        }
+      } catch (err) {
+        alert('Error al eliminar puesto: ' + err);
+      }
+    }
+
+    async function discardJob(jobId) {
+      if (!confirm('¿Deseas descartar esta vacante? No se mostrará más ni se postulará a ella.')) return;
+      try {
+        const res = await fetch(`/api/jobs/discard/${jobId}`, { method: 'POST' });
+        if (res.ok) {
+          fetchJobs();
+          fetchStats();
+        }
+      } catch (err) {
+        alert('Error al descartar vacante: ' + err);
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    let allApplicationsData = [];
+    let currentAppFilter = 'all';
+    let currentAppSearchQuery = '';
+
+    async function autoConfirmAllApplications() {
+      const btn = document.getElementById('btnAutoConfirmAll');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳</span> Auto-Confirmando con IA...';
+      }
+      try {
+        const res = await fetch('/api/applications/auto_confirm_all', { method: 'POST' });
+        const data = await res.json();
+        if (res.ok) {
+          showToast(`⚡ ${data.message || 'Postulaciones auto-confirmadas con éxito'}`);
+          fetchAppliedJobs();
+          fetchStats();
+        } else {
+          alert('Error al auto-confirmar: ' + (data.error || res.statusText));
+        }
+      } catch (err) {
+        alert('Error de conexión: ' + err);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>⚡</span> Auto-Confirmar y Postular Todo con IA';
+        }
+      }
+    }
+
+    async function autoBidAllPendingFreelance() {
+      const btn = document.getElementById('btnAutoBidAllPending');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳</span> Auto-Ofertando Proyectos...';
+      }
+      try {
+        const res = await fetch('/api/freelance/auto_bid_all_pending', { method: 'POST' });
+        const data = await res.json();
+        if (res.ok) {
+          showToast(`⚡ ${data.message || 'Proyectos auto-ofertados con éxito'}`);
+          fetchFreelanceProjects();
+        } else {
+          alert('Error al postular: ' + (data.error || res.statusText));
+        }
+      } catch (err) {
+        alert('Error: ' + err);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '⚡ Postular a Todos los Pendientes';
+        }
+      }
+    }
+
+    async function fetchAppliedJobs() {
+      try {
+        const res = await fetch('/api/applications');
+        if (!res.ok) return;
+        allApplicationsData = await res.json();
+        
+        // Actualizar contadores
+        const totalCount = allApplicationsData.length;
+        const successCount = allApplicationsData.filter(a => a.status === 'success').length;
+        const reviewCount = allApplicationsData.filter(a => a.status === 'requires_manual_action').length;
+        const withEmailsCount = allApplicationsData.filter(a => a.has_linked_email).length;
+
+        const countBadge = document.getElementById('tabAppliedCount');
+        if (countBadge) countBadge.innerText = totalCount;
+
+        const elAll = document.getElementById('countAppAll');
+        if (elAll) elAll.innerText = totalCount;
+
+        const elSuccess = document.getElementById('countAppSuccess');
+        if (elSuccess) elSuccess.innerText = successCount;
+
+        const elReview = document.getElementById('countAppReview');
+        if (elReview) elReview.innerText = reviewCount;
+
+        const elEmails = document.getElementById('countAppEmails');
+        if (elEmails) elEmails.innerText = withEmailsCount;
+
+        renderAppliedJobs();
+      } catch (err) {
+        console.error('Error fetching applied jobs:', err);
+      }
+    }
+
+    function filterApplications(filterType, btnElem) {
+      currentAppFilter = filterType;
+      const parent = btnElem.parentElement;
+      if (parent) {
+        parent.querySelectorAll('.badge-filter').forEach(b => b.classList.remove('active'));
+      }
+      btnElem.classList.add('active');
+      renderAppliedJobs();
+    }
+
+    function filterApplicationsByText(query) {
+      currentAppSearchQuery = (query || '').toLowerCase().trim();
+      renderAppliedJobs();
+    }
+
+    async function executeTracerLookup() {
+      const input = document.getElementById('tracerInput');
+      const container = document.getElementById('tracerResultsContainer');
+      const btnClear = document.getElementById('btnClearTracer');
+      if (!input || !container) return;
+
+      const q = input.value.trim();
+      if (!q) {
+        alert('Por favor escribe el nombre de la empresa, remitente o texto del correo.');
+        return;
+      }
+
+      container.style.display = 'block';
+      container.innerHTML = `
+        <div style="text-align: center; padding: 2rem; color: #94a3b8;">
+          <span style="font-size: 1.5rem; display: block; margin-bottom: 8px;">⏳</span>
+          Rastreando en tiempo real en la base de datos de ofertas y postulaciones...
+        </div>
+      `;
+      if (btnClear) btnClear.style.display = 'inline-block';
+
+      try {
+        const res = await fetch(`/api/tracer/lookup?q=${encodeURIComponent(q)}`);
+        if (!res.ok) throw new Error('Error en el servidor de rastreo');
+        const data = await res.json();
+        const matches = data.matches || [];
+
+        if (matches.length === 0) {
+          container.innerHTML = `
+            <div class="tracer-result-card" style="background: rgba(30, 41, 59, 0.9); border-color: #475569; color: #f8fafc; text-align: center; padding: 2rem;">
+              <div style="font-size: 2rem; margin-bottom: 8px;">🔎</div>
+              <h4 style="font-size: 1.1rem; color: #f8fafc; margin-bottom: 6px;">No se encontró coincidencia directa para "${escapeHtml(q)}"</h4>
+              <p style="font-size: 0.85rem; color: #94a3b8; max-width: 500px; margin: 0 auto 12px auto;">
+                Puede que la empresa use una razón social diferente o que la postulación haya sido realizada antes del registro del sistema.
+              </p>
+              <button class="btn btn-secondary btn-sm" onclick="clearTracerLookup()" style="border-color: #64748b; color: #e2e8f0; background: #0f172a;">Cerrar Búsqueda</button>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = `
+          <div style="margin-top: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <strong style="color: #38bdf8; font-size: 0.9rem; display: flex; align-items: center; gap: 6px;">
+                <span>🎯</span> Se encontraron ${matches.length} oferta(s) asociada(s) para "${escapeHtml(q)}":
+              </strong>
+              <button onclick="clearTracerLookup()" style="background: none; border: none; color: #94a3b8; font-size: 0.8rem; cursor: pointer; text-decoration: underline;">Ocultar resultados</button>
+            </div>
+
+            ${matches.map((m, idx) => `
+              <div class="tracer-result-card" style="background: #ffffff; color: #0f172a; border-left: 5px solid #2563eb; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.12);">
+                <!-- Línea de Vida / Pipeline de Trazabilidad -->
+                <div class="trace-pipeline" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px;">
+                  <div class="pipeline-node" style="color: #1e293b;">
+                    <span class="platform-pill platform-${(m.platform || '').toLowerCase()}">${escapeHtml(m.platform_name)}</span>
+                  </div>
+                  <span class="pipeline-sep">➔</span>
+                  <div class="pipeline-node" style="color: #0369a1;">
+                    <span>📜 Oferta Oficial</span>
+                  </div>
+                  <span class="pipeline-sep">➔</span>
+                  <div class="pipeline-node" style="color: #15803d;">
+                    <span>🚀 Postulación (${m.applied_at || 'Registrada'})</span>
+                  </div>
+                  <span class="pipeline-sep">➔</span>
+                  <div class="pipeline-node" style="color: #7c3aed;">
+                    <span>🏷️ ${escapeHtml(m.detected_ats)}</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+                  <div>
+                    <h4 style="font-size: 1.15rem; font-weight: 700; color: #0f172a; margin: 0 0 4px 0;">
+                      ${escapeHtml(m.title)}
+                    </h4>
+                    <div style="font-size: 0.88rem; color: #475569; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                      <strong>🏢 Empresa Real: <span style="color: #2563eb;">${escapeHtml(m.company)}</span></strong>
+                      <span>📍 ${escapeHtml(m.location)}</span>
+                      <span>💰 ${escapeHtml(m.salary)}</span>
+                      <span class="badge" style="background: #ecfdf5; color: #166534; font-weight: 600;">Estado: ${escapeHtml(m.status)}</span>
+                    </div>
+                  </div>
+                  <div class="score-badge score-high" style="font-size: 0.85rem;">
+                    🎯 ${m.match_score}% Afinidad
+                  </div>
+                </div>
+
+                <!-- Detalle de Postulación y Cuenta -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-size: 0.82rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px;">
+                  <div>
+                    <span style="color: #64748b; font-weight: 600; display: block; font-size: 0.73rem;">FECHA DE POSTULACIÓN:</span>
+                    <strong style="color: #0f172a;">${m.applied_at}</strong>
+                  </div>
+                  <div>
+                    <span style="color: #64748b; font-weight: 600; display: block; font-size: 0.73rem;">CUENTA UTILIZADA:</span>
+                    <strong style="color: #0f172a;">${m.account_used}</strong>
+                  </div>
+                  <div>
+                    <span style="color: #64748b; font-weight: 600; display: block; font-size: 0.73rem;">MÉTODO DE REGISTRO:</span>
+                    <span style="color: #334155;">${escapeHtml(m.auth_method)}</span>
+                  </div>
+                </div>
+
+                <!-- Notificaciones de correos vinculados si existen -->
+                ${m.recent_emails && m.recent_emails.length > 0 ? `
+                  <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 8px 12px; margin-bottom: 10px; font-size: 0.82rem;">
+                    <strong style="color: #166534; display: block; margin-bottom: 4px;">📬 Correos Recibidos de este Proceso:</strong>
+                    ${m.recent_emails.map(em => `
+                      <div style="color: #1e293b; margin-top: 2px;">
+                        • <strong>${escapeHtml(em.subject)}</strong> <span style="color: #64748b; font-size: 0.75rem;">(${escapeHtml(em.sender)} - ${em.received_at})</span>
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : ''}
+
+                <!-- Botones de Acción Directa -->
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px;">
+                  <a href="${m.clean_url || m.url}" target="_blank" class="btn btn-primary btn-sm" style="background: #2563eb; border-color: #1d4ed8; color: #ffffff; font-weight: 700; font-size: 0.82rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    🌐 Abrir Oferta Oficial en ${escapeHtml(m.platform_name)} ↗
+                  </a>
+                  ${m.action_url ? `
+                    <a href="${m.action_url}" target="_blank" class="btn btn-primary btn-sm" style="background: #16a34a; border-color: #15803d; color: #ffffff; font-weight: 700; font-size: 0.82rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                      🚀 Ir al Proceso / Evaluación ↗
+                    </a>
+                  ` : ''}
+                  <a href="/view/job/${m.job_id}" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.82rem; background: #f1f5f9; border-color: #cbd5e1; color: #334155;">
+                    🛡️ Visor Seguro
+                  </a>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (err) {
+        container.innerHTML = `<div style="padding: 1rem; color: #ef4444;">Error en rastreo: ${err}</div>`;
+      }
+    }
+
+    function clearTracerLookup() {
+      const input = document.getElementById('tracerInput');
+      const container = document.getElementById('tracerResultsContainer');
+      const btnClear = document.getElementById('btnClearTracer');
+      if (input) input.value = '';
+      if (container) {
+        container.innerHTML = '';
+        container.style.display = 'none';
+      }
+      if (btnClear) btnClear.style.display = 'none';
+    }
+
+    function quickTracer(term) {
+      const input = document.getElementById('tracerInput');
+      if (input) {
+        input.value = term;
+        executeTracerLookup();
+      }
+    }
+
+    function renderAppliedJobs() {
+      const container = document.getElementById('appliedJobsList');
+      if (!container) return;
+
+      let list = allApplicationsData;
+
+      // Filtro por pestañas
+      if (currentAppFilter === 'with_emails') {
+        list = list.filter(a => a.has_linked_email);
+      } else if (currentAppFilter !== 'all') {
+        list = list.filter(a => a.status === currentAppFilter);
+      }
+
+      // Filtro por buscador de texto
+      if (currentAppSearchQuery) {
+        list = list.filter(a => {
+          const hay = `${a.job_title} ${a.company} ${a.portal_name} ${a.portal_domain} ${a.notes} ${a.description || ''}`.toLowerCase();
+          const inEmails = (a.linked_emails || []).some(em => `${em.subject} ${em.sender}`.toLowerCase().includes(currentAppSearchQuery));
+          return hay.includes(currentAppSearchQuery) || inEmails;
+        });
+      }
+
+      if (!list || list.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 3rem; background: #fff; border-radius: 12px; border: 1px solid var(--border-color);">
+            <div style="font-size: 2.5rem; margin-bottom: 10px;">📋</div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 6px;">No hay registros con este filtro o búsqueda</h3>
+            <p style="color: var(--text-muted); font-size: 0.88rem;">Intenta con otros términos o limpia el filtro de búsqueda.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.map(app => {
+        const isSuccess = app.status === 'success';
+        const borderColor = isSuccess ? 'var(--accent-emerald)' : '#f59e0b';
+        const badgeBg = isSuccess ? '#dcfce7' : '#fef3c7';
+        const badgeColor = isSuccess ? '#15803d' : '#b45309';
+
+        const cleanDesc = (app.description || '').replace(/\s+/g, ' ').trim();
+        const descSnippet = cleanDesc.length > 200 ? cleanDesc.slice(0, 200) + '...' : cleanDesc;
+
+        return `
+          <div class="job-card" style="border-left: 4px solid ${borderColor}; margin-bottom: 16px; background: #ffffff; padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <div class="job-card-header" style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+              <div>
+                <div class="job-title" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                  <span style="font-size:1.05rem; font-weight:700; color:var(--text-main);">${escapeHtml(app.job_title)}</span>
+                  <span class="badge" style="background:${badgeBg}; color:${badgeColor}; font-size:0.75rem; font-weight:600;">
+                    ${app.status_badge}
+                  </span>
+                  ${app.has_linked_email ? `
+                    <span class="badge" style="background:#dbeafe; color:#1e40af; font-size:0.75rem; font-weight:700; border:1px solid #bfdbfe;">
+                      📬 ${app.linked_emails.length} Correo(s) Recibido(s)
+                    </span>
+                  ` : ''}
+                </div>
+                <div class="job-meta" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:6px; font-size:0.85rem;">
+                  <span class="platform-pill platform-${app.portal_name.toLowerCase()}">${app.portal_name}</span>
+                  <strong style="color:#0f172a; font-size:0.92rem;">🏢 ${escapeHtml(app.company)}</strong>
+                  <span>📍 ${escapeHtml(app.location)}</span>
+                  <span>💰 ${escapeHtml(app.salary)}</span>
+                  <span class="badge" style="background:#eff6ff; color:#1d4ed8; font-size:0.75rem;">${app.target_role_icon || '🎯'} ${escapeHtml(app.target_role || 'Sistemas')}</span>
+                  <span style="color: var(--text-muted); font-size: 0.78rem;">🕒 ${app.created_at}</span>
+                </div>
+              </div>
+              <div class="score-badge score-high" style="flex-shrink:0;">
+                🎯 ${app.match_score}% Afinidad
+              </div>
+            </div>
+
+            <!-- Caja de Auditoría del Registro (Dónde se registró y con qué cuenta) -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; margin-bottom:10px; font-size:0.83rem; display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:8px;">
+              <div>
+                <span style="color:#64748b; font-weight:600; display:block; font-size:0.75rem;">🌐 PORTAL DE PROCEDENCIA:</span>
+                <strong style="color:#0f172a;">${escapeHtml(app.portal_domain)}</strong>
+              </div>
+              <div>
+                <span style="color:#64748b; font-weight:600; display:block; font-size:0.75rem;">🔐 CUENTA / CREDENCIAL USADA:</span>
+                <span style="color:#0f172a; font-weight:500;">${escapeHtml(app.account_used)} <small style="color:#64748b;">(${escapeHtml(app.auth_method)})</small></span>
+              </div>
+              <div style="grid-column: 1 / -1; border-top:1px dashed #e2e8f0; padding-top:6px; margin-top:2px;">
+                <span style="color:#64748b; font-weight:600;">📝 Detalle del Registro:</span>
+                <span style="color:#334155;">${escapeHtml(app.notes)}</span>
+              </div>
+            </div>
+
+            <!-- Si hay correos vinculados, mostrarlos claramente en la tarjeta -->
+            ${app.has_linked_email ? `
+              <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 14px; margin-bottom:10px; font-size:0.83rem;">
+                <strong style="color:#166534; font-size:0.82rem; display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                  <span>📬</span> ${app.linked_emails.length} Notificación(es) / Correos de este Proceso:
+                </strong>
+                ${app.linked_emails.map(em => `
+                  <div style="margin-top:4px; padding-top:4px; border-top:1px dashed #dcfce7; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+                    <div>
+                      <strong style="color:#0f172a;">${escapeHtml(em.subject)}</strong>
+                      <span style="color:#64748b; font-size:0.75rem; margin-left:6px;">(${escapeHtml(em.sender)} • ${em.received_at})</span>
+                    </div>
+                    ${em.action_url ? `<a href="${em.action_url}" target="_blank" class="btn btn-primary btn-sm" style="font-size:0.75rem; padding:3px 8px; background:#16a34a; border:none;">🚀 Ir al Proceso / Evaluación ↗</a>` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+
+            <!-- Anuncio de la Propuesta Laboral Oficial -->
+            <div style="background:#fdfefe; border:1px solid #e0f2fe; border-left:3px solid #0284c7; border-radius:6px; padding:10px 14px; margin-bottom:12px; font-size:0.83rem; line-height:1.45;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <strong style="color:#0369a1; font-size:0.8rem; text-transform:uppercase; display:flex; align-items:center; gap:5px;">
+                  <span>📜</span> Anuncio de la Oferta Laboral:
+                </strong>
+                <button class="btn btn-secondary btn-sm" onclick="openJobProposalModal(${app.id})" style="font-size:0.76rem; padding:3px 8px; border-color:#bae6fd; color:#0284c7; background:#f0f9ff; cursor:pointer;">
+                  👁️ Ver Anuncio Completo
+                </button>
+              </div>
+              <p style="color:#475569; margin:0; font-style:italic;">
+                "${escapeHtml(descSnippet)}"
+              </p>
+            </div>
+
+            <div class="job-footer" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; padding-top:8px; border-top:1px solid #f1f5f9;">
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <!-- ENLACE DIRECTO CLICKEABLE A LA OFERTA OFICIAL DEL PORTAL -->
+                <a href="${app.clean_job_url || app.job_url}" target="_blank" class="btn btn-primary btn-sm" style="background:#2563eb; border-color:#1d4ed8; color:#ffffff; font-weight:700; font-size:0.82rem; display:inline-flex; align-items:center; gap:5px; text-decoration:none;" title="Abre el aviso oficial en el portal de empleo">
+                  🌐 Ver Aviso Oficial en ${app.portal_name} ↗
+                </a>
+
+                ${app.has_employer_questions ? `
+                  <button class="btn btn-primary btn-sm" onclick="openQuestionsModal(${app.id}, ${app.job_id})" style="background:#15803d; border-color:#166534; color:#ffffff; font-size:0.82rem; font-weight:700; display:inline-flex; align-items:center; gap:5px;">
+                    🎯 ${app.questions_count} Preguntas Respondidas
+                  </button>
+                ` : `
+                  <button class="btn btn-secondary btn-sm" onclick="openQuestionsModal(${app.id}, ${app.job_id})" style="font-size:0.82rem; display:inline-flex; align-items:center; gap:5px; color:#0369a1; border-color:#bae6fd; background:#f0f9ff;">
+                    📄 Postulación con CV Oficial
+                  </button>
+                `}
+                <button class="btn btn-secondary btn-sm" onclick="openJobProposalModal(${app.id})" style="font-size:0.82rem; display:inline-flex; align-items:center; gap:5px;">
+                  📜 Ver Propuesta
+                </button>
+                <a href="${app.viewer_url || '/view/job/' + app.job_id}" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.82rem; display:inline-flex; align-items:center; gap:5px; background:#f0fdf4; border-color:#86efac; color:#166534;" title="Abre el visor protegido de JobHunter sin bloqueos 403">
+                  🛡️ Visor Seguro
+                </a>
+              </div>
+              <span style="font-size:0.78rem; color:var(--text-muted);">
+                CV de Ingeniería de Sistemas vinculado
+              </span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    let currentJobProposalAppId = null;
+    let currentJobProposalJobId = null;
+
+    function openJobProposalModal(appId) {
+      const app = allApplicationsData.find(a => a.id === appId);
+      if (!app) return;
+
+      currentJobProposalAppId = app.id;
+      currentJobProposalJobId = app.job_id;
+
+      document.getElementById('proposalPlatformTag').innerText = app.portal_name;
+      document.getElementById('proposalModalTitle').innerText = app.job_title;
+      document.getElementById('proposalModalSubtitle').innerText = `🏢 ${app.company} • 📍 ${app.location} • 💰 ${app.salary}`;
+      document.getElementById('proposalPortalDomain').innerText = app.portal_domain;
+      document.getElementById('proposalAccountUsed').innerText = `${app.account_used} (${app.auth_method})`;
+      document.getElementById('proposalCreatedAt').innerText = app.created_at;
+      
+      const isSuccess = app.status === 'success';
+      const badgeBg = isSuccess ? '#dcfce7' : '#fef3c7';
+      const badgeColor = isSuccess ? '#15803d' : '#b45309';
+      document.getElementById('proposalStatusBadge').innerHTML = `
+        <span class="badge" style="background:${badgeBg}; color:${badgeColor}; font-size:0.78rem;">
+          ${app.status_badge}
+        </span>
+      `;
+      document.getElementById('proposalNotesText').innerText = app.notes;
+
+      // Anuncio completo de la propuesta laboral
+      const descBox = document.getElementById('proposalFullDescription');
+      if (descBox) {
+        const text = app.description || 'No hay descripción detallada disponible para esta oferta.';
+        if (/<(ul|li|p|br|div|b|strong|h[1-6])/i.test(text)) {
+          descBox.innerHTML = text;
+        } else {
+          descBox.innerText = text;
+        }
+      }
+
+      // Requisitos cumplidos y faltantes
+      const fulfilledList = document.getElementById('proposalFulfilledList');
+      if (fulfilledList) {
+        if (app.requirements_fulfilled && app.requirements_fulfilled.length > 0) {
+          fulfilledList.innerHTML = app.requirements_fulfilled.map(item => `<li>✔ ${escapeHtml(item)}</li>`).join('');
+        } else {
+          fulfilledList.innerHTML = `<li>✔ Perfil y carrera en Ingeniería de Sistemas coincidente</li><li>✔ Habilidades y experiencia afines al puesto</li>`;
+        }
+      }
+
+      const missingList = document.getElementById('proposalMissingList');
+      if (missingList) {
+        if (app.requirements_missing && app.requirements_missing.length > 0) {
+          missingList.innerHTML = app.requirements_missing.map(item => `<li>ℹ ${escapeHtml(item)}</li>`).join('');
+        } else {
+          missingList.innerHTML = `<li>✔ 100% de requisitos críticos cubiertos</li>`;
+        }
+      }
+
+      const viewerLink = document.getElementById('proposalViewerLink');
+      if (viewerLink) {
+        viewerLink.href = app.viewer_url || ('/view/job/' + app.job_id);
+      }
+
+      const link = document.getElementById('proposalOfficialLink');
+      if (link) {
+        link.href = `/proxy/job/${app.job_id}`;
+      }
+
+      const btnQuestions = document.getElementById('btnProposalQuestions');
+      if (btnQuestions) {
+        if (app.has_employer_questions) {
+          btnQuestions.innerHTML = `🎯 ${app.questions_count} Preguntas del Empleador`;
+          btnQuestions.style.background = '#f0fdf4';
+          btnQuestions.style.borderColor = '#86efac';
+          btnQuestions.style.color = '#166534';
+        } else {
+          btnQuestions.innerHTML = `📄 Postulación con CV Oficial`;
+          btnQuestions.style.background = '#f0f9ff';
+          btnQuestions.style.borderColor = '#bae6fd';
+          btnQuestions.style.color = '#0369a1';
+        }
+      }
+
+      document.getElementById('jobProposalModal').style.display = 'flex';
+    }
+
+    let currentModalAppId = null;
+    let currentModalJobId = null;
+    let modalQuestionsData = [];
+    let modalHasCustomQuestions = false;
+    let modalCoverLetterText = '';
+
+    async function openQuestionsModal(appId, jobId, preloadedData = null) {
+      currentModalAppId = appId;
+      currentModalJobId = jobId;
+      const modal = document.getElementById('questionsModal');
+      const listContainer = document.getElementById('modalQuestionsList');
+      const titleElem = document.getElementById('questionsJobTitle');
+      const subElem = document.getElementById('questionsCompanySub');
+      const badgeElem = document.getElementById('questionsPortalBadge');
+      const bannerText = document.getElementById('modalQuestionsBannerText');
+      const btnSave = document.getElementById('btnSaveModalQuestions');
+
+      modal.style.display = 'flex';
+
+      try {
+        let data = preloadedData;
+        if (!data) {
+          listContainer.innerHTML = '<div style="text-align:center; padding:2rem; color:#7e22ce;">⏳ Analizando convocatoria y generando respuestas técnicas con tu CV...</div>';
+          const url = appId ? `/api/applications/${appId}/questions` : `/api/jobs/${jobId}/questions`;
+          const res = await fetch(url);
+          data = await res.json();
+        }
+
+        modalQuestionsData = data.questions || [];
+        modalHasCustomQuestions = (data.has_employer_questions === true) && (modalQuestionsData.length > 0);
+        modalCoverLetterText = data.cover_letter || '';
+
+        titleElem.innerText = modalHasCustomQuestions 
+          ? `${data.job_title || 'Postulación'} — Preguntas del Empleador`
+          : `${data.job_title || 'Postulación'} — Postulación con CV Oficial`;
+        subElem.innerText = `${data.company || 'Empresa'} • ${data.portal || 'PORTAL'}`;
+        badgeElem.innerText = data.portal || 'PORTAL';
+
+        if (modalHasCustomQuestions) {
+          badgeElem.style.background = '#15803d';
+          badgeElem.innerText = `${data.portal || 'PORTAL'} • ${data.employer_questions_count || modalQuestionsData.length} PREGUNTAS DEL RECLUTADOR`;
+          bannerText.innerHTML = `🎯 <strong>Preguntas específicas detectadas:</strong> El empleador (<em>${escapeHtml(data.company || '')}</em>) incluyó preguntas específicas en su convocatoria. Las respuestas se han redactado con exactitud técnica según tu CV de <strong>Ingeniería de Sistemas</strong>.`;
+          btnSave.innerHTML = `🚀 Guardar Respuestas y Completar Postulación`;
+
+          listContainer.innerHTML = modalQuestionsData.map((q, idx) => {
+            const isEmp = q.is_from_employer !== false;
+            const badgeTag = `<span style="font-size:0.72rem; font-weight:700; background:#dcfce7; color:#166534; padding:2px 8px; border-radius:4px; border:1px solid #bbf7d0;">🎯 Pregunta Real del Anuncio</span>`;
+
+            return `
+              <div style="background:#ffffff; border:1px solid #86efac; border-radius:8px; padding:14px; margin-bottom:10px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:8px;">
+                  <label style="font-weight:700; font-size:0.88rem; color:#1e293b; line-height:1.4;">
+                    ${idx + 1}. ${escapeHtml(q.question)}
+                  </label>
+                  <div style="flex-shrink:0;">${badgeTag}</div>
+                </div>
+                <textarea id="modal_ans_${idx}" style="width:100%; min-height:85px; padding:10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem; line-height:1.5; font-family:inherit; color:#1e293b; resize:vertical;">${escapeHtml(q.suggested_answer || q.answer || '')}</textarea>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+                  <small style="color:#7e22ce; font-size:0.75rem; font-weight:600;">✔ Respuesta técnica fundamentada en tu CV (Jack Michael Berrocal - Egresado Sistemas)</small>
+                </div>
+              </div>
+            `;
+          }).join('') + `
+            <details style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px; margin-top:10px;">
+              <summary style="font-weight:700; font-size:0.85rem; color:#334155; cursor:pointer; user-select:none;">
+                📄 Carta de Presentación personalizada generada para esta postulación (Opcional - Haz clic para ver)
+              </summary>
+              <div style="margin-top:10px;">
+                <textarea id="modalCoverLetter" style="width:100%; min-height:140px; padding:10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.84rem; line-height:1.5; font-family:inherit; color:#1e293b; resize:vertical;">${escapeHtml(modalCoverLetterText)}</textarea>
+                <small style="color:#64748b; font-size:0.75rem; display:block; margin-top:4px;">✔ Incluye tu titulación de Ingeniería de Sistemas, especialidades técnicas y enlace a tu GitHub.</small>
+              </div>
+            </details>
+          `;
+
+        } else {
+          // Caso 2: Oferta estándar sin preguntas abiertas (Postulación con CV oficial)
+          badgeElem.style.background = '#0284c7';
+          badgeElem.innerText = `${data.portal || 'PORTAL'} • POSTULACIÓN CON CV OFICIAL`;
+          bannerText.innerHTML = `ℹ️ <strong>Esta vacante no incluye preguntas abiertas del empleador.</strong> La postulación se formaliza adjuntando tu <strong>CV oficial en PDF</strong> (<code>CV_Jack_Michael_Berrocal.pdf</code>) y una Carta de Presentación personalizada.`;
+          btnSave.innerHTML = `🚀 Confirmar Postulación con CV y Carta de Presentación`;
+
+          const highlightsHtml = (data.cv_highlights || []).map(h => `
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 10px; font-size:0.8rem;">
+              <div style="color:#64748b; font-weight:600; font-size:0.72rem; text-transform:uppercase;">${escapeHtml(h.label)}</div>
+              <div style="color:#0f172a; font-weight:600; margin-top:2px;">${escapeHtml(h.value)}</div>
+            </div>
+          `).join('');
+
+          listContainer.innerHTML = `
+            <div style="background:#ffffff; border:1px solid #bae6fd; border-radius:8px; padding:14px;">
+              <label style="display:block; font-weight:700; font-size:0.88rem; color:#0369a1; margin-bottom:6px;">
+                📄 Carta de Presentación adaptada según tu CV (Editable antes de confirmar):
+              </label>
+              <textarea id="modalCoverLetter" style="width:100%; min-height:160px; padding:10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.84rem; line-height:1.5; font-family:inherit; color:#1e293b; resize:vertical;">${escapeHtml(modalCoverLetterText)}</textarea>
+              <small style="color:#0284c7; font-size:0.75rem; display:block; margin-top:4px;">✔ Adaptada con tu titulación de Ingeniería de Sistemas, habilidades de TI / QA / Python y repositorio en GitHub.</small>
+            </div>
+
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:14px;">
+              <div style="font-weight:700; font-size:0.85rem; color:#334155; margin-bottom:8px;">
+                📋 Parámetros oficiales verificados de tu perfil:
+              </div>
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:8px;">
+                ${highlightsHtml}
+              </div>
+            </div>
+          `;
+        }
+
+      } catch (err) {
+        listContainer.innerHTML = `<div style="color:#b91c1c; padding:1rem;">Error al cargar información: ${err}</div>`;
+      }
+    }
+
+    function closeQuestionsModal() {
+      const modal = document.getElementById('questionsModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    async function reloadModalQuestions() {
+      if (currentModalAppId || currentModalJobId) {
+        const listContainer = document.getElementById('modalQuestionsList');
+        listContainer.innerHTML = '<div style="text-align:center; padding:2rem; color:#7e22ce;">⏳ Regenerando respuestas con IA basadas en tu CV...</div>';
+        try {
+          const url = currentModalAppId ? `/api/applications/${currentModalAppId}/questions?refresh=true` : `/api/jobs/${currentModalJobId}/questions`;
+          const res = await fetch(url);
+          const data = await res.json();
+          openQuestionsModal(currentModalAppId, currentModalJobId, data);
+        } catch (err) {
+          openQuestionsModal(currentModalAppId, currentModalJobId);
+        }
+      }
+    }
+
+    async function submitModalQuestions() {
+      const btn = document.getElementById('btnSaveModalQuestions');
+      btn.disabled = true;
+      btn.innerText = '⏳ Procesando postulación...';
+
+      let payloadAnswers = [];
+      let coverLetterVal = '';
+
+      if (modalHasCustomQuestions) {
+        payloadAnswers = modalQuestionsData.map((q, idx) => {
+          const textarea = document.getElementById(`modal_ans_${idx}`);
+          return {
+            question: q.question,
+            answer: textarea ? textarea.value.trim() : (q.suggested_answer || '')
+          };
+        });
+        const letterElem = document.getElementById('modalCoverLetter');
+        if (letterElem) coverLetterVal = letterElem.value.trim();
+      } else {
+        const letterElem = document.getElementById('modalCoverLetter');
+        coverLetterVal = letterElem ? letterElem.value.trim() : modalCoverLetterText;
+        payloadAnswers = [];
+      }
+
+      const note = document.getElementById('modalCustomNote').value.trim();
+
+      try {
+        const url = currentModalAppId ? `/api/applications/${currentModalAppId}/answer_questions` : `/api/jobs/${currentModalJobId}/answer_questions`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            answers: payloadAnswers,
+            cover_letter: coverLetterVal,
+            note: note || (modalHasCustomQuestions ? 'Preguntas de la empresa respondidas con perfil de Sistemas.' : 'Postulación completada con CV oficial y carta de presentación.')
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert('🎉 ¡Postulación completada y registrada con éxito! La vacante ahora figura en estado Exitoso.');
+          closeQuestionsModal();
+          fetchAppliedJobs();
+          fetchStats();
+        } else {
+          alert('Error: ' + (data.error || 'No se pudo guardar'));
+        }
+      } catch (err) {
+        alert('Error al enviar: ' + err);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = modalHasCustomQuestions ? '🚀 Guardar Respuestas y Completar Postulación' : '🚀 Confirmar Postulación con CV y Carta de Presentación';
+      }
+    }
+
+    function closeJobProposalModal() {
+      const modal = document.getElementById('jobProposalModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    window.addEventListener('click', (e) => {
+      const modal = document.getElementById('jobProposalModal');
+      if (e.target === modal) {
+        closeJobProposalModal();
+      }
+      const qModal = document.getElementById('questionsModal');
+      if (e.target === qModal) {
+        closeQuestionsModal();
+      }
+    });
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeJobProposalModal();
+        closeQuestionsModal();
+      }
+    });
+
+    async function applyToJob(jobId) {
+      try {
+        const btn = document.querySelector(`#job-card-${jobId} button.btn-primary`);
+        if (btn) {
+          btn.innerText = '⏳ Encolando...';
+          btn.disabled = true;
+        }
+        const res = await fetch(`/api/jobs/apply/${jobId}`, { method: 'POST' });
+        const data = await res.json();
+        alert(data.message || 'Vacante encolada para postulación secuencial.');
+        fetchJobs();
+        fetchStats();
+      } catch (err) {
+        alert('Error al postular: ' + err);
+      }
+    }
+
+    async function triggerJobSearch() {
+      const btn = document.getElementById('btnSearchJobs');
+      btn.disabled = true;
+      btn.innerText = '⏳ Explorando...';
+      try {
+        await fetch('/api/agent/run_cycle', { method: 'POST' });
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.innerText = '⚡ Buscar Vacantes Ahora';
+          fetchJobs();
+          fetchStats();
+        }, 4000);
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerText = '⚡ Buscar Vacantes Ahora';
+      }
+    }
+
+    async function scanEmails() {
+      const btn = document.getElementById('btnScanEmails');
+      btn.disabled = true;
+      btn.innerText = '⏳ Escaneando...';
+      try {
+        await fetch('/api/agent/scan_emails', { method: 'POST' });
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.innerText = '📬 Escanear Correos';
+          fetchEmails();
+          fetchStats();
+        }, 3000);
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerText = '📬 Escanear Correos';
+      }
+    }
+
+    async function fetchEmails() {
+      try {
+        const res = await fetch('/api/emails');
+        if (!res.ok) return;
+        const emails = await res.json();
+        document.getElementById('tabEmailCount').innerText = emails.length;
+        const container = document.getElementById('emailsList');
+        if (!emails || emails.length === 0) {
+          container.innerHTML = `<div style="text-align:center; padding: 2rem; color: var(--text-muted);">No hay correos de procesos de selección detectados aún. Presiona 'Actualizar Bandeja'.</div>`;
+          return;
+        }
+        container.innerHTML = emails.map(e => `
+          <div class="job-card" style="border-left: 4px solid #3b82f6; margin-bottom: 14px; background: #ffffff; padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <div style="display:flex; justify-content:space-between; align-items: flex-start; margin-bottom: 8px;">
+              <div>
+                <strong style="color:#0f172a; font-size: 0.95rem;">✉️ De: ${escapeHtml(e.sender)}</strong>
+                <div style="font-weight:700; font-size:1.05rem; color:#1e293b; margin-top: 2px;">${escapeHtml(e.subject)}</div>
+              </div>
+              <span style="font-size:0.78rem; color:var(--text-muted); background: #f1f5f9; padding: 3px 8px; border-radius: 4px;">${e.received_at}</span>
+            </div>
+
+            <!-- Vinculación con la oferta laboral que originó este correo -->
+            ${e.job ? `
+              <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:10px 14px; margin: 10px 0; font-size:0.83rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                  <div>
+                    <span style="color:#1d4ed8; font-weight:700; font-size:0.78rem; text-transform:uppercase;">🎯 Oferta Laboral de Origen:</span>
+                    <div style="font-size:0.95rem; font-weight:700; color:#0f172a; margin-top:2px;">
+                      ${escapeHtml(e.job.title)}
+                    </div>
+                    <div style="font-size:0.82rem; color:#475569; margin-top:2px;">
+                      🏢 <strong>${escapeHtml(e.job.company)}</strong> • Portal: <span class="platform-pill platform-${(e.job.platform || '').toLowerCase()}">${escapeHtml(e.job.platform_name)}</span> • Postulado: ${e.job.applied_at || 'Registrada'}
+                    </div>
+                  </div>
+                  <div style="display:flex; gap:6px;">
+                    <a href="${e.job.clean_url || e.job.url}" target="_blank" class="btn btn-primary btn-sm" style="background:#2563eb; border-color:#1d4ed8; color:#ffffff; font-weight:700; font-size:0.78rem; text-decoration:none;">
+                      🌐 Abrir Oferta en ${e.job.platform_name} ↗
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ` : `
+              <div style="background:#f8fafc; border:1px dashed #cbd5e1; border-radius:8px; padding:8px 12px; margin: 8px 0; font-size:0.8rem; color:#64748b; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+                <span>ℹ️ Oferta no vinculada de forma directa.</span>
+                <button class="btn btn-secondary btn-sm" onclick="quickTracer('${escapeHtml(e.sender.replace(/['\"<>\\\\]/g, ''))}'); switchTab('appliedTab', document.getElementById('btnTabApplied') || document.querySelector('.nav-tabs .tab-btn:nth-child(4)'));" style="font-size:0.75rem; padding:3px 8px;">
+                  🔍 Rastrear en Mis Postulaciones
+                </button>
+              </div>
+            `}
+
+            <p style="font-size:0.88rem; color:var(--text-secondary); background:#f8fafc; padding:10px 14px; border-radius:6px; margin: 8px 0; line-height: 1.45;">
+              ${escapeHtml(e.snippet || e.body)}
+            </p>
+
+            ${e.action_url ? `
+              <div style="margin: 10px 0;">
+                <a href="${e.action_url}" target="_blank" class="btn btn-primary btn-sm" style="background:#16a34a; border-color:#15803d; font-size:0.85rem; font-weight:700; padding:6px 14px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(22,163,74,0.3); text-decoration:none;">
+                  🚀 Ir a la Evaluación / Proceso Oficial (Evaluar.com / Buk) ↗
+                </a>
+              </div>
+            ` : ''}
+
+            ${e.proposed_reply ? `
+              <div style="background:#ecfdf5; border-left:3px solid #10b981; padding:10px 14px; font-size:0.83rem; color:#065f46; border-radius: 0 6px 6px 0; margin-top: 8px;">
+                <strong>Propuesta de Respuesta de la IA:</strong><br>${escapeHtml(e.proposed_reply)}
+              </div>
+            ` : ''}
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Error fetching emails:', err);
+      }
+    }
+
+    async function fetchLogs() {
+      try {
+        const res = await fetch('/api/logs');
+        if (!res.ok) return;
+        const data = await res.json();
+        const logsDiv = document.getElementById('consoleLogs');
+        logsDiv.innerHTML = (data.logs || []).slice(-15).reverse().map(l => {
+          let cls = 'console-line';
+          if (l.includes('✨') || l.includes('✅') || l.includes('🎯')) cls += ' success';
+          if (l.includes('⚠️')) cls += ' warning';
+          if (l.includes('❌')) cls += ' error';
+          return `<div class="${cls}">${l}</div>`;
+        }).join('');
+      } catch (err) {}
+    }
+
+    async function fetchProfile() {
+      try {
+        const res = await fetch('/api/profile');
+        if (!res.ok) return;
+        currentProfile = await res.json();
+        const p = currentProfile.personal_info || {};
+        const ed = currentProfile.education || {};
+        const sc = currentProfile.screening_answers || {};
+
+        document.getElementById('profFullName').value = p.full_name || '';
+        document.getElementById('profEmail').value = p.email || '';
+        document.getElementById('profPhone').value = p.phone || '';
+        if (document.getElementById('profLinkedin')) document.getElementById('profLinkedin').value = p.linkedin_url || '';
+        if (document.getElementById('profGithub')) document.getElementById('profGithub').value = p.github_url || '';
+        document.getElementById('profDegree').value = ed.degree || '';
+        document.getElementById('profSalary').value = sc.salary_expectation_text || '';
+        document.getElementById('profWhyHire').value = sc.why_hire_me || '';
+
+        document.getElementById('headerProfileSubtitle').innerText = `${p.full_name || 'Ingeniero de Sistemas'} • Primer Empleo Remoto`;
+        fetchCvInfo();
+        fetchAuthCredentials();
+      } catch (err) {
+        console.error('Error loading profile:', err);
+      }
+    }
+
+    async function fetchAuthCredentials() {
+      try {
+        const res = await fetch('/api/profile/credentials');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.email && document.getElementById('authEmailInput')) {
+          document.getElementById('authEmailInput').value = data.email;
+        }
+        if (data.password && document.getElementById('authPasswordInput')) {
+          document.getElementById('authPasswordInput').value = data.password;
+        }
+      } catch (err) {
+        console.error('Error fetching auth credentials:', err);
+      }
+    }
+
+    function togglePasswordVisibility() {
+      const pw = document.getElementById('authPasswordInput');
+      const btn = document.getElementById('btnTogglePw');
+      if (pw.type === 'password') {
+        pw.type = 'text';
+        btn.innerText = '🔒';
+      } else {
+        pw.type = 'password';
+        btn.innerText = '👁️';
+      }
+    }
+
+    async function saveAuthCredentials() {
+      const email = document.getElementById('authEmailInput').value.trim();
+      const password = document.getElementById('authPasswordInput').value.trim();
+      if (!password) {
+        alert('La contraseña no puede estar vacía.');
+        return;
+      }
+      try {
+        const res = await fetch('/api/profile/credentials', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ email, password })
+        });
+        if (res.ok) {
+          alert('¡Credenciales de auto-registro actualizadas exitosamente!');
+        } else {
+          alert('Error al actualizar las credenciales');
+        }
+      } catch (err) {
+        alert('Error de conexión al guardar credenciales: ' + err);
+      }
+    }
+
+    async function testPortalAuth() {
+      const urlInput = document.getElementById('testPortalUrl');
+      const url = urlInput.value.trim();
+      if (!url) {
+        alert('Por favor ingresa una URL válida de portal o vacante');
+        return;
+      }
+      const btn = document.getElementById('btnTestPortal');
+      const resBox = document.getElementById('portalTestResult');
+      btn.disabled = true;
+      btn.innerText = '⏳ Ejecutando...';
+      resBox.style.display = 'block';
+      resBox.style.background = '#f8fafc';
+      resBox.style.color = '#334155';
+      resBox.style.border = '1px solid #cbd5e1';
+      resBox.innerHTML = `🌐 Probando acceso en <strong>${url}</strong> con Google primero y luego auto-registro con <code>Michael23@*</code>...`;
+
+      try {
+        const res = await fetch('/api/auth/register-portal', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ url: url, mode: 'auto' })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          const r = data.result || {};
+          resBox.style.background = '#f0fdf4';
+          resBox.style.color = '#15803d';
+          resBox.style.border = '1px solid #bbf7d0';
+          resBox.innerHTML = `✅ <strong>Resultado:</strong> Estado: <em>${r.status || 'OK'}</em> | Método: <strong>${r.method || 'Auto'}</strong> | Usuario: <code>${r.email || 'jmberrocale@gmail.com'}</code>`;
+        } else {
+          resBox.style.background = '#fef2f2';
+          resBox.style.color = '#991b1b';
+          resBox.style.border = '1px solid #fecaca';
+          resBox.innerHTML = `⚠️ <strong>Error:</strong> ${data.error || 'No se pudo completar el auto-registro'}`;
+        }
+      } catch (err) {
+        resBox.style.background = '#fef2f2';
+        resBox.style.color = '#991b1b';
+        resBox.style.border = '1px solid #fecaca';
+        resBox.innerHTML = `❌ Error de red al probar auto-registro: ${err}`;
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '⚡ Probar Auto-Registro';
+      }
+    }
+
+    async function fetchCvInfo() {
+      try {
+        const res = await fetch('/api/profile/cv');
+        if (!res.ok) return;
+        const data = await res.json();
+        const statusEl = document.getElementById('cvStatusText');
+        const dlBtn = document.getElementById('btnDownloadCv');
+        if (data.exists) {
+          statusEl.innerHTML = `✅ <strong>CV Activo:</strong> <span style="color:#2563eb;">${data.filename}</span> <span style="color:var(--text-muted); font-size:0.75rem;">(${data.size_kb} KB • Actualizado: ${data.modified})</span>`;
+          dlBtn.style.display = 'inline-flex';
+        } else {
+          statusEl.innerHTML = `⚠️ <em style="color:#b45309;">No hay un CV cargado actualmente. Sube tu archivo PDF para postular en plataformas.</em>`;
+          dlBtn.style.display = 'none';
+        }
+      } catch (err) {
+        console.error('Error fetching CV info:', err);
+      }
+    }
+
+    async function uploadCvFile(input) {
+      if (!input.files || input.files.length === 0) return;
+      const file = input.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const btn = document.getElementById('btnUploadCv');
+      btn.disabled = true;
+      btn.innerText = '⏳ Subiendo...';
+      
+      try {
+        const res = await fetch('/api/profile/cv', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert(`¡CV '${data.filename}' cargado correctamente! El agente lo usará automáticamente en todas las plataformas.`);
+          fetchCvInfo();
+        } else {
+          alert(`Error al subir CV: ${data.error || 'Error desconocido'}`);
+        }
+      } catch (err) {
+        alert('Error de conexión al subir el archivo');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '📤 Subir o Cambiar mi CV (PDF)';
+        input.value = '';
+      }
+    }
+
+    async function saveProfile(e) {
+      e.preventDefault();
+      currentProfile.personal_info = currentProfile.personal_info || {};
+      currentProfile.personal_info.full_name = document.getElementById('profFullName').value;
+      currentProfile.personal_info.email = document.getElementById('profEmail').value;
+      currentProfile.personal_info.phone = document.getElementById('profPhone').value;
+      if (document.getElementById('profLinkedin')) currentProfile.personal_info.linkedin_url = document.getElementById('profLinkedin').value;
+      if (document.getElementById('profGithub')) currentProfile.personal_info.github_url = document.getElementById('profGithub').value;
+      currentProfile.education = currentProfile.education || {};
+      currentProfile.education.degree = document.getElementById('profDegree').value;
+      currentProfile.screening_answers = currentProfile.screening_answers || {};
+      currentProfile.screening_answers.salary_expectation_text = document.getElementById('profSalary').value;
+      currentProfile.screening_answers.why_hire_me = document.getElementById('profWhyHire').value;
+
+      try {
+        const res = await fetch('/api/profile', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(currentProfile)
+        });
+        if (res.ok) {
+          alert('¡Perfil actualizado y guardado correctamente!');
+          fetchProfile();
+          fetchHealth();
+        }
+      } catch (err) {
+        alert('Error al guardar perfil: ' + err);
+      }
+    }
+
+    async function cleanExpiredJobs() {
+      if (!confirm('¿Deseas iniciar una verificación activa en segundo plano para descartar ofertas que hayan expirado o arrojen 404?')) return;
+      try {
+        const res = await fetch('/api/jobs/clean_expired', { method: 'POST' });
+        const data = await res.json();
+        alert(data.message || 'Auditoría de ofertas expiradas iniciada.');
+        fetchLogs();
+      } catch (err) {
+        alert('Error al iniciar auditoría: ' + err);
+      }
+    }
+
+    async function purgeInvalidJobs() {
+      if (!confirm('¿Deseas purgar vacantes inválidas o duplicadas?')) return;
+      try {
+        const res = await fetch('/api/jobs/clean_invalid', { method: 'POST' });
+        const data = await res.json();
+        alert(`Se purgaron ${data.deleted} vacantes.`);
+        fetchJobs();
+        fetchStats();
+      } catch (err) {
+        alert('Error al purgar vacantes: ' + err);
+      }
+    }
+
+    async function toggleBrowserVisibility(checked) {
+      try {
+        await fetch('/api/settings/browser_mode', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ headless: !checked })
+        });
+        fetchHealth();
+        fetchStats();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      const targetContent = document.getElementById(tabId);
+      if (targetContent) targetContent.classList.add('active');
+      if (btn) btn.classList.add('active');
+      if (tabId === 'emailsTab') fetchEmails();
+      if (tabId === 'targetRolesTab') fetchTargetRoles();
+      if (tabId === 'appliedTab') fetchAppliedJobs();
+      if (tabId === 'jobsTab') fetchJobs();
+      if (tabId === 'freelanceTab') {
+        fetchFreelanceProjects();
+        fetchAutoBidStatus();
+      }
+    }
+
+    function filterPlatform(platform, el) {
+      currentPlatformFilter = platform;
+      document.querySelectorAll('.badge-filter').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      fetchJobs();
+    }
+
+    // --- Lógica del Módulo Freelance & Gigs ---
+
+    async function fetchFreelanceProjects() {
+      const container = document.getElementById('freelanceProjectsContainer');
+      if (!container) return;
+      try {
+        let url = `/api/freelance/projects?category=${currentFreelanceCategory}&platform=${currentFreelancePlatform}&status=${currentFreelanceStatus}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Error al consultar proyectos freelance');
+        const data = await res.json();
+        freelanceProjectsData = data.projects || [];
+        
+        const tabCount = document.getElementById('tabFreelanceCount');
+        if (tabCount && data.total !== undefined) {
+          tabCount.innerText = data.total;
+        }
+
+        renderFreelanceProjects(freelanceProjectsData);
+      } catch (err) {
+        console.error('Error fetching freelance projects:', err);
+        container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 30px; color: #ef4444;">Error al cargar proyectos: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    function renderFreelanceProjects(projects) {
+      const container = document.getElementById('freelanceProjectsContainer');
+      if (!container) return;
+
+      if (!projects || projects.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 40px 20px; background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 12px;">
+            <span style="font-size: 2.5rem; display: block; margin-bottom: 8px;">🔍</span>
+            <strong style="font-size: 1.1rem; color: #1e293b; display: block; margin-bottom: 4px;">No hay proyectos con los filtros seleccionados</strong>
+            <p style="font-size: 0.88rem; color: #64748b; margin-bottom: 14px;">Prueba seleccionando otra especialidad o presiona el botón para buscar nuevas ofertas en español.</p>
+            <button class="btn btn-primary btn-sm" onclick="scanFreelanceProjects()">🔄 Escanear Ahora</button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = projects.map(p => {
+        const platformClass = p.platform === 'freelancer' ? 'platform-freelancer' : (p.platform === 'getonbrd' ? 'platform-getonbrd' : 'platform-remotetech');
+        const isAutoApplied = p.auto_applied || p.status === 'auto_applied';
+        const statusBadge = isAutoApplied
+          ? `<span style="background: linear-gradient(135deg, #065f46 0%, #059669 100%); color: #ecfdf5; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.15);" title="${escapeHtml(p.bid_response_log || 'Oferta enviada automáticamente')}">⚡ Auto-Ofertado (${p.applied_at || 'Hoy'})</span>`
+          : (p.status === 'applied' 
+            ? '<span style="background: #dcfce7; color: #166534; font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 4px;">✅ Postulado</span>'
+            : (p.status === 'proposal_generated' 
+              ? '<span style="background: #fef3c7; color: #b45309; font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 4px;">⚡ Propuesta Lista</span>'
+              : ''));
+
+        const skillsHtml = (p.skills || []).slice(0, 4).map(s => 
+          `<span style="background: #f1f5f9; color: #475569; font-size: 0.72rem; padding: 2px 6px; border-radius: 4px;">${escapeHtml(s)}</span>`
+        ).join(' ');
+
+        const descSnippet = p.description ? p.description.slice(0, 160) + (p.description.length > 160 ? '...' : '') : 'Sin descripción detallada.';
+
+        const catLabels = {
+          'customer_support_whatsapp': '💬 WhatsApp & Chat',
+          'sales_setter_crm': '🎯 Setter & Ventas',
+          'ai_chatbot_system': '🤖 Chatbot IA',
+          'virtual_assistant_admin': '📋 Asistente Virtual',
+          'python_automation': '🐍 Python & Auto',
+          'power_bi_data': '📊 Power BI & Datos',
+          'qa_testing': '🧪 QA Testing',
+          'sql_database': '🗄️ SQL & DB',
+          'web_dev': '🌐 Desarrollo Web'
+        };
+        const catName = catLabels[p.category] || p.category || 'General';
+        const catBadge = `<span style="background: #e0e7ff; color: #3730a3; font-size: 0.72rem; font-weight: 600; padding: 2px 7px; border-radius: 4px;">${escapeHtml(catName)}</span>`;
+
+        return `
+          <div class="freelance-card" id="freelance-card-${p.id}">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px;">
+                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                  <span class="platform-pill ${platformClass}">${escapeHtml(p.platform_name)}</span>
+                  ${catBadge}
+                  ${statusBadge}
+                </div>
+                <span class="budget-pill" title="Presupuesto fijado por el cliente">
+                  💰 ${escapeHtml(p.budget)}
+                </span>
+              </div>
+
+              <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin: 0 0 6px 0; line-height: 1.35;">
+                ${escapeHtml(p.title)}
+              </h3>
+
+              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px;">
+                <span class="bid-calc-pill" title="Cotización recomendada en base al presupuesto">🎯 Oferta: ${escapeHtml(p.suggested_bid)}</span>
+                <span class="time-calc-pill" title="Tiempo de entrega estimado">⏱️ ${escapeHtml(p.suggested_timeline)}</span>
+              </div>
+
+              <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;">
+                👤 Cliente: <strong>${escapeHtml(p.client_name)}</strong> ${p.created_at ? `• 📅 ${p.created_at}` : ''}
+              </div>
+
+              <p style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.45; margin: 0 0 10px 0; background: #f8fafc; padding: 8px 10px; border-radius: 6px;">
+                ${escapeHtml(descSnippet)}
+              </p>
+
+              ${skillsHtml ? `<div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px;">${skillsHtml}</div>` : ''}
+            </div>
+
+            <div style="border-top: 1px solid #f1f5f9; padding-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+              <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                <button class="btn btn-primary btn-sm" onclick="openFreelanceProposalModal(${p.id})" style="background: #4338ca; border-color: #3730a3; font-weight: 700; font-size: 0.8rem; padding: 5px 11px;">
+                  ⚡ Ver Propuesta IA
+                </button>
+                <a href="${p.url}" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 5px 10px; text-decoration: none;" title="Abre directamente en LibreWolf">
+                  🦊 Ver Proyecto ↗
+                </a>
+                ${!isAutoApplied ? `
+                  <button class="btn btn-secondary btn-sm" onclick="triggerTestAutoBid(${p.id})" style="font-size: 0.76rem; padding: 5px 8px; background: #f8fafc; border-color: #cbd5e1; color: #334155; font-weight: 600;" title="Dispara una postulación automática de prueba para este proyecto">
+                    ⚡ Auto-Bid
+                  </button>
+                ` : ''}
+              </div>
+              <div style="display: flex; gap: 4px;">
+                ${!isAutoApplied && p.status !== 'applied' ? `
+                  <button class="btn btn-secondary btn-sm" onclick="updateFreelanceStatus(${p.id}, 'applied')" title="Marcar como ya enviado" style="color: #166534; font-size: 0.78rem; padding: 4px 7px;">
+                    ✔
+                  </button>
+                ` : ''}
+                <button class="btn btn-secondary btn-sm" onclick="updateFreelanceStatus(${p.id}, 'dismissed')" title="Descartar proyecto" style="color: #94a3b8; font-size: 0.78rem; padding: 4px 7px;">
+                  ✕
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filterFreelanceCategory(cat, el) {
+      currentFreelanceCategory = cat;
+      const parent = el.parentElement;
+      if (parent) {
+        parent.querySelectorAll('.badge-filter').forEach(b => b.classList.remove('active'));
+      }
+      el.classList.add('active');
+      fetchFreelanceProjects();
+    }
+
+    function filterFreelancePlatform(plat, el) {
+      currentFreelancePlatform = plat;
+      const parent = el.parentElement;
+      if (parent) {
+        parent.querySelectorAll('.badge-filter').forEach(b => b.classList.remove('active'));
+      }
+      el.classList.add('active');
+      fetchFreelanceProjects();
+    }
+
+    function filterFreelanceStatus(st, el) {
+      currentFreelanceStatus = st;
+      const parent = document.getElementById('filterStatusGroup');
+      if (parent) {
+        parent.querySelectorAll('.badge-filter').forEach(b => b.classList.remove('active'));
+      }
+      if (el) el.classList.add('active');
+      fetchFreelanceProjects();
+    }
+
+    function viewAutoAppliedProjects() {
+      const flTabBtn = document.getElementById('btnTabFreelance');
+      if (flTabBtn) switchTab('freelanceTab', flTabBtn);
+      const targetEl = document.getElementById('flStatusAuto');
+      filterFreelanceStatus('auto_applied', targetEl);
+      showToast('⚡ Mostrando únicamente proyectos a los que el agente se ha postulado automáticamente.');
+    }
+
+    async function scanFreelanceProjects() {
+      const btn = document.getElementById('btnScanFreelance');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = '⏳ Escaneando...';
+      }
+      showToast('🔍 Escaneando nuevas oportunidades freelance en Freelancer.com y Get on Board...');
+      try {
+        const res = await fetch('/api/freelance/scan', { method: 'POST' });
+        const data = await res.json();
+        showToast('🚀 Escaneo en segundo plano iniciado. Actualizando proyectos...');
+        setTimeout(() => fetchFreelanceProjects(), 3500);
+        setTimeout(() => fetchFreelanceProjects(), 8000);
+      } catch (err) {
+        alert('Error al escanear: ' + err);
+      } finally {
+        setTimeout(() => {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerText = '🔄 Escanear Nuevos Proyectos';
+          }
+        }, 3000);
+      }
+    }
+
+    function toggleExternalProposalBox() {
+      const box = document.getElementById('externalProposalBox');
+      if (!box) return;
+      box.style.display = (box.style.display === 'none' || !box.style.display) ? 'block' : 'none';
+      if (box.style.display === 'block') {
+        const titleInput = document.getElementById('extProjTitle');
+        if (titleInput) titleInput.focus();
+      }
+    }
+
+    async function generateExternalProposal() {
+      const title = document.getElementById('extProjTitle').value.trim();
+      const budget = document.getElementById('extProjBudget').value.trim();
+      const client = document.getElementById('extProjClient').value.trim() || 'Cliente';
+      const desc = document.getElementById('extProjDesc').value.trim();
+
+      if (!title && !desc) {
+        alert('Por favor ingresa al menos el título o la descripción del proyecto.');
+        return;
+      }
+
+      const btn = document.getElementById('btnGenerateExtProposal');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = '⏳ Diseñando propuesta comercial con IA...';
+      }
+
+      try {
+        const res = await fetch('/api/freelance/generate_proposal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: title || 'Proyecto Freelance',
+            budget: budget,
+            client_name: client,
+            description: desc
+          })
+        });
+        if (!res.ok) throw new Error('Error al generar propuesta');
+        const json = await res.json();
+        const data = json.data;
+
+        document.getElementById('extResultBid').innerText = `🎯 Cotización: ${data.suggested_bid}`;
+        document.getElementById('extResultTimeline').innerText = `⏱️ Entrega: ${data.suggested_timeline}`;
+        document.getElementById('extResultCategory').innerText = data.category;
+        document.getElementById('extProposalText').innerText = data.proposal_text;
+        document.getElementById('extProposalResult').style.display = 'block';
+        showToast('✨ ¡Propuesta generada con éxito! Revisa la cotización y cópiala.');
+      } catch (err) {
+        alert('Error al generar propuesta: ' + err);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = '⚡ Generar Propuesta Comercial con IA';
+        }
+      }
+    }
+
+    function copyExternalProposalText() {
+      const text = document.getElementById('extProposalText').innerText;
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('📋 ¡Propuesta comercial copiada! Pégala directamente en Workana/Upwork.');
+      }).catch(err => {
+        alert('No se pudo copiar automáticamente: ' + err);
+      });
+    }
+
+    function openFreelanceProposalModal(projectId) {
+      const project = freelanceProjectsData.find(p => p.id === projectId);
+      if (!project) return;
+      currentFreelanceModalProject = project;
+
+      document.getElementById('fModalPlatformTag').innerText = (project.platform || 'FREELANCE').toUpperCase();
+      document.getElementById('fModalTitle').innerText = project.title;
+      document.getElementById('fModalSubtitle').innerText = `${project.client_name} • ${project.platform_name} • Publicado: ${project.created_at || 'Reciente'}`;
+      document.getElementById('fModalBudget').innerText = project.budget;
+      document.getElementById('fModalSuggestedBid').innerText = project.suggested_bid;
+      const catLabelsModal = {
+        'customer_support_whatsapp': '💬 WhatsApp & Chat Operator (Humano)',
+        'sales_setter_crm': '🎯 Setter de Ventas & Conversión CRM',
+        'ai_chatbot_system': '🤖 Chatbot Inteligente & Sistema IA',
+        'virtual_assistant_admin': '📋 Asistente Virtual & Operaciones',
+        'python_automation': '🐍 Python & Automatización / Scraping',
+        'power_bi_data': '📊 Power BI & Análisis de Datos',
+        'qa_testing': '🧪 QA Testing & Validación de APIs',
+        'sql_database': '🗄️ SQL & Arquitectura de BD',
+        'web_dev': '🌐 Desarrollo Web'
+      };
+      document.getElementById('fModalCategory').innerText = catLabelsModal[project.category] || project.category || 'General';
+      document.getElementById('fModalDescription').innerText = project.description || 'Sin descripción detallada.';
+      document.getElementById('fModalProposalText').value = project.generated_proposal || '';
+      document.getElementById('fModalOpenBrowserLink').href = project.url;
+
+      const btnApplied = document.getElementById('btnMarkFreelanceApplied');
+      if (btnApplied) {
+        if (project.status === 'applied') {
+          btnApplied.innerText = '✅ Ya Postulado';
+          btnApplied.disabled = true;
+        } else {
+          btnApplied.innerText = '✅ Marcar como Postulado';
+          btnApplied.disabled = false;
+        }
+      }
+
+      document.getElementById('freelanceProposalModal').style.display = 'flex';
+    }
+
+    function closeFreelanceProposalModal() {
+      document.getElementById('freelanceProposalModal').style.display = 'none';
+      currentFreelanceModalProject = null;
+    }
+
+    function copyFreelanceProposalFromModal() {
+      const textarea = document.getElementById('fModalProposalText');
+      if (!textarea || !textarea.value) return;
+      navigator.clipboard.writeText(textarea.value).then(() => {
+        showToast('📋 ¡Propuesta copiada al portapapeles! Ahora ábrelo en LibreWolf y envíala al cliente.');
+      }).catch(err => {
+        alert('No se pudo copiar automáticamente: ' + err);
+      });
+    }
+
+    async function markCurrentFreelanceApplied() {
+      if (!currentFreelanceModalProject) return;
+      await updateFreelanceStatus(currentFreelanceModalProject.id, 'applied');
+      closeFreelanceProposalModal();
+    }
+
+    async function updateFreelanceStatus(projectId, status) {
+      try {
+        const res = await fetch('/api/freelance/update_status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project_id: projectId, status: status })
+        });
+        if (!res.ok) throw new Error('Error al actualizar estado');
+        showToast(status === 'applied' ? '🎉 ¡Proyecto marcado como postulado con éxito!' : 'Proyecto descartado.');
+        fetchFreelanceProjects();
+        fetchStats();
+      } catch (err) {
+        console.error('Error updating freelance status:', err);
+      }
+    }
+
+    // --- LÓGICA DE AUTO-BID AUTÓNOMO 24/7 (MODO 2) ---
+    let autoBidState = {
+      is_enabled: false,
+      is_running: false,
+      bids_today: 0,
+      max_daily_bids: 4,
+      min_hourly_rate: 15,
+      min_fixed_budget: 50,
+      check_interval_seconds: 75,
+      target_categories: []
+    };
+
+    async function fetchAutoBidStatus() {
+      try {
+        const res = await fetch('/api/freelance/autobid/status');
+        if (!res.ok) return;
+        const data = await res.json();
+        autoBidState = data;
+        updateAutoBidUI();
+      } catch (err) {
+        console.warn('Error fetching autobid status:', err);
+      }
+    }
+
+    function updateAutoBidUI() {
+      const badge = document.getElementById('autobidStatusBadge');
+      const btnToggle = document.getElementById('btnToggleAutoBid');
+      const minHrEl = document.getElementById('abMinHourly');
+      const bidsTodayEl = document.getElementById('abBidsToday');
+      const maxDailyEl = document.getElementById('abMaxDaily');
+      const intervalEl = document.getElementById('abInterval');
+      const pulseIcon = document.getElementById('autobidPulseIcon');
+
+      if (minHrEl) minHrEl.innerText = autoBidState.min_hourly_rate || 15;
+      if (bidsTodayEl) bidsTodayEl.innerText = autoBidState.bids_today || 0;
+      if (maxDailyEl) maxDailyEl.innerText = autoBidState.max_daily_bids || 4;
+      if (intervalEl) intervalEl.innerText = autoBidState.check_interval_seconds || 75;
+
+      const bannerCountEl = document.getElementById('abBannerCount');
+      const statusAutoCountEl = document.getElementById('flStatusAutoCount');
+      if (bannerCountEl) bannerCountEl.innerText = autoBidState.bids_today || 0;
+      if (statusAutoCountEl) statusAutoCountEl.innerText = autoBidState.bids_today || 0;
+
+      if (badge && btnToggle) {
+        if (autoBidState.is_enabled) {
+          badge.style.background = 'linear-gradient(135deg, #059669 0%, #10b981 100%)';
+          badge.style.color = '#ffffff';
+          badge.innerHTML = '🟢 ACTIVO 24/7';
+          btnToggle.innerHTML = '⏸️ Pausar Auto-Bid';
+          btnToggle.style.background = '#dc2626';
+          btnToggle.style.borderColor = '#b91c1c';
+          if (pulseIcon) {
+            pulseIcon.style.background = 'rgba(16, 185, 129, 0.25)';
+            pulseIcon.style.borderColor = '#10b981';
+          }
+        } else {
+          badge.style.background = '#334155';
+          badge.style.color = '#94a3b8';
+          badge.innerHTML = '⏸️ PAUSADO';
+          btnToggle.innerHTML = '⚡ Activar Modo 2 (Auto-Bid)';
+          btnToggle.style.background = '#4f46e5';
+          btnToggle.style.borderColor = '#4338ca';
+          if (pulseIcon) {
+            pulseIcon.style.background = 'rgba(99, 102, 241, 0.2)';
+            pulseIcon.style.borderColor = 'rgba(129, 140, 248, 0.4)';
+          }
+        }
+      }
+    }
+
+    async function toggleAutoBidMode() {
+      const btn = document.getElementById('btnToggleAutoBid');
+      if (btn) btn.disabled = true;
+      try {
+        const res = await fetch('/api/freelance/autobid/toggle', { method: 'POST' });
+        const data = await res.json();
+        if (data.details) autoBidState = data.details;
+        updateAutoBidUI();
+        if (data.is_enabled) {
+          showToast('⚡ ¡Modo 2 (Auto-Bid) ACTIVADO! El agente ahora ofertará automáticamente como uno de los primeros en cada nueva publicación.');
+        } else {
+          showToast('⏸️ Modo Auto-Bid pausado. Las ofertas volverán a requerir tu confirmación manual.');
+        }
+      } catch (err) {
+        alert('Error al alternar modo Auto-Bid: ' + err);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    function openAutoBidConfigModal() {
+      document.getElementById('cfgMinHourly').value = autoBidState.min_hourly_rate || 15;
+      document.getElementById('cfgMinFixed').value = autoBidState.min_fixed_budget || 50;
+      document.getElementById('cfgMaxDailyBids').value = autoBidState.max_daily_bids || 4;
+      document.getElementById('cfgCheckInterval').value = autoBidState.check_interval_seconds || 75;
+
+      const cats = autoBidState.target_categories || [];
+      const mapping = {
+        'customer_support_whatsapp': 'cat_whatsapp',
+        'sales_setter_crm': 'cat_setter',
+        'ai_chatbot_system': 'cat_chatbot',
+        'power_bi_data': 'cat_powerbi',
+        'qa_testing': 'cat_qa',
+        'sql_database': 'cat_sql',
+        'web_dev': 'cat_web',
+        'python_automation': 'cat_python'
+      };
+      for (const [catVal, elemId] of Object.entries(mapping)) {
+        const el = document.getElementById(elemId);
+        if (el) el.checked = (cats.length === 0 || cats.includes(catVal));
+      }
+
+      document.getElementById('autobidConfigModal').style.display = 'flex';
+    }
+
+    function closeAutoBidConfigModal() {
+      document.getElementById('autobidConfigModal').style.display = 'none';
+    }
+
+    async function saveAutoBidConfig() {
+      const selectedCats = [];
+      const mapping = {
+        'customer_support_whatsapp': 'cat_whatsapp',
+        'sales_setter_crm': 'cat_setter',
+        'ai_chatbot_system': 'cat_chatbot',
+        'power_bi_data': 'cat_powerbi',
+        'qa_testing': 'cat_qa',
+        'sql_database': 'cat_sql',
+        'web_dev': 'cat_web',
+        'python_automation': 'cat_python'
+      };
+      for (const [catVal, elemId] of Object.entries(mapping)) {
+        const el = document.getElementById(elemId);
+        if (el && el.checked) selectedCats.push(catVal);
+      }
+
+      const body = {
+        min_hourly_rate: parseFloat(document.getElementById('cfgMinHourly').value) || 15.0,
+        min_fixed_budget: parseFloat(document.getElementById('cfgMinFixed').value) || 50.0,
+        max_daily_bids: parseInt(document.getElementById('cfgMaxDailyBids').value) || 4,
+        check_interval_seconds: parseInt(document.getElementById('cfgCheckInterval').value) || 75,
+        target_categories: selectedCats
+      };
+
+      const tokenVal = document.getElementById('cfgApiToken').value;
+      if (tokenVal) body.freelancer_api_token = tokenVal;
+
+      try {
+        const res = await fetch('/api/freelance/autobid/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (data.settings) {
+          autoBidState.min_hourly_rate = data.settings.min_hourly_rate;
+          autoBidState.min_fixed_budget = data.settings.min_fixed_budget;
+          autoBidState.max_daily_bids = data.settings.max_daily_bids;
+          autoBidState.check_interval_seconds = data.settings.check_interval_seconds;
+          autoBidState.target_categories = data.settings.target_categories;
+        }
+        updateAutoBidUI();
+        closeAutoBidConfigModal();
+        showToast('💾 Reglas de Auto-Bid actualizadas correctamente.');
+      } catch (err) {
+        alert('Error al guardar configuración: ' + err);
+      }
+    }
+
+    async function triggerTestAutoBid(projectId) {
+      if (!confirm('¿Deseas disparar una postulación automática de prueba para este proyecto?')) return;
+      try {
+        showToast('⚡ Ejecutando postulación automática...');
+        const res = await fetch(`/api/freelance/autobid/test-apply/${projectId}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`🎉 ¡Auto-Bid registrado con éxito! Cotización: ${data.bid}`);
+          fetchFreelanceProjects();
+          fetchAutoBidStatus();
+          fetchStats();
+        } else {
+          alert('Error en Auto-Bid: ' + (data.error || 'Desconocido'));
+        }
+      } catch (err) {
+        alert('Error de conexión: ' + err);
+      }
+    }
+
+    function showToast(message, duration = 4500) {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const item = document.createElement('div');
+      item.className = 'toast-item';
+      item.innerHTML = `<span>ℹ️</span> <div>${message}</div>`;
+      container.appendChild(item);
+      setTimeout(() => {
+        item.style.opacity = '0';
+        item.style.transition = 'opacity 0.4s ease';
+        setTimeout(() => item.remove(), 400);
+      }, duration);
+    }
+
+    async function openConnectModal() {
+      document.getElementById('connectModal').style.display = 'flex';
+      await loadPortalStatuses();
+    }
+
+    function closeConnectModal() {
+      document.getElementById('connectModal').style.display = 'none';
+    }
+
+    async function loadPortalStatuses() {
+      const container = document.getElementById('portalGridContainer');
+      if (!container) return;
+      try {
+        const res = await fetch('/api/agent/connected_portals');
+        if (!res.ok) throw new Error('Error al consultar portales');
+        const portals = await res.json();
+        
+        container.innerHTML = portals.map(p => `
+          <div class="portal-card">
+            <div class="portal-card-top">
+              <div class="portal-icon">${p.icon || '🌐'}</div>
+              <div class="portal-info">
+                <div class="portal-name">
+                  ${p.name}
+                  <span class="portal-tag">${p.category || 'Portal'}</span>
+                </div>
+                <div class="portal-desc">${p.description}</div>
+              </div>
+            </div>
+            <div class="portal-card-bottom">
+              <span class="portal-status-badge ${p.connected ? 'connected' : 'pending'}">
+                ${p.connected ? '🟢 Sesión activa (Cookies)' : '🟡 Pendiente de inicio'}
+              </span>
+              <button class="btn-portal-open" onclick="launchLoginBrowser('${p.id}')">
+                🔑 Abrir en LibreWolf
+              </button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        container.innerHTML = `<div style="color:#ef4444; padding:15px; grid-column:1/-1;">Error cargando estados de portales: ${err.message}</div>`;
+      }
+    }
+
+    async function fetchContinuousStatus() {
+      try {
+        const res = await fetch('/api/hunter/continuous/status');
+        if (!res.ok) return;
+        const st = await res.json();
+        const card = document.getElementById('continuousBanner');
+        const toggleBtn = document.getElementById('btnToggleContinuous');
+        const statusText = document.getElementById('continuousStatusText');
+        const cycleText = document.getElementById('continuousCycleText');
+        const nextRunText = document.getElementById('continuousNextRun');
+
+        if (!card || !toggleBtn) return;
+
+        if (st.is_running) {
+          card.classList.add('active');
+          toggleBtn.innerText = '⏹️ Pausar Modo Continuo';
+          toggleBtn.className = 'btn btn-secondary';
+          statusText.innerHTML = '<span class="health-indicator pulse" style="display:inline-block;"></span> <strong>MODO ACTIVO:</strong> Explorando vacantes remotas y postulando 24/7 sin parar';
+          const formattedNext = st.next_run ? (st.next_run.includes(' ') ? st.next_run.split(' ')[1] : st.next_run) : '';
+          nextRunText.innerText = st.next_run ? `Próximo ciclo: ${formattedNext} (Hora local)` : 'Ejecutando ciclo actual...';
+        } else {
+          card.classList.remove('active');
+          toggleBtn.innerText = '▶️ Iniciar Búsqueda Continua 24/7';
+          toggleBtn.className = 'btn btn-primary';
+          statusText.innerHTML = '<span style="color:var(--text-muted);">●</span> <strong>Modo Pausado:</strong> Presiona para activar el bucle autónomo hasta conseguir trabajo.';
+          cycleText.innerText = st.cycle_count > 0 ? `${st.cycle_count} ciclos previos` : '0 ciclos';
+          nextRunText.innerText = 'En espera de activación';
+        }
+      } catch (err) {
+        console.error('Error fetching continuous status:', err);
+      }
+    }
+
+    async function toggleContinuousHunter() {
+      const btn = document.getElementById('btnToggleContinuous');
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/hunter/continuous/toggle', { method: 'POST' });
+        const data = await res.json();
+        await fetchContinuousStatus();
+      } catch (err) {
+        alert('Error al alternar modo continuo: ' + err);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function launchLoginBrowser(platform = 'all') {
+      try {
+        showToast(platform === 'all' 
+          ? '🚀 Abriendo LibreWolf con las plataformas en pestañas...' 
+          : `🚀 Abriendo LibreWolf para conectar: ${platform}...`
+        );
+        const res = await fetch('/api/agent/launch_login_browser', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ platform: platform })
+        });
+        const data = await res.json();
+        showToast(data.message || 'LibreWolf visible abierto en pantalla.');
+        setTimeout(() => loadPortalStatuses(), 3000);
+      } catch (err) {
+        alert('Error al abrir navegador: ' + err);
+      }
+    }
+  </script>
+</body>
+</html>

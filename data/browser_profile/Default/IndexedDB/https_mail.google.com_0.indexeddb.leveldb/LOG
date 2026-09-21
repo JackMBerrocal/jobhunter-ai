@@ -1,0 +1,6 @@
+2026/09/21-18:23:22.512 157f5 Reusing MANIFEST /home/jack/.gemini/antigravity-ide/scratch/jobhunter-ai/data/browser_profile/Default/IndexedDB/https_mail.google.com_0.indexeddb.leveldb/MANIFEST-000822
+2026/09/21-18:23:22.513 157f5 Recovering log #823
+2026/09/21-18:23:22.518 157f5 Reusing old log /home/jack/.gemini/antigravity-ide/scratch/jobhunter-ai/data/browser_profile/Default/IndexedDB/https_mail.google.com_0.indexeddb.leveldb/000823.log 
+2026/09/21-18:23:27.269 157f1 Level-0 table #844: started
+2026/09/21-18:23:27.297 157f1 Level-0 table #844: 3040307 bytes OK
+2026/09/21-18:23:27.300 157f1 Delete type=0 #823

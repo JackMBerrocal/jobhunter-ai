@@ -1,0 +1,41 @@
+2026/09/21-17:57:10.391 151b8 Reusing MANIFEST /home/jack/.gemini/antigravity-ide/scratch/jobhunter-ai/data/browser_profile/Default/IndexedDB/https_mail.google.com_0.indexeddb.leveldb/MANIFEST-000822
+2026/09/21-17:57:10.391 151b8 Recovering log #823
+2026/09/21-17:57:10.393 151b8 Reusing old log /home/jack/.gemini/antigravity-ide/scratch/jobhunter-ai/data/browser_profile/Default/IndexedDB/https_mail.google.com_0.indexeddb.leveldb/000823.log 
+2026/09/21-17:57:11.955 151b8 Compacting 1@0 + 4@1 files
+2026/09/21-17:57:11.965 151b8 Generated table #826@0: 438 keys, 907959 bytes
+2026/09/21-17:57:11.995 151b8 Generated table #827@0: 355 keys, 2498333 bytes
+2026/09/21-17:57:12.022 151b8 Generated table #828@0: 358 keys, 2488051 bytes
+2026/09/21-17:57:12.049 151b8 Generated table #829@0: 408 keys, 2454703 bytes
+2026/09/21-17:57:12.052 151b8 Generated table #830@0: 89 keys, 260226 bytes
+2026/09/21-17:57:12.052 151b8 Compacted 1@0 + 4@1 files => 8609272 bytes
+2026/09/21-17:57:12.056 151b8 compacted to: files[ 0 5 24 0 0 0 0 ]
+2026/09/21-17:57:12.057 151b8 Delete type=2 #809
+2026/09/21-17:57:12.057 151b8 Delete type=2 #810
+2026/09/21-17:57:12.057 151b8 Delete type=2 #824
+2026/09/21-17:57:12.057 151b8 Delete type=2 #808
+2026/09/21-17:57:12.057 151b8 Delete type=2 #807
+2026/09/21-17:57:14.352 151b8 Compacting 1@1 + 10@2 files
+2026/09/21-17:57:14.370 151b8 Generated table #831@1: 221 keys, 2329611 bytes
+2026/09/21-17:57:14.387 151b8 Generated table #832@1: 212 keys, 2329830 bytes
+2026/09/21-17:57:14.405 151b8 Generated table #833@1: 236 keys, 2311848 bytes
+2026/09/21-17:57:14.424 151b8 Generated table #834@1: 293 keys, 2311521 bytes
+2026/09/21-17:57:14.442 151b8 Generated table #835@1: 287 keys, 2310378 bytes
+2026/09/21-17:57:14.460 151b8 Generated table #836@1: 192 keys, 2338982 bytes
+2026/09/21-17:57:14.477 151b8 Generated table #837@1: 199 keys, 2328090 bytes
+2026/09/21-17:57:14.493 151b8 Generated table #838@1: 213 keys, 2330072 bytes
+2026/09/21-17:57:14.512 151b8 Generated table #839@1: 215 keys, 2319213 bytes
+2026/09/21-17:57:14.530 151b8 Generated table #840@1: 258 keys, 2302678 bytes
+2026/09/21-17:57:14.532 151b8 Generated table #841@1: 13 keys, 94028 bytes
+2026/09/21-17:57:14.533 151b8 Compacted 1@1 + 10@2 files => 23306251 bytes
+2026/09/21-17:57:14.535 151b8 compacted to: files[ 0 4 25 0 0 0 0 ]
+2026/09/21-17:57:14.536 151b8 Delete type=2 #811
+2026/09/21-17:57:14.536 151b8 Delete type=2 #816
+2026/09/21-17:57:14.536 151b8 Delete type=2 #814
+2026/09/21-17:57:14.536 151b8 Delete type=2 #820
+2026/09/21-17:57:14.536 151b8 Delete type=2 #819
+2026/09/21-17:57:14.536 151b8 Delete type=2 #815
+2026/09/21-17:57:14.536 151b8 Delete type=2 #826
+2026/09/21-17:57:14.536 151b8 Delete type=2 #817
+2026/09/21-17:57:14.536 151b8 Delete type=2 #812
+2026/09/21-17:57:14.537 151b8 Delete type=2 #818
+2026/09/21-17:57:14.537 151b8 Delete type=2 #813

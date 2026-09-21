@@ -1,0 +1,21 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Playwright & browser downloads
+.cache/
+ms-playwright/
+
+# Editor files
+.vscode/
+.idea/
+
+# Local backup / temp
+*.swp
+*.bak

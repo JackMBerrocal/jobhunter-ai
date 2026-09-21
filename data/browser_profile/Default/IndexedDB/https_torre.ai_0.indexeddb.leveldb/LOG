@@ -1,0 +1,69 @@
+2026/09/21-09:21:54.297 3df6 Reusing MANIFEST /home/jack/.gemini/antigravity-ide/scratch/jobhunter-ai/data/browser_profile/Default/IndexedDB/https_torre.ai_0.indexeddb.leveldb/MANIFEST-000001
+2026/09/21-09:21:54.297 3df6 Recovering log #164
+2026/09/21-09:21:54.298 3df6 Reusing old log /home/jack/.gemini/antigravity-ide/scratch/jobhunter-ai/data/browser_profile/Default/IndexedDB/https_torre.ai_0.indexeddb.leveldb/000164.log 
+2026/09/21-09:21:54.298 3df6 Delete type=2 #163
+2026/09/21-09:21:54.484 3df4 Level-0 table #169: started
+2026/09/21-09:21:54.486 3df4 Level-0 table #169: 3151 bytes OK
+2026/09/21-09:21:54.488 3df4 Delete type=0 #164
+2026/09/21-09:21:54.489 3df4 Manual compaction at level-0 from '\x008\x00\x00\x00' @ 72057594037927935 : 1 .. '\x009\x00\x00\x00' @ 0 : 0; will stop at '\x008\x00\x00\x05' @ 2225 : 1
+2026/09/21-09:21:54.489 3df4 Compacting 1@0 + 1@1 files
+2026/09/21-09:21:54.491 3df4 Generated table #170@0: 316 keys, 6589 bytes
+2026/09/21-09:21:54.491 3df4 Compacted 1@0 + 1@1 files => 6589 bytes
+2026/09/21-09:21:54.493 3df4 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/09/21-09:21:54.493 3df4 Delete type=2 #169
+2026/09/21-09:21:54.493 3df4 Manual compaction at level-0 from '\x008\x00\x00\x05' @ 2225 : 1 .. '\x009\x00\x00\x00' @ 0 : 0; will stop at (end)
+2026/09/21-09:21:55.327 3df4 Level-0 table #172: started
+2026/09/21-09:21:55.328 3df4 Level-0 table #172: 1322 bytes OK
+2026/09/21-09:21:55.330 3df4 Delete type=0 #168
+2026/09/21-09:21:55.330 3df4 Delete type=2 #166
+2026/09/21-09:21:55.330 3df4 Manual compaction at level-0 from '\x009\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00:\x00\x00\x00' @ 0 : 0; will stop at '\x009\x00\x00\x05' @ 2256 : 1
+2026/09/21-09:21:55.330 3df4 Compacting 1@0 + 1@1 files
+2026/09/21-09:21:55.332 3df4 Generated table #173@0: 317 keys, 6729 bytes
+2026/09/21-09:21:55.332 3df4 Compacted 1@0 + 1@1 files => 6729 bytes
+2026/09/21-09:21:55.334 3df4 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/09/21-09:21:55.334 3df4 Delete type=2 #172
+2026/09/21-09:21:55.334 3dfb Manual compaction at level-0 from '\x009\x00\x00\x05' @ 2256 : 1 .. '\x00:\x00\x00\x00' @ 0 : 0; will stop at (end)
+2026/09/21-09:21:56.691 3df6 Level-0 table #175: started
+2026/09/21-09:21:56.692 3df6 Level-0 table #175: 1806 bytes OK
+2026/09/21-09:21:56.693 3df6 Delete type=2 #170
+2026/09/21-09:21:56.693 3df6 Delete type=0 #171
+2026/09/21-09:21:56.693 3df6 Manual compaction at level-0 from '\x00:\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00;\x00\x00\x00' @ 0 : 0; will stop at '\x00:\x00\x00\x05' @ 2306 : 1
+2026/09/21-09:21:56.693 3df6 Compacting 1@0 + 1@1 files
+2026/09/21-09:21:56.695 3df6 Generated table #176@0: 318 keys, 6746 bytes
+2026/09/21-09:21:56.695 3df6 Compacted 1@0 + 1@1 files => 6746 bytes
+2026/09/21-09:21:56.697 3df6 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/09/21-09:21:56.697 3df6 Delete type=2 #175
+2026/09/21-09:21:56.697 3df6 Manual compaction at level-0 from '\x00:\x00\x00\x05' @ 2306 : 1 .. '\x00;\x00\x00\x00' @ 0 : 0; will stop at (end)
+2026/09/21-09:22:00.755 3df4 Level-0 table #178: started
+2026/09/21-09:22:00.757 3df4 Level-0 table #178: 5834 bytes OK
+2026/09/21-09:22:00.760 3df4 Delete type=2 #173
+2026/09/21-09:22:00.760 3df4 Delete type=0 #174
+2026/09/21-09:22:00.760 3df4 Manual compaction at level-0 from '\x00;\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00<\x00\x00\x00' @ 0 : 0; will stop at '\x00;\x00\x00\x05' @ 2382 : 1
+2026/09/21-09:22:00.760 3df4 Compacting 1@0 + 1@1 files
+2026/09/21-09:22:00.762 3df4 Generated table #179@0: 321 keys, 6668 bytes
+2026/09/21-09:22:00.762 3df4 Compacted 1@0 + 1@1 files => 6668 bytes
+2026/09/21-09:22:00.763 3df4 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/09/21-09:22:00.763 3df4 Delete type=2 #178
+2026/09/21-09:22:00.763 3df4 Manual compaction at level-0 from '\x00;\x00\x00\x05' @ 2382 : 1 .. '\x00<\x00\x00\x00' @ 0 : 0; will stop at (end)
+2026/09/21-09:22:01.640 3df4 Level-0 table #181: started
+2026/09/21-09:22:01.641 3df4 Level-0 table #181: 830 bytes OK
+2026/09/21-09:22:01.645 3df4 Delete type=0 #177
+2026/09/21-09:22:01.645 3df4 Delete type=2 #176
+2026/09/21-09:22:01.645 3df4 Manual compaction at level-0 from '\x00<\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00=\x00\x00\x00' @ 0 : 0; will stop at '\x00<\x00\x00\x05' @ 2401 : 1
+2026/09/21-09:22:01.645 3df4 Compacting 1@0 + 1@1 files
+2026/09/21-09:22:01.647 3df4 Generated table #182@0: 326 keys, 6711 bytes
+2026/09/21-09:22:01.647 3df4 Compacted 1@0 + 1@1 files => 6711 bytes
+2026/09/21-09:22:01.648 3df4 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/09/21-09:22:01.648 3df4 Delete type=2 #181
+2026/09/21-09:22:01.649 3df4 Manual compaction at level-0 from '\x00<\x00\x00\x05' @ 2401 : 1 .. '\x00=\x00\x00\x00' @ 0 : 0; will stop at (end)
+2026/09/21-09:22:02.723 3dfb Level-0 table #184: started
+2026/09/21-09:22:02.724 3dfb Level-0 table #184: 1243 bytes OK
+2026/09/21-09:22:02.725 3dfb Delete type=2 #179
+2026/09/21-09:22:02.725 3dfb Delete type=0 #180
+2026/09/21-09:22:02.726 3df6 Manual compaction at level-0 from '\x00=\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00>\x00\x00\x00' @ 0 : 0; will stop at '\x00=\x00\x00\x05' @ 2439 : 1
+2026/09/21-09:22:02.726 3df6 Compacting 1@0 + 1@1 files
+2026/09/21-09:22:02.727 3df6 Generated table #185@0: 334 keys, 6783 bytes
+2026/09/21-09:22:02.727 3df6 Compacted 1@0 + 1@1 files => 6783 bytes
+2026/09/21-09:22:02.730 3df6 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/09/21-09:22:02.731 3df6 Delete type=2 #184
+2026/09/21-09:22:02.731 3df6 Manual compaction at level-0 from '\x00=\x00\x00\x05' @ 2439 : 1 .. '\x00>\x00\x00\x00' @ 0 : 0; will stop at (end)

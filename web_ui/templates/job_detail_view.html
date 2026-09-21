@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ job.title }} | {{ job.company }} — Visor Oficial JobHunter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --radius: 12px;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding-bottom: 3rem;
+    }
+    .top-nav {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 0.85rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .top-nav a.back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: #eff6ff;
+      transition: background 0.15s;
+    }
+    .top-nav a.back-link:hover {
+      background: #dbeafe;
+    }
+    .shield-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .container {
+      max-width: 960px;
+      margin: 2rem auto;
+      padding: 0 1.25rem;
+    }
+    .job-main-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      padding: 2.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .header-tag {
+      display: inline-block;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: #e0f2fe;
+      color: #0369a1;
+      margin-bottom: 10px;
+    }
+    h1.job-title {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.25;
+      margin-bottom: 0.75rem;
+    }
+    .job-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 1.75rem;
+      font-size: 0.88rem;
+    }
+    .meta-item strong {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+    .meta-item span {
+      font-weight: 600;
+      color: #1e293b;
+    }
+    .match-banner {
+      background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+      border: 1px solid #bfdbfe;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .match-score {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #15803d;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .announcement-section {
+      margin-bottom: 2rem;
+    }
+    .section-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 6px;
+    }
+    .announcement-content {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid #3b82f6;
+      border-radius: 8px;
+      padding: 1.5rem;
+      line-height: 1.75;
+      font-size: 0.95rem;
+      color: #334155;
+      white-space: pre-line;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .skills-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 2rem;
+    }
+    @media (max-width: 640px) {
+      .skills-grid { grid-template-columns: 1fr; }
+    }
+    .skills-box {
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 0.88rem;
+    }
+    .skills-fulfilled {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+    }
+    .skills-fulfilled h4 {
+      color: #15803d;
+      margin-bottom: 8px;
+    }
+    .skills-fulfilled ul {
+      color: #166534;
+      padding-left: 20px;
+    }
+    .skills-missing {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+    }
+    .skills-missing h4 {
+      color: #b45309;
+      margin-bottom: 8px;
+    }
+    .skills-missing ul {
+      color: #92400e;
+      padding-left: 20px;
+    }
+    .actions-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 8px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+      border: none;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+    }
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+    .btn-secondary {
+      background: #ffffff;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+    }
+    .btn-secondary:hover {
+      background: #f8fafc;
+      color: #1e293b;
+    }
+    .alert-info {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.83rem;
+      color: #1e40af;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="top-nav">
+    <a href="/" class="back-link">← Volver al Panel JobHunter AI</a>
+    <div class="shield-badge">
+      🛡️ Visor Seguro JobHunter — 100% Sin Bloqueos 403
+    </div>
+  </header>
+
+  <main class="container">
+
+    <div class="alert-info">
+      <span>ℹ️</span>
+      <div>
+        <strong>Anuncio Oficial Protegido:</strong>
+        Este contenido proviene directamente de la convocatoria oficial de la empresa. JobHunter AI te permite leerlo íntegro sin errores de acceso ni restricciones de firewall de {{ portal_domain }}.
+      </div>
+    </div>
+
+    <div class="job-main-card">
+      <span class="header-tag">{{ job.platform | upper }}</span>
+      <h1 class="job-title">{{ job.title }}</h1>
+
+      <div class="job-meta-grid">
+        <div class="meta-item">
+          <strong>🏢 Empresa:</strong>
+          <span>{{ job.company }}</span>
+        </div>
+        <div class="meta-item">
+          <strong>📍 Ubicación / Modalidad:</strong>
+          <span>{{ job.location or "100% Remoto" }}</span>
+        </div>
+        <div class="meta-item">
+          <strong>💰 Salario Referencial:</strong>
+          <span>{{ job.salary_snippet or "Acorde al mercado / A convenir" }}</span>
+        </div>
+        <div class="meta-item">
+          <strong>🌐 Portal de Publicación:</strong>
+          <span>{{ portal_domain }}</span>
+        </div>
+      </div>
+
+      <div class="match-banner">
+        <div>
+          <span style="font-size:0.8rem; font-weight:700; color:#1e40af; text-transform:uppercase;">Evaluación de Carrera:</span>
+          <div style="font-weight:700; color:#0f172a; font-size:1rem; margin-top:2px;">
+            {{ role_info.icon or "🎯" }} {{ role_info.role_name or "Ingeniería de Sistemas" }}
+          </div>
+        </div>
+        <div class="match-score">
+          🎯 {{ match_score }}% Afinidad
+        </div>
+      </div>
+
+      <!-- Anuncio completo -->
+      <section class="announcement-section">
+        <h2 class="section-title">
+          <span>📜</span> Texto Completo del Anuncio y Propuesta Laboral
+        </h2>
+        <div class="announcement-content">
+{{ description }}
+        </div>
+      </section>
+
+      <!-- Requisitos -->
+      <section>
+        <h2 class="section-title">
+          <span>🤖</span> Análisis de Requisitos y Formación del Candidato
+        </h2>
+        <div class="skills-grid">
+          <div class="skills-box skills-fulfilled">
+            <h4>✔ Lo que cumplimos como Ingeniero de Sistemas:</h4>
+            <ul>
+              {% if cumplidos %}
+                {% for item in cumplidos %}
+                  <li>{{ item }}</li>
+                {% endfor %}
+              {% else %}
+                <li>Formación académica en Ingeniería de Sistemas e Informática coincidente.</li>
+                <li>Conocimientos y tecnologías afines a los requerimientos del puesto.</li>
+                <li>Capacidad de resolución técnica, soporte y desarrollo de software.</li>
+              {% endif %}
+            </ul>
+          </div>
+
+          <div class="skills-box skills-missing">
+            <h4>ℹ Requisitos específicos adicionales / A compensar:</h4>
+            <ul>
+              {% if no_cumplidos %}
+                {% for item in no_cumplidos %}
+                  <li>{{ item }}</li>
+                {% endfor %}
+              {% else %}
+                <li>100% de los requisitos esenciales están cubiertos por el perfil.</li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección: Apartado para Responder las Preguntas Manualmente -->
+      <section style="margin-top: 2.5rem; background: #faf5ff; border: 2px solid #e9d5ff; border-radius: 12px; padding: 1.75rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:1.25rem;">
+          <div>
+            <span style="background:#7e22ce; color:#fff; font-size:0.75rem; font-weight:700; padding:3px 8px; border-radius:4px; text-transform:uppercase;">Apartado Manual</span>
+            <h2 style="font-size:1.25rem; font-weight:800; color:#581c87; margin-top:6px; display:flex; align-items:center; gap:8px;">
+              <span>✍️</span> Responder Preguntas y Completar Postulación
+            </h2>
+            <p style="font-size:0.88rem; color:#6b21a8; margin-top:4px;">
+              Respuestas recomendadas generadas por IA según tu perfil de Ingeniería de Sistemas. Puedes editarlas libremente antes de enviar.
+            </p>
+          </div>
+          <button class="btn btn-secondary" onclick="loadQuestions()" style="font-size:0.82rem; background:#fff; border-color:#d8b4fe; color:#6b21a8; cursor:pointer;">
+            ✨ Regenerar con IA
+          </button>
+        </div>
+
+        <div id="questionsContainer" style="display:flex; flex-direction:column; gap:16px;">
+          <div style="text-align:center; padding:1.5rem; color:#7e22ce;">
+            Cargando preguntas de la vacante...
+          </div>
+        </div>
+
+        <div id="submitSuccessAlert" style="display:none; background:#dcfce7; border:1px solid #86efac; color:#15803d; border-radius:8px; padding:14px 18px; margin-top:16px; font-size:0.92rem; font-weight:600; align-items:center; justify-content:space-between;">
+          <span>🎉 ¡Respuestas guardadas y postulación completada con éxito! Ya figura en tu registro oficial.</span>
+          <a href="/" class="btn btn-primary btn-sm" style="background:#15803d; margin-left:12px; text-decoration:none; padding:6px 14px; border-radius:6px; color:#fff;">Ver en el Panel</a>
+        </div>
+
+        <div style="margin-top:1.5rem; display:flex; justify-content:flex-end; gap:10px;">
+          <button class="btn btn-primary" id="btnSubmitAnswers" onclick="submitAnswers()" style="background:#7e22ce; border-color:#6b21a8; font-size:0.92rem; padding:12px 24px; cursor:pointer;">
+            🚀 Guardar Respuestas y Completar Postulación
+          </button>
+        </div>
+      </section>
+
+      <div class="actions-bar" style="margin-top:2rem;">
+        <a href="/" class="btn btn-secondary">
+          ← Volver al Panel
+        </a>
+        <div style="display:flex; gap:8px;">
+          <a href="/proxy/job/{{ job.id }}" target="_blank" class="btn btn-secondary" style="background:#f1f5f9; border-color:#cbd5e1; color:#334155; font-size:0.85rem;" title="Abre Computrabajo a través del proxy seguro sin errores 403">
+            🌐 Ver Portal con Proxy Seguro (Sin 403)
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const jobId = {{ job.id }};
+    let currentQuestions = [];
+    let hasCustomQuestions = false;
+    let coverLetterText = '';
+
+    async function loadQuestions() {
+      const container = document.getElementById('questionsContainer');
+      const btn = document.getElementById('btnSubmitAnswers');
+      container.innerHTML = '<div style="text-align:center; padding:1.5rem; color:#7e22ce;">⏳ Analizando convocatoria y redactando respuestas técnicas según tu CV...</div>';
+      try {
+        const res = await fetch(`/api/jobs/${jobId}/questions`);
+        const data = await res.json();
+        currentQuestions = data.questions || [];
+        hasCustomQuestions = (data.has_employer_questions === true) && (currentQuestions.length > 0);
+        coverLetterText = data.cover_letter || '';
+
+        if (hasCustomQuestions) {
+          btn.innerText = '🚀 Guardar Respuestas y Completar Postulación';
+          container.innerHTML = currentQuestions.map((q, idx) => {
+            const isEmp = q.is_from_employer !== false;
+            const badgeTag = `<span style="font-size:0.72rem; font-weight:700; background:#dcfce7; color:#166534; padding:2px 8px; border-radius:4px; border:1px solid #bbf7d0;">🎯 Pregunta Real del Anuncio</span>`;
+
+            return `
+              <div style="background:#ffffff; border:1px solid #86efac; border-radius:8px; padding:14px; margin-bottom:10px; box-shadow:0 1px 2px rgba(0,0,0,0.02);">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:8px;">
+                  <label style="font-weight:700; font-size:0.9rem; color:#1e293b; line-height:1.4;">
+                    Pregunta ${idx + 1}: ${escapeHtml(q.question)}
+                  </label>
+                  <div style="flex-shrink:0;">${badgeTag}</div>
+                </div>
+                <textarea id="answer_${idx}" style="width:100%; min-height:85px; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.88rem; line-height:1.5; font-family:inherit; color:#1e293b; resize:vertical;">${escapeHtml(q.suggested_answer || q.answer || '')}</textarea>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+                  <small style="color:#7e22ce; font-size:0.75rem; font-weight:600;">✔ Respuesta técnica fundamentada en tu CV (Jack Michael Berrocal - Egresado Sistemas)</small>
+                </div>
+              </div>
+            `;
+          }).join('') + `
+            <details style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px; margin-top:10px;">
+              <summary style="font-weight:700; font-size:0.85rem; color:#334155; cursor:pointer; user-select:none;">
+                📄 Carta de Presentación personalizada generada para esta postulación (Opcional - Haz clic para ver)
+              </summary>
+              <div style="margin-top:10px;">
+                <textarea id="coverLetterInput" style="width:100%; min-height:140px; padding:10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.84rem; line-height:1.5; font-family:inherit; color:#1e293b; resize:vertical;">${escapeHtml(coverLetterText)}</textarea>
+                <small style="color:#64748b; font-size:0.75rem; display:block; margin-top:4px;">✔ Incluye tu titulación de Ingeniería de Sistemas, especialidades técnicas y enlace a tu GitHub.</small>
+              </div>
+            </details>
+          `;
+        } else {
+          btn.innerText = '🚀 Confirmar Postulación con CV y Carta';
+          const highlightsHtml = (data.cv_highlights || []).map(h => `
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 10px; font-size:0.8rem;">
+              <div style="color:#64748b; font-weight:600; font-size:0.72rem; text-transform:uppercase;">${escapeHtml(h.label)}</div>
+              <div style="color:#0f172a; font-weight:600; margin-top:2px;">${escapeHtml(h.value)}</div>
+            </div>
+          `).join('');
+
+          container.innerHTML = `
+            <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:12px 14px; font-size:0.85rem; color:#166534; margin-bottom:12px;">
+              ℹ️ <strong>Esta vacante no incluye preguntas abiertas del empleador.</strong> La postulación se formaliza adjuntando tu <strong>CV oficial en PDF</strong> (<code>CV_Jack_Michael_Berrocal.pdf</code>). A continuación tienes una Carta de Presentación redactada según tu titulación de Sistemas:
+            </div>
+            <div style="background:#ffffff; border:1px solid #bae6fd; border-radius:8px; padding:14px; margin-bottom:12px;">
+              <label style="display:block; font-weight:700; font-size:0.88rem; color:#0369a1; margin-bottom:6px;">
+                📄 Carta de Presentación adaptada al puesto (Editable):
+              </label>
+              <textarea id="coverLetterInput" style="width:100%; min-height:160px; padding:10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.84rem; line-height:1.5; font-family:inherit; color:#1e293b; resize:vertical;">${escapeHtml(coverLetterText)}</textarea>
+            </div>
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:14px;">
+              <div style="font-weight:700; font-size:0.85rem; color:#334155; margin-bottom:8px;">
+                📋 Parámetros oficiales de tu perfil:
+              </div>
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:8px;">
+                ${highlightsHtml}
+              </div>
+            </div>
+          `;
+        }
+      } catch (err) {
+        container.innerHTML = `<div style="color:#b91c1c;">Error al cargar datos: ${err}</div>`;
+      }
+    }
+
+    async function submitAnswers() {
+      const btn = document.getElementById('btnSubmitAnswers');
+      btn.disabled = true;
+      btn.innerText = '⏳ Guardando postulación...';
+
+      let payloadAnswers = [];
+      let coverLetterVal = '';
+
+      if (hasCustomQuestions) {
+        payloadAnswers = currentQuestions.map((q, idx) => {
+          const textarea = document.getElementById(`answer_${idx}`);
+          return {
+            question: q.question,
+            answer: textarea ? textarea.value.trim() : (q.suggested_answer || '')
+          };
+        });
+        const letterElem = document.getElementById('coverLetterInput');
+        if (letterElem) coverLetterVal = letterElem.value.trim();
+      } else {
+        const letterElem = document.getElementById('coverLetterInput');
+        coverLetterVal = letterElem ? letterElem.value.trim() : coverLetterText;
+        payloadAnswers = [];
+      }
+
+      try {
+        const res = await fetch(`/api/jobs/${jobId}/answer_questions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            answers: payloadAnswers,
+            cover_letter: coverLetterVal,
+            note: hasCustomQuestions ? 'Respuestas completadas en el visor de JobHunter.' : 'Postulación con CV y carta de presentación completada.'
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          const alertBox = document.getElementById('submitSuccessAlert');
+          if (alertBox) alertBox.style.display = 'flex';
+          btn.innerText = '✔ Postulación Guardada Exitosamente';
+          btn.style.background = '#15803d';
+        } else {
+          alert('Error: ' + (data.error || 'No se pudo guardar'));
+          btn.disabled = false;
+          btn.innerText = hasCustomQuestions ? '🚀 Guardar Respuestas y Completar Postulación' : '🚀 Confirmar Postulación con CV y Carta';
+        }
+      } catch (err) {
+        alert('Error al enviar: ' + err);
+        btn.disabled = false;
+        btn.innerText = hasCustomQuestions ? '🚀 Guardar Respuestas y Completar Postulación' : '🚀 Confirmar Postulación con CV y Carta';
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadQuestions();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+2026/09/21-18:23:36.293 158a5 Reusing MANIFEST /home/jack/.gemini/antigravity-ide/scratch/jobhunter-ai/data/browser_profile/Default/IndexedDB/https_www.bumeran.com.pe_0.indexeddb.leveldb/MANIFEST-000001
+2026/09/21-18:23:36.294 158a5 Recovering log #1517
+2026/09/21-18:23:36.294 158a5 Reusing old log /home/jack/.gemini/antigravity-ide/scratch/jobhunter-ai/data/browser_profile/Default/IndexedDB/https_www.bumeran.com.pe_0.indexeddb.leveldb/001517.log 
+2026/09/21-18:23:36.294 158a5 Delete type=2 #1515
+2026/09/21-18:23:36.490 158ae Level-0 table #1522: started
+2026/09/21-18:23:36.492 158ae Level-0 table #1522: 669 bytes OK
+2026/09/21-18:23:36.493 158ae Delete type=0 #1517
+2026/09/21-18:23:36.494 158a5 Manual compaction at level-0 from ' \xb5\x01\x00\x00\x00' @ 72057594037927935 : 1 .. ' \xb6\x01\x00\x00\x00' @ 0 : 0; will stop at ' \xb5\x01\x00\x00\x05' @ 8963 : 1
+2026/09/21-18:23:36.494 158a5 Compacting 1@0 + 1@1 files
+2026/09/21-18:23:36.495 158a5 Generated table #1523@0: 309 keys, 11955 bytes
+2026/09/21-18:23:36.495 158a5 Compacted 1@0 + 1@1 files => 11955 bytes
+2026/09/21-18:23:36.497 158a5 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/09/21-18:23:36.497 158a5 Delete type=2 #1522
+2026/09/21-18:23:36.497 158a5 Manual compaction at level-0 from ' \xb5\x01\x00\x00\x05' @ 8963 : 1 .. ' \xb6\x01\x00\x00\x00' @ 0 : 0; will stop at (end)

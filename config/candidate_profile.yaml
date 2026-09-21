@@ -1,0 +1,262 @@
+personal_info:
+  full_name: Jack Michael Berrocal
+  first_name: Jack Michael
+  last_name: Berrocal
+  email: jmberrocale@gmail.com
+  password: Michael23@*
+  phone: +51 963979996
+  country: Perú
+  city: Lima
+  linkedin_url: https://www.linkedin.com/in/jackmberrocal
+  github_url: https://github.com/JackMBerrocal
+  portfolio_url: https://github.com/JackMBerrocal
+  cv_path: data/cv/CV_Jack_Berrocal_QA_Tester.pdf
+  cv_qa_path: data/cv/CV_Jack_Berrocal_QA_Tester.pdf
+  cv_data_path: data/cv/CV_Jack_Berrocal_Data_Analyst.pdf
+  cv_remote_en_path: data/cv/CV_Jack_Berrocal_English_Remote.pdf
+education:
+  degree: Ingeniería de Sistemas
+  institution: Universidad Tecnológica Latinoamericana (UTEL)
+  specialization: Oracle Next Education (ONE) / Alura Latam - Data Science & Sistemas
+  status: Egresado / Graduado
+  graduation_year: '2025'
+skills:
+  programming_languages:
+  - Python
+  - JavaScript
+  - TypeScript
+  - SQL
+  - Java
+  - C#
+  frameworks_libraries:
+  - React
+  - Node.js
+  - FastAPI
+  - Express
+  - Django
+  - Spring Boot
+  databases:
+  - PostgreSQL
+  - MySQL
+  - MongoDB
+  - SQLite
+  tools_and_cloud:
+  - Git / GitHub
+  - Docker
+  - Linux
+  - AWS / Google Cloud (básico)
+  - Postman
+  methodologies:
+  - Scrum / Agile
+  - Clean Code
+  - RESTful APIs
+projects:
+- name: Laboratorio de Soporte, Diagnóstico de Redes y Configuración de Sistemas
+  technologies:
+  - Windows Server / Windows 10/11
+  - Linux (Ubuntu)
+  - Active Directory
+  - Redes (TCP/IP, DNS, DHCP, VPN)
+  - VirtualBox
+  - Jira Service Management / GLPI
+  description: Implementación de entorno virtualizado con Windows Server (Active Directory,
+    DHCP) y clientes Windows/Ubuntu. Simulación de tickets L1/L2, diagnóstico de conectividad
+    y soporte remoto.
+  repo_url: https://github.com/JackMBerrocal
+- name: Plataforma de Gestión y Automatización de Procesos (Python & REST APIs)
+  technologies:
+  - Python
+  - FastAPI
+  - PostgreSQL / SQLite
+  - SQLAlchemy ORM
+  - Postman / Pytest
+  - Git / GitHub
+  description: Desarrollo de API REST backend con Python y FastAPI para gestión de
+    registros y tareas automatizadas. Persistencia en PostgreSQL, pruebas automatizadas
+    de endpoints y control de versiones.
+  repo_url: https://github.com/JackMBerrocal
+- name: Pruebas y Aseguramiento de Calidad de Software (QA & Testing)
+  technologies:
+  - Postman
+  - Smoke Testing & Pruebas Funcionales
+  - Matrices de Prueba y Reporte de Bugs
+  - SQL (PostgreSQL, MySQL)
+  description: Diseño y ejecución de casos de prueba funcionales, pruebas de regresión
+    y smoke testing. Documentación de matrices de prueba, reporte de bugs y validación
+    de endpoints REST con Postman.
+  repo_url: https://github.com/JackMBerrocal
+job_preferences:
+  target_roles:
+  - id: qa_tester
+    name: QA Tester / Analista de Calidad Junior
+    category: Calidad & Testing
+    icon: 🧪
+    keywords:
+    - qa
+    - tester
+    - testing
+    - calidad
+    - control de calidad
+    - aseguramiento
+    - pruebas
+    - test
+    search_query: qa junior
+    enabled: true
+  - id: desarrollador_jr
+    name: Desarrollador Junior / Software Engineer
+    category: Desarrollo & Programación
+    icon: 💻
+    keywords:
+    - desarrollador
+    - developer
+    - software
+    - programador
+    - frontend
+    - backend
+    - fullstack
+    - python
+    - javascript
+    - react
+    - node
+    search_query: desarrollador junior
+    enabled: true
+  - id: soporte_ti
+    name: Soporte TI / Help Desk / Mesa de Ayuda
+    category: Soporte & Operaciones
+    icon: 🛠️
+    keywords:
+    - soporte
+    - support
+    - helpdesk
+    - help desk
+    - mesa de ayuda
+    - tecnico ti
+    - it support
+    - tecnico de soporte
+    search_query: soporte ti junior
+    enabled: true
+  - id: practicante_sistemas
+    name: Practicante Pre / Profesional de Sistemas
+    category: Prácticas & Trainee
+    icon: 🎓
+    keywords:
+    - practicante sistemas
+    - practicante de sistemas
+    - practicante ti
+    - practicante software
+    - practicante desarrollo
+    - practicante de desarrollo
+    - practicante soporte
+    - practicante redes
+    - practicante datos
+    - practicante qa
+    - practicante programacion
+    - trainee sistemas
+    - trainee software
+    - intern sistemas
+    - intern software
+    - pasante de sistemas
+    search_query: practicante sistemas
+    enabled: true
+  - id: analista_datos
+    name: Analista de Datos / BI Junior
+    category: Datos & Analítica
+    icon: 📊
+    keywords:
+    - datos
+    - data
+    - bi
+    - business intelligence
+    - sql
+    - analytics
+    - power bi
+    search_query: analista datos junior
+    enabled: true
+  - id: ingeniero_sistemas
+    name: Ingeniero de Sistemas Junior
+    category: Sistemas & TI
+    icon: ⚙️
+    keywords:
+    - sistemas
+    - systems
+    - it
+    - tecnologia de la informacion
+    - infraestructura
+    - redes
+    search_query: ingeniero de sistemas junior
+    enabled: true
+  - id: web_freelance
+    name: Desarrollador Web Freelance / Por Proyecto
+    category: Freelance & Web
+    icon: 🌐
+    keywords:
+    - desarrollo web
+    - web developer
+    - frontend
+    - backend
+    - react
+    - python
+    - landing page
+    - wordpress
+    - api
+    - freelance
+    - por proyecto
+    - programador web
+    search_query: desarrollador web remoto freelance
+    enabled: true
+  - id: soporte_tecnico_chat
+    name: Soporte Técnico TI / Help Desk (Chat & WhatsApp - Sin Ventas)
+    category: Soporte & Help Desk
+    icon: 💬
+    keywords:
+    - soporte tecnico
+    - help desk
+    - mesa de ayuda
+    - soporte ti
+    - soporte chat
+    - tickets
+    - zendesk
+    - whatsapp soporte
+    - soporte sistemas
+    - it helpdesk
+    - soporte aplicaciones
+    - soporte software
+    search_query: soporte tecnico chat remoto
+    enabled: true
+  modality: remote
+  remote_only: true
+  strict_remote_only: true
+  min_salary_monthly_pen: 2000
+  expected_salary_monthly_pen: 2400
+  min_salary_monthly_usd: 600
+  expected_salary_monthly_usd: 800
+  currency: MULTI_CURRENCY
+screening_answers:
+  immediate_availability: true
+  availability_notice_days: 0
+  willing_to_relocate: false
+  english_level: Básico / A2 (Lectura y comprensión de documentación técnica, código y manuales; comunicación profesional en español)
+  years_of_experience: 1
+  salary_expectation_text: Mi pretensión salarial es a partir de S/ 2,200 - 2,500 soles mensuales (o a partir de 650 USD en contratos remotos), abierta a evaluación según beneficios.
+  salary_expectation_pen: 2200
+  salary_expectation_usd: 650
+  why_hire_me: Soy graduado de Ingeniería de Sistemas con sólida base en algoritmos,
+    bases de datos y desarrollo de software moderno. Cuento con proyectos prácticos
+    comprobables en GitHub, alta adaptabilidad, pensamiento analítico y compromiso
+    para integrarme rápidamente al equipo y aportar valor desde el primer día.
+safety_limits:
+  max_applications_per_day_per_platform: 25
+  min_delay_between_applications_seconds: 30
+  max_delay_between_applications_seconds: 90
+  auto_apply_confidence_threshold: 0.8
+auth_credentials:
+  email: jmberrocale@gmail.com
+  password: Michael23@*
+  full_name: Jack Michael Berrocal
+  first_name: Jack Michael
+  last_name: Berrocal
+  phone: +51 963979996
+  country: Perú
+  city: Lima
+  use_google_first: true
+  auto_register_enabled: true
