@@ -4103,7 +4103,38 @@
         if (data && data.proposal) {
           currentFreelanceModalProject.generated_proposal = data.proposal;
           propText.value = data.proposal;
-          showToast('✨ Propuesta regenerada con nuevo enfoque técnico y preguntas clave.');
+
+          if (data.suggested_bid) {
+            currentFreelanceModalProject.suggested_bid = data.suggested_bid;
+            document.getElementById('fModalSuggestedBid').innerText = data.suggested_bid;
+          }
+          if (data.suggested_timeline) {
+            currentFreelanceModalProject.suggested_timeline = data.suggested_timeline;
+            document.getElementById('fModalSuggestedTimeline').innerText = data.suggested_timeline;
+          }
+          if (typeof data.is_hourly !== 'undefined') {
+            currentFreelanceModalProject.is_hourly = data.is_hourly;
+            currentFreelanceModalProject.modality = data.is_hourly ? 'hourly' : 'fixed';
+            const modTag = document.getElementById('fModalModalityTag');
+            if (modTag) {
+              if (data.is_hourly) {
+                modTag.innerText = '⏱️ CONTRATO POR HORA (HOURLY)';
+                modTag.style.background = '#fffbeb';
+                modTag.style.color = '#b45309';
+                modTag.style.borderColor = '#fde68a';
+              } else {
+                modTag.innerText = '📦 PRECIO FIJO / TURNKEY';
+                modTag.style.background = '#ecfdf5';
+                modTag.style.color = '#047857';
+                modTag.style.borderColor = '#a7f3d0';
+              }
+            }
+          }
+
+          showToast('✨ Propuesta y cotización actualizadas con preguntas estratégicas.');
+          if (typeof loadFreelanceProjects === 'function') {
+            loadFreelanceProjects(false);
+          }
         }
       } catch (err) {
         alert('Error al regenerar: ' + err);

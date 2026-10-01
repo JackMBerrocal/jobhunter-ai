@@ -1530,8 +1530,12 @@ async def get_freelance_projects(
         except Exception:
             pass
 
-        combined_text = ((p.budget or '') + ' ' + (p.suggested_bid or '') + ' ' + (p.title or '') + ' ' + (p.generated_proposal or '')).lower()
-        is_hourly = any(h in combined_text for h in ['/ hora', '/hr', '/ hour', 'por hora', 'tarifa horaria', 'por turno', 'modalidad: por horas'])
+        # Detección estricta de modalidad Horas vs Precio Fijo
+        budget_str = (p.budget or "").lower()
+        bid_str = (p.suggested_bid or "").lower()
+        has_hourly_budget = bool(re.search(r'(?:/\s*(?:hr|hora|hour|h)\b|\b(?:por hora|por horas|hourly|x hora|x hr)\b)', budget_str))
+        has_hourly_bid = bool(re.search(r'(?:/\s*(?:hr|hora|hour|h)\b|\b(?:por hora|por horas|hourly|x hora|x hr)\b)', bid_str))
+        is_hourly = has_hourly_budget or has_hourly_bid
         modality_type = "hourly" if is_hourly else "fixed"
 
         if is_hourly:
@@ -1556,8 +1560,8 @@ async def get_freelance_projects(
             "url": p.url,
             "description": p.description or "",
             "generated_proposal": p.generated_proposal or "",
-            "suggested_bid": p.suggested_bid or ("$20 USD / hora" if is_hourly else "$80 USD"),
-            "suggested_timeline": p.suggested_timeline or ("4-6 hrs / día" if is_hourly else "48 horas"),
+            "suggested_bid": p.suggested_bid or ("$20 USD / hora" if is_hourly else "$140 USD"),
+            "suggested_timeline": p.suggested_timeline or ("4-6 hrs / día" if is_hourly else "3 a 4 días"),
             "is_hourly": is_hourly,
             "modality": modality_type,
             "modality_label": "⏱️ Por Horas (Hourly)" if is_hourly else "📦 Por Trabajo Realizado (Precio Fijo)",
@@ -1612,7 +1616,15 @@ async def generate_freelance_proposal(request: Request, db: Session = Depends(ge
         if proj.status == "open":
             proj.status = "proposal_generated"
         db.commit()
-        return {"status": "success", "data": result}
+        return {
+            "status": "success",
+            "proposal": result["proposal_text"],
+            "suggested_bid": result["suggested_bid"],
+            "suggested_timeline": result["suggested_timeline"],
+            "is_hourly": result.get("is_hourly", False),
+            "category": result["category"],
+            "data": result
+        }
     else:
         # Generación personalizada a partir de texto libre (para Workana / Upwork)
         title = data.get("title", "")
@@ -1620,7 +1632,15 @@ async def generate_freelance_proposal(request: Request, db: Session = Depends(ge
         budget = data.get("budget", "")
         client = data.get("client_name", "Cliente")
         result = proposal_generator.generate_proposal(title, desc, client, budget)
-        return {"status": "success", "data": result}
+        return {
+            "status": "success",
+            "proposal": result["proposal_text"],
+            "suggested_bid": result["suggested_bid"],
+            "suggested_timeline": result["suggested_timeline"],
+            "is_hourly": result.get("is_hourly", False),
+            "category": result["category"],
+            "data": result
+        }
 
 
 @app.post("/api/freelance/update_status")
