@@ -13,6 +13,9 @@ ENV/
 ms-playwright/
 data/browser_profile/
 data/backups/
+data/*.db
+data/*.db-journal
+data/*.sqlite
 
 # Editor files
 .vscode/
