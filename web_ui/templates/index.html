@@ -1620,6 +1620,9 @@
           <button class="btn btn-primary" onclick="toggleExternalProposalBox()" style="background: #ffffff; color: #4338ca; border: none; font-weight: 700;">
             ✍️ Generar Cotización Ganadora
           </button>
+          <button class="btn btn-primary" onclick="toggleMiamBotCopilotBox()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: 1px solid #34d399; font-weight: 700; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+            <span>🤖</span> MiamBot Copilot de Cierre en Chat
+          </button>
         </div>
       </div>
 
@@ -1709,6 +1712,70 @@
             </button>
           </div>
           <pre id="extProposalText" style="white-space: pre-wrap; font-family: inherit; font-size: 0.88rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; color: #1e293b; line-height: 1.55;"></pre>
+        </div>
+      </div>
+
+      <!-- MiamBot Sales Copilot: Cierre de Tratos en Chat de Freelancer (Psicología de Ventas 24/7) -->
+      <div id="miambotChatCopilotBox" class="freelance-generator-box" style="display: none; background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f8fafc 100%); border: 1.5px solid #10b981; box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.15);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1.6rem; background: #10b981; color: #ffffff; width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">🤖</span>
+            <div>
+              <strong style="font-size: 1.05rem; color: #064e3b; display: block;">MiamBot Sales Copilot: Asistente de Cierre de Chat</strong>
+              <span style="font-size: 0.8rem; color: #047857;">Psicología de ventas, manejo de objeciones y creación de Hito (Milestone) en Freelancer.com</span>
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="toggleMiamBotCopilotBox()">Cerrar</button>
+        </div>
+
+        <p style="font-size: 0.84rem; color: #334155; margin-bottom: 14px; line-height: 1.45;">
+          ¿Un cliente respondió a tu propuesta en Freelancer.com? <strong>Pega aquí el mensaje del cliente</strong>. MiamBot redactará la respuesta ideal con persuasión profesional, trato formal, respuesta técnica y llamado a la acción para cerrar el hito de pago (Milestone).
+        </p>
+
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label style="font-size: 0.78rem; font-weight: 700; color: #064e3b; display: block; margin-bottom: 4px;">Objetivo del Cierre:</label>
+            <select id="mbGoalSelect" style="width: 100%; padding: 0.6rem; border: 1px solid #a7f3d0; border-radius: 6px; font-size: 0.83rem; background: #ffffff; color: #0f172a; font-weight: 600;">
+              <option value="close_milestone">🤝 Cerrar Trato y Pedir Creación de Hito (Milestone)</option>
+              <option value="negotiate_price">💰 Manejo de Objeción de Precio / Descuento</option>
+              <option value="timeline_urgency">⏱️ Pregunta por Tiempo de Entrega / Urgencia</option>
+              <option value="portfolio_proof">📁 Pregunta por Portafolio / Experiencia / GitHub</option>
+              <option value="prevent_external_call">🛡️ Cliente pide llamada / WhatsApp (Mantener 100% en Chat)</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 0.78rem; font-weight: 700; color: #064e3b; display: block; margin-bottom: 4px;">Presupuesto Cotizado (Opcional):</label>
+            <input type="text" id="mbOfferedBid" placeholder="Ej: €140 EUR o $150 USD" style="width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.83rem;">
+          </div>
+          <div>
+            <label style="font-size: 0.78rem; font-weight: 700; color: #064e3b; display: block; margin-bottom: 4px;">Plazo Estimado (Opcional):</label>
+            <input type="text" id="mbTimeline" placeholder="Ej: 3 a 4 días hábiles" style="width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.83rem;">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 0.78rem; font-weight: 700; color: #064e3b; display: block; margin-bottom: 4px;">Mensaje o Pregunta que te hizo el Cliente en Freelancer.com:</label>
+          <textarea id="mbClientMessage" rows="3" placeholder="Ej: 'Hola Jack, vi tu propuesta. ¿En cuánto tiempo podrías tener lista la web en WordPress y qué necesitas de mi parte?'" style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; font-family: inherit;"></textarea>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button class="btn btn-primary" onclick="generateMiamBotChatReply()" id="btnGenerateMiamBotReply" style="background: #059669; border-color: #047857; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+            <span>⚡</span> Generar Respuesta de Cierre MiamBot
+          </button>
+        </div>
+
+        <!-- Resultado de la respuesta MiamBot -->
+        <div id="mbReplyResult" style="display: none; margin-top: 14px; padding-top: 14px; border-top: 1px dashed #a7f3d0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span class="portal-tag" id="mbIntentBadge" style="background: #d1fae5; color: #065f46; font-weight: 700;">CIERRE DE MILESTONE</span>
+              <span style="font-size: 0.78rem; color: #047857; font-weight: 600;">✨ Lista para enviar al chat del cliente</span>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="copyMiamBotReplyText()" style="background: #059669; border-color: #047857; font-weight: 700;">
+              📋 Copiar al Portapapeles
+            </button>
+          </div>
+          <textarea id="mbReplyText" rows="6" style="width: 100%; padding: 12px; border: 1px solid #a7f3d0; border-radius: 8px; font-family: inherit; font-size: 0.88rem; line-height: 1.55; color: #0f172a; background: #ffffff;"></textarea>
         </div>
       </div>
 
@@ -3946,6 +4013,84 @@
         const titleInput = document.getElementById('extProjTitle');
         if (titleInput) titleInput.focus();
       }
+    }
+
+    function toggleMiamBotCopilotBox() {
+      const box = document.getElementById('miambotChatCopilotBox');
+      if (!box) return;
+      box.style.display = (box.style.display === 'none' || !box.style.display) ? 'block' : 'none';
+      if (box.style.display === 'block') {
+        const msgInput = document.getElementById('mbClientMessage');
+        if (msgInput) msgInput.focus();
+      }
+    }
+
+    async function generateMiamBotChatReply() {
+      const clientMsg = document.getElementById('mbClientMessage').value.trim();
+      if (!clientMsg) {
+        alert('Por favor pega el mensaje que te escribió el cliente en Freelancer.com');
+        return;
+      }
+      const goal = document.getElementById('mbGoalSelect').value;
+      const offeredBid = document.getElementById('mbOfferedBid').value.trim();
+      const timeline = document.getElementById('mbTimeline').value.trim();
+
+      const btn = document.getElementById('btnGenerateMiamBotReply');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = '⏳ Aplicando psicología de ventas MiamBot...';
+      }
+
+      try {
+        const res = await fetch('/api/freelance/chat_copilot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            client_message: clientMsg,
+            goal: goal,
+            offered_bid: offeredBid,
+            timeline: timeline
+          })
+        });
+        if (!res.ok) throw new Error('Error al conectar con MiamBot Copilot');
+        const json = await res.json();
+        const data = json.data;
+
+        const badge = document.getElementById('mbIntentBadge');
+        if (badge) {
+          const intentLabels = {
+            'close_milestone': '🤝 CIERRE DE MILESTONE',
+            'negotiate_price': '💰 MANEJO DE PRECIO',
+            'timeline_urgency': '⏱️ TIEMPO Y URGENCIA',
+            'portfolio_proof': '📁 PORTAFOLIO Y PRUEBAS',
+            'prevent_external_call': '🛡️ GARANTÍA DE CHAT (CERO LLAMADAS)'
+          };
+          badge.innerText = intentLabels[data.intent] || 'CIERRE DE TRATO';
+        }
+
+        const replyText = document.getElementById('mbReplyText');
+        if (replyText) replyText.value = data.suggested_reply;
+
+        document.getElementById('mbReplyResult').style.display = 'block';
+        showToast('🤖 ¡Respuesta persuasiva generada con éxito! Cópiala y envíala al chat.');
+      } catch (err) {
+        alert('Error: ' + err);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = '⚡ Generar Respuesta de Cierre MiamBot';
+        }
+      }
+    }
+
+    function copyMiamBotReplyText() {
+      const replyText = document.getElementById('mbReplyText');
+      if (!replyText || !replyText.value) return;
+      navigator.clipboard.writeText(replyText.value).then(() => {
+        showToast('📋 ¡Respuesta copiada! Ahora pégala en el chat de Freelancer.com');
+      }).catch(err => {
+        alert('No se pudo copiar: ' + err);
+      });
     }
 
     async function generateExternalProposal() {

@@ -32,6 +32,7 @@ from email_agent.responder import EmailAgent
 from core.job_queue import JobQueueWorker
 from core.autonomous_hunter import AutonomousHunterDaemon
 from core.freelance_autobidder import FreelanceAutoBidder
+from core.miambot_copilot import MiamBotSalesCopilot
 
 app = FastAPI(title="JobHunter AI - Dashboard de Búsqueda Laboral")
 
@@ -1641,6 +1642,28 @@ async def generate_freelance_proposal(request: Request, db: Session = Depends(ge
             "category": result["category"],
             "data": result
         }
+
+
+@app.post("/api/freelance/chat_copilot")
+async def freelance_chat_copilot(request: Request):
+    """Genera respuestas de cierre en chat con la psicología y empatía de ventas de MiamBot."""
+    data = await request.json()
+    client_message = data.get("client_message", "")
+    project_title = data.get("project_title", "")
+    category = data.get("category", "web_dev")
+    goal = data.get("goal", "close_milestone")
+    offered_bid = data.get("offered_bid", "")
+    timeline = data.get("timeline", "")
+
+    result = MiamBotSalesCopilot.generate_chat_reply(
+        client_message=client_message,
+        project_title=project_title,
+        category=category,
+        goal=goal,
+        offered_bid=offered_bid,
+        timeline=timeline
+    )
+    return {"status": "success", "data": result}
 
 
 @app.post("/api/freelance/update_status")
