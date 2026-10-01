@@ -20,8 +20,9 @@ class FreelanceHunter:
     def fetch_freelancer_projects(self, max_per_query: int = 4) -> List[Dict[str, Any]]:
         """Obtiene proyectos activos en español desde Freelancer.com API."""
         queries = [
-            "whatsapp", "atencion al cliente", "setter", "power bi", "python",
-            "sql", "qa testing", "asistente virtual", "desarrollo web", "automatizacion"
+            "whatsapp", "atencion al cliente", "asistente virtual", "tiktok", "instagram",
+            "redes sociales", "community manager", "setter", "chatbot", "power bi",
+            "python", "sql", "qa testing", "desarrollo web", "wordpress", "shopify", "automatizacion"
         ]
         projects = []
         seen_ids = set()

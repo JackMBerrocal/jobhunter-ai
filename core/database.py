@@ -155,7 +155,7 @@ class FreelanceAutoBidConfig(Base):
     check_interval_seconds = Column(Integer, default=75)
     target_categories_json = Column(
         Text,
-        default='["customer_support_whatsapp", "sales_setter_crm", "ai_chatbot_system", "power_bi_data", "qa_testing", "sql_database", "web_dev"]'
+        default='["customer_support_whatsapp", "sales_setter_crm", "ai_chatbot_system", "social_media_growth", "ecommerce_stores", "virtual_assistant_admin", "power_bi_data", "qa_testing", "sql_database", "web_dev", "python_automation_scraping"]'
     )
     freelancer_api_token = Column(String(300), nullable=True)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)

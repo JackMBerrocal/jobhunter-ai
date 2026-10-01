@@ -53,7 +53,8 @@ class FreelanceAutoBidder:
             except Exception:
                 categories = [
                     "customer_support_whatsapp", "sales_setter_crm", "ai_chatbot_system",
-                    "power_bi_data", "qa_testing", "sql_database", "web_dev"
+                    "social_media_growth", "ecommerce_stores", "virtual_assistant_admin",
+                    "power_bi_data", "qa_testing", "sql_database", "web_dev", "python_automation_scraping"
                 ]
 
             return {

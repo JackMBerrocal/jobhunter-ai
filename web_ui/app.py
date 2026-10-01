@@ -61,7 +61,7 @@ def log_event(message: str):
 
 llm = LLMEngine()
 job_queue = JobQueueWorker(llm, log_callback=log_event)
-autonomous_hunter = AutonomousHunterDaemon(llm, job_queue, log_callback=log_event, interval_minutes=25)
+autonomous_hunter = AutonomousHunterDaemon(llm, job_queue, log_callback=log_event, interval_minutes=90)
 proposal_generator = ProposalGenerator(llm)
 freelance_hunter = FreelanceHunter(proposal_generator)
 freelance_autobidder = FreelanceAutoBidder(proposal_generator, log_callback=log_event)
@@ -69,11 +69,14 @@ freelance_autobidder = FreelanceAutoBidder(proposal_generator, log_callback=log_
 
 @app.on_event("startup")
 async def startup_event():
-    """Inicia automáticamente los motores continuos de búsqueda y postulación autónoma 24/7."""
-    autonomous_hunter.start(interval_minutes=25)
-    log_event("🚀 Agente Autónomo 24/7 ACTIVADO: Buscando vacantes activas y postulando automáticamente sin parar.")
+    """Inicia con prioridad el motor freelance (por horas y entregables) y en segundo plano el empleo corporativo."""
+    # 1. Prioridad Principal: Motor Freelance & Oportunidades por Horas
     freelance_autobidder.start()
-    log_event("⚡ Freelance Auto-Bidder 24/7 INICIADO: Monitoreo en tiempo real listo.")
+    log_event("⚡ FREELANCE AUTO-BIDDER 24/7 EN MODO PRIORITARIO: Monitoreo activo de contratos por hora y precio fijo.")
+
+    # 2. Segundo Plano: Rastreador de Empleo Corporativo
+    autonomous_hunter.start(interval_minutes=90)
+    log_event("💼 Rastreador Corporativo Remoto configurado en SEGUNDO PLANO (Ciclos espaciados en background cada 90 min).")
 
 
 @app.on_event("shutdown")
@@ -437,7 +440,22 @@ async def get_stats(db: Session = Depends(get_db)):
     expired_jobs = db.query(Job).filter(Job.status == "expired").count()
     interviews = db.query(EmailMessage).filter(EmailMessage.category == "interview_invite").count()
     tests = db.query(EmailMessage).filter(EmailMessage.category == "coding_challenge").count()
-    freelance_count = db.query(FreelanceProject).filter(FreelanceProject.status != "dismissed").count()
+
+    freelance_projects = db.query(FreelanceProject).filter(FreelanceProject.status != "dismissed").all()
+    freelance_count = len(freelance_projects)
+    freelance_hourly_count = sum(
+        1 for p in freelance_projects
+        if any(h in ((p.budget or '') + ' ' + (p.suggested_bid or '') + ' ' + (p.title or '') + ' ' + (p.generated_proposal or '')).lower()
+               for h in ['/ hora', '/hr', '/ hour', 'por hora', 'tarifa horaria', 'por turno', 'modalidad: por horas'])
+    )
+    freelance_fixed_count = freelance_count - freelance_hourly_count
+    freelance_applied_count = sum(1 for p in freelance_projects if p.status in ["applied", "auto_applied"] or p.auto_applied)
+
+    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    freelance_bids_today = db.query(FreelanceProject).filter(
+        FreelanceProject.auto_applied == True,
+        FreelanceProject.applied_at >= today_start
+    ).count()
 
     roles = llm.get_target_roles()
     active_roles = sum(1 for r in roles if r.get("enabled", True))
@@ -449,6 +467,10 @@ async def get_stats(db: Session = Depends(get_db)):
         "interviews": interviews,
         "tests": tests,
         "freelance_count": freelance_count,
+        "freelance_hourly_count": freelance_hourly_count,
+        "freelance_fixed_count": freelance_fixed_count,
+        "freelance_applied_count": freelance_applied_count,
+        "freelance_bids_today": freelance_bids_today,
         "active_roles_count": active_roles,
         "total_roles_count": len(roles),
         "is_running": agent_state["is_running"] or autonomous_hunter.is_running,
@@ -459,6 +481,7 @@ async def get_stats(db: Session = Depends(get_db)):
         "current_processing_job": job_queue.current_job_title,
         "headless": job_queue.headless
     }
+
 
 
 @app.get("/api/jobs")
@@ -1480,9 +1503,10 @@ async def get_freelance_projects(
     category: Optional[str] = None,
     platform: Optional[str] = None,
     status: Optional[str] = None,
+    modality: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
-    """Lista proyectos freelance descubiertos con filtrado por categoría y plataforma."""
+    """Lista proyectos freelance descubiertos con filtrado por categoría, plataforma y modalidad."""
     q = db.query(FreelanceProject)
     if category and category != "all":
         q = q.filter(FreelanceProject.category == category)
@@ -1496,12 +1520,27 @@ async def get_freelance_projects(
     projects = q.order_by(FreelanceProject.id.desc()).all()
     
     results = []
+    total_hourly = 0
+    total_fixed = 0
+
     for p in projects:
         skills = []
         try:
             skills = json.loads(p.skills_json) if p.skills_json else []
         except Exception:
             pass
+
+        combined_text = ((p.budget or '') + ' ' + (p.suggested_bid or '') + ' ' + (p.title or '') + ' ' + (p.generated_proposal or '')).lower()
+        is_hourly = any(h in combined_text for h in ['/ hora', '/hr', '/ hour', 'por hora', 'tarifa horaria', 'por turno', 'modalidad: por horas'])
+        modality_type = "hourly" if is_hourly else "fixed"
+
+        if is_hourly:
+            total_hourly += 1
+        else:
+            total_fixed += 1
+
+        if modality and modality != "all" and modality != modality_type:
+            continue
 
         results.append({
             "id": p.id,
@@ -1517,15 +1556,24 @@ async def get_freelance_projects(
             "url": p.url,
             "description": p.description or "",
             "generated_proposal": p.generated_proposal or "",
-            "suggested_bid": p.suggested_bid or "$80 USD",
-            "suggested_timeline": p.suggested_timeline or "48 horas",
+            "suggested_bid": p.suggested_bid or ("$20 USD / hora" if is_hourly else "$80 USD"),
+            "suggested_timeline": p.suggested_timeline or ("4-6 hrs / día" if is_hourly else "48 horas"),
+            "is_hourly": is_hourly,
+            "modality": modality_type,
+            "modality_label": "⏱️ Por Horas (Hourly)" if is_hourly else "📦 Por Trabajo Realizado (Precio Fijo)",
             "status": p.status,
             "auto_applied": bool(p.auto_applied),
             "applied_at": p.applied_at.strftime("%d/%m %H:%M") if p.applied_at else "",
             "bid_response_log": p.bid_response_log or "",
             "created_at": p.created_at.strftime("%d/%m %H:%M") if p.created_at else ""
         })
-    return {"total": len(results), "projects": results}
+    return {
+        "total": len(results),
+        "total_unfiltered": len(projects),
+        "hourly_count": total_hourly,
+        "fixed_count": total_fixed,
+        "projects": results
+    }
 
 
 @app.post("/api/freelance/scan")
