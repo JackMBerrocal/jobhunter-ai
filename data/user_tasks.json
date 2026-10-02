@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "task": "Revisar postulaciones freelance de la mañana",
+    "done": false,
+    "created_at": "2026-10-01"
+  },
+  {
+    "id": 2,
+    "task": "Ajustar pack de logotipos para clientes de diseño",
+    "done": false,
+    "created_at": "2026-10-01"
+  },
+  {
+    "id": 3,
+    "task": "Monitorear contratos por hora para la meta de $1,500 USD",
+    "done": false,
+    "created_at": "2026-10-01"
+  },
+  {
+    "id": 4,
+    "task": "revisar servidores",
+    "done": false,
+    "created_at": "2026-10-01"
+  }
+]

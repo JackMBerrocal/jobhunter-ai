@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobHunter AI | Asistente de Búsqueda Laboral (Primer Empleo Remoto)</title>
   <meta name="description" content="Agente autónomo profesional de búsqueda y postulación de empleo remoto para Ingenieros de Sistemas sin experiencia previa.">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/scrapy_icon_32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/scrapy_icon_16.png">
+  <link rel="shortcut icon" href="/static/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1623,6 +1626,9 @@
           <button class="btn btn-primary" onclick="toggleMiamBotCopilotBox()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: 1px solid #34d399; font-weight: 700; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
             <span>🤖</span> MiamBot Copilot de Cierre en Chat
           </button>
+          <a href="/companion" target="_blank" class="btn btn-primary" style="background: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%); color: #ffffff; border: 1px solid #818cf8; font-weight: 700; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4); text-decoration: none;">
+            <span>🎙️</span> Asistente Virtual de Voz
+          </a>
         </div>
       </div>
 
@@ -1815,6 +1821,7 @@
             <div class="badge-filter" onclick="filterFreelanceCategory('qa_testing', this)">🧪 QA Testing &amp; APIs</div>
             <div class="badge-filter" onclick="filterFreelanceCategory('sql_database', this)">🗄️ SQL &amp; Bases de Datos</div>
             <div class="badge-filter" onclick="filterFreelanceCategory('web_dev', this)">🌐 Desarrollo Web</div>
+            <div class="badge-filter" onclick="filterFreelanceCategory('graphic_design_creative', this)">🎨 Diseño Gráfico &amp; Logos</div>
           </div>
           <div class="filter-group">
             <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Plataforma:</span>
@@ -2161,6 +2168,7 @@
             <label><input type="checkbox" id="cat_sql" value="sql_database"> 🗄️ SQL & Bases de Datos</label>
             <label><input type="checkbox" id="cat_web" value="web_dev"> 🌐 Desarrollo Web</label>
             <label><input type="checkbox" id="cat_python" value="python_automation"> 🐍 Python & Automatización</label>
+            <label><input type="checkbox" id="cat_design" value="graphic_design_creative"> 🎨 Diseño Gráfico & Logos</label>
           </div>
         </div>
 
@@ -3788,7 +3796,8 @@
           'power_bi_data': '📊 Power BI & Datos',
           'qa_testing': '🧪 QA Testing',
           'sql_database': '🗄️ SQL & DB',
-          'web_dev': '🌐 Desarrollo Web'
+          'web_dev': '🌐 Desarrollo Web',
+          'graphic_design_creative': '🎨 Diseño Gráfico & Logos'
         };
         const catName = catLabels[p.category] || p.category || 'General';
         const catBadge = `<span style="background: #e0e7ff; color: #3730a3; font-size: 0.72rem; font-weight: 600; padding: 2px 7px; border-radius: 4px;">${escapeHtml(catName)}</span>`;
@@ -4191,7 +4200,8 @@
         'power_bi_data': '📊 Power BI & Análisis de Datos',
         'qa_testing': '🧪 QA Testing & Validación de APIs',
         'sql_database': '🗄️ SQL & Arquitectura de BD',
-        'web_dev': '🌐 Desarrollo Web'
+        'web_dev': '🌐 Desarrollo Web',
+        'graphic_design_creative': '🎨 Diseño Gráfico, Logos & Photoshop'
       };
       document.getElementById('fModalCategory').innerText = catLabelsModal[project.category] || project.category || 'General';
       document.getElementById('fModalDescription').innerText = project.description || 'Sin requerimiento detallado.';
@@ -4433,7 +4443,8 @@
         'qa_testing': 'cat_qa',
         'sql_database': 'cat_sql',
         'web_dev': 'cat_web',
-        'python_automation': 'cat_python'
+        'python_automation': 'cat_python',
+        'graphic_design_creative': 'cat_design'
       };
       for (const [catVal, elemId] of Object.entries(mapping)) {
         const el = document.getElementById(elemId);
@@ -4457,7 +4468,8 @@
         'qa_testing': 'cat_qa',
         'sql_database': 'cat_sql',
         'web_dev': 'cat_web',
-        'python_automation': 'cat_python'
+        'python_automation': 'cat_python',
+        'graphic_design_creative': 'cat_design'
       };
       for (const [catVal, elemId] of Object.entries(mapping)) {
         const el = document.getElementById(elemId);

@@ -22,7 +22,8 @@ class FreelanceHunter:
         queries = [
             "whatsapp", "atencion al cliente", "asistente virtual", "tiktok", "instagram",
             "redes sociales", "community manager", "setter", "chatbot", "power bi",
-            "python", "sql", "qa testing", "desarrollo web", "wordpress", "shopify", "automatizacion"
+            "python", "sql", "qa testing", "desarrollo web", "wordpress", "shopify", "automatizacion",
+            "diseno grafico", "photoshop", "illustrator", "logotipo", "banner", "logo design"
         ]
         projects = []
         seen_ids = set()
@@ -30,7 +31,7 @@ class FreelanceHunter:
         for q in queries:
             try:
                 enc = urllib.parse.quote_plus(q)
-                url = f"https://www.freelancer.com/api/projects/0.1/projects/active?query={enc}&languages[]=es&full_description=true&limit={max_per_query}"
+                url = f"https://www.freelancer.com/api/projects/0.1/projects/active?query={enc}&languages[]=es&full_description=true&job_details=true&limit={max_per_query}"
                 req = urllib.request.Request(url, headers={
                     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
                 })
@@ -64,6 +65,9 @@ class FreelanceHunter:
 
                     proj_url = f"https://www.freelancer.com/projects/{pid}"
                     category = self.proposal_gen.categorize_project(title, desc)
+                    job_objs = p.get("jobs") or []
+                    job_names = [j.get("name") for j in job_objs if isinstance(j, dict) and j.get("name")]
+                    skills = job_names[:5] if job_names else [q]
 
                     projects.append({
                         "platform": "freelancer",
@@ -73,7 +77,7 @@ class FreelanceHunter:
                         "budget": budget_str,
                         "currency": cur,
                         "category": category,
-                        "skills": [q],
+                        "skills": skills,
                         "url": proj_url,
                         "description": desc
                     })

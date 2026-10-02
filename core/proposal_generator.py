@@ -181,7 +181,21 @@ class ProposalGenerator:
         ]):
             return "virtual_assistant_admin"
 
-        # 4. Redes Sociales, Instagram, TikTok, Reels & Marketing Digital
+        # 4. Diseño Gráfico, Logotipos, Photoshop, Illustrator & Branding
+        if any(w in t_low for w in [
+            "diseño gráfico", "diseno grafico", "photoshop", "illustrator", "logotipo", "logo",
+            "banner", "banners", "flyer", "flyers", "branding", "identidad visual", "vector", "vectorizar",
+            "graphic design", "logo design", "tarjeta de presentación"
+        ]) or any(w in text for w in [
+            "diseño gráfico", "diseno grafico", "photoshop", "illustrator", "logotipo", "logo design",
+            "banner", "banners", "flyer", "flyers", "branding", "identidad visual", "vector", "vectorizar",
+            "retoque fotográfico", "retoque fotografico", "edición de fotos", "edicion de fotos", "folleto",
+            "mockup", "diseño de logo", "diseno de logo", "tarjeta de presentación", "tarjetas de presentacion",
+            "piezas gráficas", "piezas graficas", "arte digital", "diseño creativo", "graphic design"
+        ]):
+            return "graphic_design_creative"
+
+        # 5. Redes Sociales, Instagram, TikTok, Reels & Marketing Digital
         if any(w in t_low for w in ["instagram", "tiktok", "reels", "redes sociales", "community manager", "crecimiento ig", "crecimiento tiktok"]) or any(w in text for w in [
             "tiktok", "instagram", "reels", "community manager", "redes sociales", "crecimiento ig", "crecimiento tiktok",
             "parrilla de contenido", "estrategia de contenido", "seguidores reales", "engagement", "creador de contenido",
@@ -189,14 +203,14 @@ class ProposalGenerator:
         ]):
             return "social_media_growth"
 
-        # 5. E-Commerce & Tiendas Virtuales (Shopify, WooCommerce, Catálogo)
+        # 6. E-Commerce & Tiendas Virtuales (Shopify, WooCommerce, Catálogo)
         if any(w in text for w in [
             "shopify", "woocommerce", "tienda online", "tienda virtual", "subir productos", "catalogo de productos",
             "mercado libre", "amazon fba", "dropshipping", "e-commerce", "ecommerce", "tiendanube"
         ]):
             return "ecommerce_stores"
 
-        # 6. Setter de Ventas & Agendamiento Comercial
+        # 7. Setter de Ventas & Agendamiento Comercial
         if any(w in text for w in [
             "setter", "asesoría fitness", "asesoria fitness", "llamadas de venta", "appointment setter",
             "agendar llamadas", "agendamiento de llamadas", "prospección", "prospeccion",
@@ -204,7 +218,7 @@ class ProposalGenerator:
         ]):
             return "sales_setter_crm"
 
-        # 7. Chatbots con Inteligencia Artificial & Sistemas de Software
+        # 8. Chatbots con Inteligencia Artificial & Sistemas de Software
         if any(w in text for w in [
             "bot faq", "asistente automático", "asistente automatico", "crear chatbot",
             "desarrollo de bot", "desarrollar chatbot", "bot con ia", "chatbot con inteligencia",
@@ -214,7 +228,7 @@ class ProposalGenerator:
         ]):
             return "ai_chatbot_system"
 
-        # 8. Soporte & Atención Humana por Chat / WhatsApp
+        # 9. Soporte & Atención Humana por Chat / WhatsApp
         if any(w in t_low for w in ["whatsapp", "responder mensajes", "atención al cliente", "atencion al cliente", "chat"]) or any(w in text for w in [
             "responder mensajes", "atención al cliente", "atencion al cliente",
             "customer service", "customer support", "soporte por chat", "chat support",
@@ -223,25 +237,25 @@ class ProposalGenerator:
         ]):
             return "customer_support_whatsapp"
 
-        # 9. Power BI & Analítica de Datos (Con delimitadores exactos para evitar colisiones)
+        # 10. Power BI & Analítica de Datos (Con delimitadores exactos para evitar colisiones)
         if bool(re.search(r'\b(?:power\s*bi|powerbi|dax|power\s*query|pbix|business\s*intelligence)\b', text)):
             return "power_bi_data"
 
-        # 10. QA Testing & Pruebas de Software
+        # 11. QA Testing & Pruebas de Software
         if any(w in text for w in [
             "qa", "testing", "tester", "pruebas funcionales", "postman", "casos de prueba",
             "test cases", "reporte de bugs", "control de calidad", "smoke testing", "pruebas de regresion"
         ]):
             return "qa_testing"
 
-        # 11. SQL & Bases de Datos
+        # 12. SQL & Bases de Datos
         if any(w in text for w in [
             "sql", "postgres", "postgresql", "mysql", "queries sql",
             "procedimientos almacenados", "optimización de consultas", "stored procedure", "consultas sql"
         ]):
             return "sql_database"
 
-        # 12. Soporte TI / Helpdesk
+        # 13. Soporte TI / Helpdesk
         if any(w in text for w in [
             "soporte ti", "soporte técnico", "soporte tecnico", "helpdesk", "active directory", "anydesk"
         ]):
@@ -309,7 +323,8 @@ class ProposalGenerator:
                     "power_bi_data": 25,
                     "python_automation_scraping": 25,
                     "web_dev": 22,
-                    "ecommerce_stores": 18
+                    "ecommerce_stores": 18,
+                    "graphic_design_creative": 20
                 }
                 suggested_rate = defaults_hourly.get(category, 18)
 
@@ -364,7 +379,8 @@ class ProposalGenerator:
                 "ai_chatbot_system": (f"{curr_symbol}280 {currency}", "5 a 7 días"),
                 "sales_setter_crm": (f"{curr_symbol}180 {currency}", "Por ciclo de prospección"),
                 "customer_support_whatsapp": (f"{curr_symbol}180 {currency}", "Por turno acordado"),
-                "virtual_assistant_admin": (f"{curr_symbol}160 {currency}", "Por paquete de tareas")
+                "virtual_assistant_admin": (f"{curr_symbol}160 {currency}", "Por paquete de tareas"),
+                "graphic_design_creative": (f"{curr_symbol}85 {currency}", "24 a 48 horas")
             }
             suggested_bid, suggested_timeline = defaults_fixed.get(category, (f"{curr_symbol}120 {currency}", "3 a 4 días"))
 
@@ -838,7 +854,28 @@ Repositorio técnico con proyectos de bases de datos disponible en GitHub ({gith
 {closing_block}"""
 
         # -------------------------------------------------------------
-        # 12. GENERAL / SOPORTE TI
+        # 12. DISEÑO GRÁFICO, PHOTOSHOP, ILUSTRACIÓN & BRANDING
+        # -------------------------------------------------------------
+        elif category == "graphic_design_creative":
+            return f"""Hola, revisé detalladamente los requerimientos visuales para "{title}".
+
+Comprendo con exactitud el impacto estético y la calidad que buscas transmitir. Como equipo de diseño gráfico y creativo con dominio avanzado de Adobe Photoshop y Adobe Illustrator, ofrecemos entregas ágiles y acabados de nivel agencia:
+
+1. 🎨 Propuestas Originales & Concepto Visual: Creación de conceptos gráficos desde cero (logotipos, banners publicitarios, piezas para redes sociales, retoque fotográfico avanzado o vectorización en Illustrator), 100% alineados con tu identidad de marca.
+2. 📦 Entrega Multiformato de Alta Resolución: Entrega de los archivos fuente editables (.AI y .PSD organizados en capas y vectores), versiones listas para imprenta (PDF CMYK 300 DPI) y formatos digitales optimizados para web y redes (.PNG con fondo transparente, .JPG alta definición y .SVG escalable).
+3. ✨ Revisiones Ágiles hasta tu Plena Conformidad: Ajustes en composición, paleta cromática y tipografía sin costos adicionales hasta que el entregable quede exactamente como lo imaginas.
+
+💡 Preguntas clave para iniciar con el diseño:
+• ¿Cuentas con una paleta de colores corporativa o referencias visuales (marcas, estilos o bocetos) que te gusten especialmente?
+• ¿Cuáles son las medidas o formatos finales requeridos (dimensiones para redes sociales, web o material impreso)?
+• ¿Requieres que el primer borrador esté listo dentro de las próximas 24 a 48 horas?
+
+{commercial_block}
+
+{closing_block}"""
+
+        # -------------------------------------------------------------
+        # 13. GENERAL / SOPORTE TI
         # -------------------------------------------------------------
         else:
             return f"""Hola, revisé con atención tu proyecto para "{title}".

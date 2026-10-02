@@ -33,14 +33,19 @@ from core.job_queue import JobQueueWorker
 from core.autonomous_hunter import AutonomousHunterDaemon
 from core.freelance_autobidder import FreelanceAutoBidder
 from core.miambot_copilot import MiamBotSalesCopilot
+from core.assistant_brain import AssistantBrain
+from core.browser_bidder import BrowserBidder
 
 app = FastAPI(title="JobHunter AI - Dashboard de Búsqueda Laboral")
 
 # Inicializar Base de Datos
 init_db()
 
-# Montar plantillas
+# Montar plantillas y estáticos
 templates = Jinja2Templates(directory="web_ui/templates")
+static_dir = Path(__file__).parent / "static"
+static_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 # Estado global del agente
 agent_state = {
@@ -66,6 +71,8 @@ autonomous_hunter = AutonomousHunterDaemon(llm, job_queue, log_callback=log_even
 proposal_generator = ProposalGenerator(llm)
 freelance_hunter = FreelanceHunter(proposal_generator)
 freelance_autobidder = FreelanceAutoBidder(proposal_generator, log_callback=log_event)
+assistant_brain = AssistantBrain(proposal_generator)
+browser_bidder = BrowserBidder()
 
 
 @app.on_event("startup")
@@ -380,6 +387,19 @@ async def launch_interactive_login_session(target_platform: Optional[str] = None
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse(request=request, name="index.html")
+
+
+@app.get("/companion", response_class=HTMLResponse)
+async def companion(request: Request):
+    """Interfaz del Asistente Virtual Personal de Escritorio con Voz y Chat."""
+    return templates.TemplateResponse(request=request, name="companion.html")
+
+
+@app.get("/scrapy_widget", response_class=HTMLResponse)
+@app.get("/scrapy-widget", response_class=HTMLResponse)
+async def scrapy_widget(request: Request):
+    """Gadget flotante de escritorio para Scrapy AI."""
+    return templates.TemplateResponse(request=request, name="scrapy_widget.html")
 
 
 @app.get("/api/system/health")
@@ -1664,6 +1684,308 @@ async def freelance_chat_copilot(request: Request):
         timeline=timeline
     )
     return {"status": "success", "data": result}
+
+
+# --- Endpoints del Asistente Virtual de Escritorio (Voz & Chat) ---
+
+@app.post("/api/assistant/chat")
+async def assistant_chat(request: Request):
+    """Procesa mensajes de voz o texto del asistente personal de Jack."""
+    data = await request.json()
+    message = data.get("message", "")
+    response = assistant_brain.process_query(message)
+    return response
+
+
+@app.post("/api/assistant/transcribe")
+async def assistant_transcribe(audio: UploadFile = File(...)):
+    """Transcribe un fragmento de audio WAV grabado por el gadget usando SpeechRecognition."""
+    import tempfile
+    import speech_recognition as sr
+    
+    try:
+        content = await audio.read()
+        if len(content) < 1000:
+            return {"status": "empty", "text": ""}
+        
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tf:
+            tf.write(content)
+            temp_path = tf.name
+        
+        try:
+            r = sr.Recognizer()
+            with sr.AudioFile(temp_path) as source:
+                audio_data = r.record(source)
+                try:
+                    text = r.recognize_google(audio_data, language="es-PE")
+                except sr.UnknownValueError:
+                    text = ""
+                except Exception:
+                    try:
+                        text = r.recognize_google(audio_data, language="es-ES")
+                    except Exception:
+                        text = ""
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+        
+        return {"status": "success", "text": (text or "").strip()}
+    except Exception as e:
+        return {"status": "error", "message": str(e), "text": ""}
+
+
+TTS_CACHE_DIR = Path("data/tts_cache")
+TTS_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+
+@app.get("/api/assistant/tts")
+async def assistant_tts(text: str = "", voice: Optional[str] = None, speed: Optional[str] = None):
+    """Sintetiza voz neural humana de alta fidelidad para Scrapy con entonación cálida y natural estilo Alexa."""
+    import hashlib
+    import edge_tts
+    from fastapi.responses import FileResponse, Response
+
+    raw_text = (text or "").strip()
+    
+    # 1. Eliminar bloques de código markdown antes de hablar
+    clean_text = re.sub(r'```[\s\S]*?```', '', raw_text)
+    
+    # 2. Limpieza de símbolos, enlaces y formato
+    clean_text = re.sub(r'https?://\S+', '', clean_text)
+    clean_text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', clean_text)
+    clean_text = re.sub(r'[*_#`•\[\]()]', ' ', clean_text)
+    # Conservar solo caracteres alfanuméricos en español y puntuación básica
+    clean_text = re.sub(r'[^\w\s.,!?:;\-áéíóúÁÉÍÓÚñÑüÜ¿¡]', ' ', clean_text)
+    clean_text = re.sub(r'\s+', ' ', clean_text).strip()
+    
+    if not clean_text:
+        return Response(status_code=400, content="Empty text")
+
+    # Limitar longitud para garantizar respuesta instantánea (< 250 caracteres de locución fluida)
+    if len(clean_text) > 280:
+        sentences = re.split(r'[.!?]+', clean_text)
+        clean_text = ". ".join([s.strip() for s in sentences[:3] if s.strip()]) + "."
+
+    # Voz y velocidad desde parámetro o perfil de Jack (Default: Jorge MX a +15% de velocidad rápida estilo Alexa)
+    profile = assistant_brain.user_profile.get_profile()
+    selected_voice = voice or profile.get("voice_preference", "es-MX-JorgeNeural")
+    selected_rate = speed or profile.get("voice_speed", "+15%")
+
+    # Identificador de hash incluyendo la voz y velocidad para refrescar el caché
+    text_hash = hashlib.md5(f"{selected_voice}_{selected_rate}_{clean_text}".encode('utf-8')).hexdigest()
+    cache_path = TTS_CACHE_DIR / f"{text_hash}.mp3"
+
+    if not cache_path.exists():
+        try:
+            communicate = edge_tts.Communicate(clean_text, voice=selected_voice, rate=selected_rate, pitch="+0Hz")
+            await communicate.save(str(cache_path))
+        except Exception:
+            try:
+                # Fallback a Alex PE o Jorge MX
+                communicate = edge_tts.Communicate(clean_text, voice="es-PE-AlexNeural", rate="+0%", pitch="+0Hz")
+                await communicate.save(str(cache_path))
+            except Exception as ex:
+                return Response(status_code=500, content=str(ex))
+
+    return FileResponse(cache_path, media_type="audio/mpeg")
+
+
+@app.get("/api/assistant/profile")
+async def get_assistant_profile():
+    """Retorna el perfil personal, cumpleaños, preferencias y datos aprendidos de Jack."""
+    return {
+        "status": "success",
+        "profile": assistant_brain.user_profile.get_profile(),
+        "available_voices": [
+            {"id": "es-PE-AlexNeural", "name": "Alex (Perú - Masculino)", "country": "PE", "gender": "Male"},
+            {"id": "es-PE-CamilaNeural", "name": "Camila (Perú - Femenino)", "country": "PE", "gender": "Female"},
+            {"id": "es-CO-GonzaloNeural", "name": "Gonzalo (Colombia - Masculino)", "country": "CO", "gender": "Male"},
+            {"id": "es-MX-JorgeNeural", "name": "Jorge (México - Masculino)", "country": "MX", "gender": "Male"},
+            {"id": "es-ES-AlvaroNeural", "name": "Álvaro (España - Masculino)", "country": "ES", "gender": "Male"}
+        ]
+    }
+
+
+@app.post("/api/assistant/profile")
+async def update_assistant_profile(request: Request):
+    """Actualiza los datos personales, cumpleaños o preferencias de voz de Jack."""
+    data = await request.json()
+    updated = assistant_brain.user_profile.update_profile(data)
+    if "birthday" in data and data["birthday"]:
+        assistant_brain.user_profile.set_birthday(data["birthday"])
+    return {
+        "status": "success",
+        "message": "Perfil personal actualizado correctamente.",
+        "profile": assistant_brain.user_profile.get_profile()
+    }
+
+
+@app.get("/api/assistant/skills")
+async def get_assistant_skills():
+    """Retorna el catálogo interactivo de habilidades estilo Alexa disponibles en Scrapy AI."""
+    return {
+        "status": "success",
+        "skills": [
+            {
+                "category": "Música y Videos",
+                "icon": "🎵",
+                "examples": [
+                    "Abre YouTube en LibreWolf y busca tecache",
+                    "Pon salsa para programar",
+                    "Pon tecache",
+                    "Sube el volumen al 80%",
+                    "Silencia el audio"
+                ]
+            },
+            {
+                "category": "Memoria y Cumpleaños",
+                "icon": "🎂",
+                "examples": [
+                    "Mi cumpleaños es el 15 de marzo",
+                    "¿Cuándo es mi cumpleaños?",
+                    "Recuerda que mi comida favorita es el cebiche",
+                    "¿Qué sabes sobre mí?",
+                    "Borra eso de tu memoria"
+                ]
+            },
+            {
+                "category": "Clima y Utilidades",
+                "icon": "🌤️",
+                "examples": [
+                    "¿Cómo está el clima en Lima?",
+                    "¿Va a llover hoy?",
+                    "¿Cuánto son 150 dólares en soles?",
+                    "Calcula 30 horas a 20 dólares"
+                ]
+            },
+            {
+                "category": "Productividad y Tareas",
+                "icon": "📋",
+                "examples": [
+                    "¿Qué tareas tengo para hoy?",
+                    "Agrega revisar contratos a mis tareas",
+                    "Pon un temporizador de 15 minutos",
+                    "Recuérdame llamar al cliente a las 4pm"
+                ]
+            },
+            {
+                "category": "Control de tu PC",
+                "icon": "🖥️",
+                "examples": [
+                    "Abre LibreWolf",
+                    "Abre VS Code",
+                    "Abre la terminal",
+                    "Abre la carpeta Descargas",
+                    "¿Cómo está el sistema?"
+                ]
+            },
+            {
+                "category": "Cazador Freelance & IA",
+                "icon": "💼",
+                "examples": [
+                    "Busca proyectos de Python y scraping",
+                    "Busca proyectos de diseño para mi pareja",
+                    "Redacta una propuesta ganadora",
+                    "¿Cómo estructurar un webhook en FastAPI?"
+                ]
+            }
+        ]
+    }
+
+
+@app.get("/api/assistant/config")
+async def get_assistant_config():
+    """Retorna el estado de configuración y disponibilidad de todos los proveedores y modelos de Miambot."""
+    providers_status = assistant_brain.ai_router.get_providers_status()
+    keys = assistant_brain.get_api_keys()
+    return {
+        "status": "success",
+        "has_any_key": any(bool(v) for v in keys.values()),
+        "active_provider": providers_status.get("active_provider"),
+        "providers": providers_status.get("providers", {}),
+        "total_models": providers_status.get("total_models", 0),
+        "models": providers_status.get("models", []),
+        # Retrocompatibilidad para clientes previos
+        "has_gemini_key": bool(keys.get("gemini")),
+        "has_groq_key": bool(keys.get("groq")),
+        "gemini_masked": (keys.get("gemini")[:6] + "..." + keys.get("gemini")[-4:]) if keys.get("gemini") else "",
+        "groq_masked": (keys.get("groq")[:6] + "..." + keys.get("groq")[-4:]) if keys.get("groq") else ""
+    }
+
+
+@app.post("/api/assistant/config")
+async def save_assistant_config(request: Request):
+    """Guarda las claves API de los proveedores de IA de Miambot de forma persistente."""
+    data = await request.json()
+    new_cfg = {}
+    
+    fields = [
+        "openrouter_api_key",
+        "groq_api_key",
+        "nvidia_api_key",
+        "zhipu_api_key",
+        "gemini_api_key",
+        "openai_api_key"
+    ]
+    for key_name in fields:
+        val = data.get(key_name, "").strip()
+        if val:
+            new_cfg[key_name] = val
+        
+    if new_cfg:
+        assistant_brain.save_config(new_cfg)
+        
+    keys = assistant_brain.get_api_keys()
+    providers_status = assistant_brain.ai_router.get_providers_status()
+    
+    return {
+        "status": "success",
+        "message": "Configuración de IA de Miambot integrada con éxito. ¡Scrapy ahora cuenta con toda la cascada multi-proveedor!",
+        "has_any_key": any(bool(v) for v in keys.values()),
+        "active_provider": providers_status.get("active_provider"),
+        "providers": providers_status.get("providers", {})
+    }
+
+
+@app.get("/api/assistant/knowledge")
+async def get_assistant_knowledge():
+    """Retorna la base de hechos aprendidos por Scrapy."""
+    facts = assistant_brain.get_all_knowledge()
+    return {"status": "success", "count": len(facts), "knowledge": facts}
+
+
+@app.post("/api/assistant/knowledge")
+async def add_assistant_knowledge(request: Request):
+    """Permite añadir un nuevo hecho a la base de conocimiento."""
+    data = await request.json()
+    fact = data.get("fact", "").strip()
+    category = data.get("category", "aprendizaje_manual").strip()
+    if not fact:
+        return JSONResponse(status_code=400, content={"error": "El hecho no puede estar vacío."})
+    assistant_brain.learn_fact(fact, category=category)
+    return {"status": "success", "message": "Hecho guardado correctamente en la memoria de Scrapy."}
+
+
+@app.delete("/api/assistant/knowledge/{index}")
+async def delete_assistant_knowledge(index: int):
+    """Elimina un hecho por su índice."""
+    ok = assistant_brain.delete_knowledge_item(index)
+    if ok:
+        return {"status": "success", "message": "Hecho eliminado de la memoria."}
+    return JSONResponse(status_code=404, content={"error": "Índice de hecho no encontrado."})
+
+
+@app.post("/api/assistant/browser_session")
+async def assistant_browser_session(background_tasks: BackgroundTasks):
+    """Lanza la ventana del navegador interactivo persistente en segundo plano."""
+    def run_browser():
+        browser_bidder.launch_login_session()
+    
+    background_tasks.add_task(run_browser)
+    return {
+        "status": "success",
+        "message": "Navegador interactivo iniciado. Se abrirá una ventana para que inicies sesión en Freelancer.com."
+    }
 
 
 @app.post("/api/freelance/update_status")

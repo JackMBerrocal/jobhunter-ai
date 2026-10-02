@@ -1,0 +1,46 @@
+{
+  "user_name": "Jack Berrocal",
+  "nickname": "Jack",
+  "role": "Ingeniero de Sistemas & Desarrollador Full-Stack",
+  "location": "Lima, Perú",
+  "birthday": "23 de octubre",
+  "partner": {
+    "role": "Diseñadora Gráfica Experta",
+    "skills": [
+      "Photoshop",
+      "Illustrator",
+      "Branding",
+      "Identidad Visual",
+      "Redes Sociales",
+      "Piezas Publicitarias"
+    ],
+    "target": "Clientes de diseño recurrente ($100 - $150 USD por pack)"
+  },
+  "target_monthly_income": 1500,
+  "currency": "USD",
+  "preferred_browser": "librewolf",
+  "voice_preference": "es-MX-JorgeNeural",
+  "voice_speed": "+15%",
+  "personal_facts": [
+    {
+      "key": "profesion",
+      "fact": "Ingeniero de Sistemas experto en Python, FastAPI, React, SQL y web scraping."
+    },
+    {
+      "key": "meta",
+      "fact": "Generar $1,500 USD netos mensuales entre Jack y su pareja trabajando en remoto."
+    },
+    {
+      "key": "equipo",
+      "fact": "PC Linux Mint con GPU NVIDIA GeForce GTX 1660 Super y 16GB RAM."
+    },
+    {
+      "key": "ciudad",
+      "fact": "Reside en Lima, Perú."
+    },
+    {
+      "key": "cumpleanos",
+      "fact": "El cumpleaños de Jack es el 23 de octubre."
+    }
+  ]
+}

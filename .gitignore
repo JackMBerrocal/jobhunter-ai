@@ -24,3 +24,6 @@ data/*.sqlite
 # Local backup / temp
 *.swp
 *.bak
+data/chrome_scrapy_profile/
+data/tts_cache/
+data/vercel_session_cache.json

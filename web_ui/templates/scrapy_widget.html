@@ -1,0 +1,2278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scrapy AI | Asistente de Escritorio</title>
+  <!-- Favicon e Íconos Oficiales de Scrapy AI -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/scrapy_icon_32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/scrapy_icon_16.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="/static/scrapy_icon_48.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="/static/scrapy_icon_64.png">
+  <link rel="icon" type="image/png" sizes="128x128" href="/static/scrapy_icon_128.png">
+  <link rel="icon" type="image/png" sizes="256x256" href="/static/scrapy_icon_256.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/static/scrapy_app_icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+  <link rel="shortcut icon" href="/static/favicon.ico">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#090d16">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(15, 23, 42, 0.85);
+      --primary: #6366f1;
+      --cyan: #06b6d4;
+      --pink: #ec4899;
+      --green: #10b981;
+      --border: rgba(99, 102, 241, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, sans-serif;
+      background: radial-gradient(circle at 50% 10%, #1e1b4b 0%, #090d16 85%);
+      color: #f8fafc;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      border-radius: 18px;
+    }
+
+    /* Barra Superior del Gadget */
+    .widget-header {
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(10, 15, 29, 0.9);
+      border-bottom: 1px solid var(--border);
+      -webkit-app-region: drag;
+    }
+
+    .widget-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .widget-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 1.5px solid #06b6d4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.6);
+      flex-shrink: 0;
+    }
+
+    .widget-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .widget-title h2 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .widget-title span {
+      font-size: 0.68rem;
+      color: var(--cyan);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .widget-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      -webkit-app-region: no-drag;
+    }
+
+    .icon-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 0.95rem;
+      padding: 4px 6px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .icon-btn:hover {
+      background: rgba(99, 102, 241, 0.2);
+      color: #fff;
+    }
+
+    /* Scrapy Core / Mascota & Tablet Holográfica */
+    .scrapy-core-section {
+      padding: 8px 12px 2px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    /* =============================================================
+       ESCENARIO HOLOGRÁFICO DE LA MASCOTA VIVA DE SCRAPY
+       Animación 3D del personaje oficial con parpadeo, labios y cyber HUD
+       ============================================================= */
+    .scrapy-mascot-stage {
+      width: 100%;
+      height: 205px;
+      border-radius: 16px;
+      position: relative;
+      background: radial-gradient(ellipse at 50% 65%, #0f1f3d 0%, #070a13 85%);
+      border: 1.5px solid rgba(6, 182, 212, 0.4);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), inset 0 0 25px rgba(6, 182, 212, 0.12);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      cursor: pointer;
+      flex-shrink: 0;
+      perspective: 700px;
+    }
+
+    /* Pedestal Holográfico de Energía en la Base */
+    .holo-pedestal-platform {
+      position: absolute;
+      bottom: 8px;
+      width: 180px;
+      height: 38px;
+      border-radius: 50%;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform-style: preserve-3d;
+      transform: rotateX(65deg);
+    }
+
+    .holo-ring-outer {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 2px dashed rgba(6, 182, 212, 0.7);
+      box-shadow: 0 0 16px rgba(6, 182, 212, 0.4);
+      animation: spin-pedestal 14s infinite linear;
+    }
+
+    .holo-ring-inner {
+      position: absolute;
+      width: 65%;
+      height: 65%;
+      border-radius: 50%;
+      border: 1.5px solid rgba(236, 72, 153, 0.6);
+      box-shadow: 0 0 12px rgba(236, 72, 153, 0.3);
+      animation: spin-pedestal 8s infinite linear reverse;
+    }
+
+    .holo-pedestal-glow {
+      position: absolute;
+      width: 90%;
+      height: 90%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.6) 0%, rgba(99, 102, 241, 0.25) 50%, transparent 75%);
+      filter: blur(8px);
+      animation: pedestal-pulse 3s infinite ease-in-out alternate;
+    }
+
+    @keyframes spin-pedestal {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes pedestal-pulse {
+      0% { opacity: 0.5; transform: scale(0.9); }
+      100% { opacity: 0.9; transform: scale(1.1); }
+    }
+
+    /* Vórtice Cibernético y Pantallas Holográficas (Modo Búsqueda) */
+    .cyber-search-vortex {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      overflow: hidden;
+      z-index: 2;
+    }
+
+    .scrapy-mascot-stage.searching .cyber-search-vortex {
+      opacity: 1;
+    }
+
+    .vortex-ring-3d {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      border-radius: 50%;
+    }
+
+    .vr-1 {
+      width: 210px;
+      height: 210px;
+      margin-left: -105px;
+      margin-top: -105px;
+      border: 1.5px dashed rgba(6, 182, 212, 0.7);
+      box-shadow: 0 0 18px rgba(6, 182, 212, 0.4);
+      animation: spin-vortex 4s infinite linear;
+    }
+
+    .vr-2 {
+      width: 170px;
+      height: 170px;
+      margin-left: -85px;
+      margin-top: -85px;
+      border: 1.5px solid rgba(236, 72, 153, 0.6);
+      border-top-color: transparent;
+      border-bottom-color: transparent;
+      animation: spin-vortex 3s infinite linear reverse;
+    }
+
+    .vortex-laser-sweep {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #06b6d4, #ec4899, transparent);
+      box-shadow: 0 0 14px #06b6d4;
+      animation: laser-sweep 1.8s infinite ease-in-out;
+    }
+
+    .cyber-floating-glyph {
+      position: absolute;
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 0.58rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.04em;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      animation: float-glyph 2.4s infinite ease-in-out alternate;
+    }
+
+    .fg-1 {
+      top: 24px; left: 14px;
+      background: rgba(6, 182, 212, 0.2);
+      border: 1px solid rgba(6, 182, 212, 0.6);
+      color: #38bdf8;
+      animation-delay: 0.2s;
+    }
+    .fg-2 {
+      top: 28px; right: 14px;
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.6);
+      color: #34d399;
+      animation-delay: 0.7s;
+    }
+    .fg-3 {
+      bottom: 24px; left: 16px;
+      background: rgba(236, 72, 153, 0.2);
+      border: 1px solid rgba(236, 72, 153, 0.6);
+      color: #f472b6;
+      animation-delay: 1.1s;
+    }
+    .fg-4 {
+      bottom: 24px; right: 16px;
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid rgba(99, 102, 241, 0.6);
+      color: #a5b4fc;
+      animation-delay: 0.4s;
+    }
+
+    @keyframes spin-vortex {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes laser-sweep {
+      0% { top: 4%; opacity: 0.3; }
+      50% { opacity: 1; }
+      100% { top: 94%; opacity: 0.3; }
+    }
+
+    @keyframes float-glyph {
+      0% { transform: translateY(0px) scale(0.96); }
+      100% { transform: translateY(-5px) scale(1.04); }
+    }
+
+    /* =============================================================
+       ENTIDAD VIVA 3D DE SCRAPY (CGI de Estudio con Fondo Transparente)
+       ============================================================= */
+    .scrapy-living-entity {
+      position: relative;
+      width: 185px;
+      height: 195px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3;
+      transform-style: preserve-3d;
+      animation: scrapy-levitate 4.5s infinite ease-in-out;
+      will-change: transform;
+      transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .scrapy-char-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      transform: translateZ(0);
+      will-change: transform;
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      image-rendering: -webkit-optimize-contrast;
+    }
+
+    .scrapy-mascot-stage.listening .scrapy-char-img {
+      transform: scale(1.03);
+    }
+
+    .scrapy-living-entity::after {
+      content: '';
+      position: absolute;
+      inset: 15px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.45) 0%, rgba(99, 102, 241, 0.15) 55%, transparent 75%);
+      filter: blur(18px);
+      z-index: -1;
+      pointer-events: none;
+      transform: translateZ(0);
+      will-change: opacity, transform;
+      transition: background 0.35s ease, opacity 0.35s ease;
+    }
+
+    .scrapy-mascot-stage.listening .scrapy-living-entity::after {
+      background: radial-gradient(circle, rgba(236, 72, 153, 0.55) 0%, rgba(99, 102, 241, 0.2) 55%, transparent 75%);
+    }
+
+    .scrapy-mascot-stage.searching .scrapy-living-entity::after {
+      background: radial-gradient(circle, rgba(0, 243, 255, 0.65) 0%, rgba(6, 182, 212, 0.25) 55%, transparent 75%);
+    }
+
+    .scrapy-mascot-stage.talking .scrapy-living-entity::after,
+    .scrapy-mascot-stage.waving .scrapy-living-entity::after {
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.6) 0%, rgba(16, 185, 129, 0.25) 55%, transparent 75%);
+    }
+
+    /* Animaciones Suaves de Levitas y Estados */
+    @keyframes scrapy-levitate {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-7px) rotate(0.8deg); }
+    }
+
+    .scrapy-mascot-stage.listening .scrapy-living-entity {
+      animation: scrapy-listening-lean 1.6s infinite alternate ease-in-out;
+    }
+
+    @keyframes scrapy-listening-lean {
+      0% { transform: translateY(-3px) scale(1.03) rotate(-1deg); }
+      100% { transform: translateY(-6px) scale(1.05) rotate(1deg); }
+    }
+
+    .scrapy-mascot-stage.searching .scrapy-living-entity {
+      animation: scrapy-searching-vibe 1.2s infinite alternate ease-in-out;
+    }
+
+    @keyframes scrapy-searching-vibe {
+      0% { transform: translateY(-4px) scale(1.02); }
+      100% { transform: translateY(-8px) scale(1.04); }
+    }
+
+    .eq-1 { animation-delay: 0.1s; }
+    .eq-2 { animation-delay: 0.3s; }
+    .eq-3 { animation-delay: 0.15s; }
+    .eq-4 { animation-delay: 0.4s; }
+    .eq-5 { animation-delay: 0.2s; }
+    .eq-6 { animation-delay: 0.35s; }
+    .eq-7 { animation-delay: 0.05s; }
+    .eq-8 { animation-delay: 0.25s; }
+
+    @keyframes eq-bounce {
+      0% { transform: scaleY(0.35); opacity: 0.5; }
+      100% { transform: scaleY(1.35); opacity: 1; }
+    }
+
+    .talking .eq-rect, .scrapy-mascot-stage.listening .eq-rect {
+      animation-duration: 0.28s;
+      transform: scaleY(1.6);
+    }
+
+    /* Badge HUD Superior en la Escena */
+    .stage-hud-badge {
+      position: absolute;
+      top: 8px;
+      left: 10px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      z-index: 5;
+    }
+
+    .stage-audio-toggle {
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: #cbd5e1;
+      transition: all 0.2s;
+      z-index: 5;
+    }
+
+    .stage-audio-toggle:hover {
+      background: rgba(99, 102, 241, 0.5);
+      color: #fff;
+      transform: scale(1.1);
+    }
+
+    .orb-wrapper {
+      position: relative;
+      width: 86px;
+      height: 86px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      perspective: 600px;
+    }
+
+    .orb-glow-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.6) 0%, rgba(99, 102, 241, 0.3) 50%, transparent 75%);
+      filter: blur(12px);
+      animation: pulse-ambient 3s infinite ease-in-out;
+      transition: all 0.4s ease;
+    }
+
+    /* Anillo Radar Cibernético */
+    .cyber-radar-ring {
+      position: absolute;
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      border: 1.5px dashed rgba(6, 182, 212, 0.55);
+      border-top-color: #38bdf8;
+      border-bottom-color: #ec4899;
+      pointer-events: none;
+      z-index: 1;
+      animation: spin-radar-slow 16s infinite linear;
+      transition: all 0.3s ease;
+    }
+
+    /* Ondas Sónicas de Escucha */
+    .sonic-wave-ring {
+      position: absolute;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 2px solid rgba(236, 72, 153, 0);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Contenedor del Avatar 3D */
+    .mascot-avatar-container {
+      position: relative;
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      z-index: 2;
+      transform-style: preserve-3d;
+      transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+      will-change: transform;
+    }
+
+    .mascot-avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid rgba(6, 182, 212, 0.85);
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.4);
+      display: block;
+      transition: border-color 0.3s, box-shadow 0.3s, filter 0.3s;
+    }
+
+    /* Reflejo / Parpadeo de Ojos */
+    .eye-glint-sweep {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: linear-gradient(135deg, transparent 35%, rgba(255, 255, 255, 0.35) 50%, transparent 65%);
+      background-size: 250% 250%;
+      pointer-events: none;
+      z-index: 3;
+      opacity: 0.6;
+      animation: glint-sweep 5.5s infinite ease-in-out;
+    }
+
+    /* Haz de Escáner Láser Vertical (Estado: BUSCANDO) */
+    .scanner-sweep-beam {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 4;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .scanner-sweep-beam::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #06b6d4, #ffffff, #06b6d4, transparent);
+      box-shadow: 0 0 12px #06b6d4, 0 0 20px #38bdf8;
+      animation: scan-vertical 1.3s ease-in-out infinite alternate;
+    }
+
+    /* -------------------------------------------------------------
+       ESTADOS DINÁMICOS DE SCRAPY
+       ------------------------------------------------------------- */
+
+    /* 1. IDLE / MIRANDO NATURAL */
+    .orb-wrapper.idle .mascot-avatar-container {
+      animation: mascot-float 3.5s infinite ease-in-out;
+    }
+
+    /* 2. ESCUCHANDO CON ATENCIÓN (Micrófono o Voz activa) */
+    .orb-wrapper.listening .orb-glow-back {
+      background: radial-gradient(circle, rgba(236, 72, 153, 0.8) 0%, rgba(99, 102, 241, 0.4) 60%, transparent 80%);
+      filter: blur(16px);
+    }
+    .orb-wrapper.listening .mascot-avatar-container {
+      transform: scale(1.08) translateY(-4px) rotate(1.5deg);
+      animation: listening-head-tilt 1.8s infinite ease-in-out alternate;
+    }
+    .orb-wrapper.listening .mascot-avatar-img {
+      border-color: #ec4899;
+      box-shadow: 0 0 32px rgba(236, 72, 153, 0.95);
+      filter: brightness(1.15);
+    }
+    .orb-wrapper.listening .sonic-wave-ring {
+      animation: sonic-pulse 1.2s cubic-bezier(0.2, 0.8, 0.4, 1) infinite;
+    }
+
+    /* 3. ATENTO ESCRIBIENDO (Jack tipea en el campo de texto) */
+    .orb-wrapper.typing .orb-glow-back {
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.8) 0%, rgba(99, 102, 241, 0.5) 60%, transparent 80%);
+    }
+    .orb-wrapper.typing .mascot-avatar-container {
+      transform: scale(1.07) translateY(-3px) rotate(-2deg);
+      animation: typing-attentive 1.5s infinite ease-in-out alternate;
+    }
+    .orb-wrapper.typing .mascot-avatar-img {
+      border-color: #38bdf8;
+      box-shadow: 0 0 28px rgba(56, 189, 248, 0.9);
+    }
+    .orb-wrapper.typing .sonic-wave-ring {
+      border-color: rgba(56, 189, 248, 0.4);
+      animation: sonic-pulse 1.5s cubic-bezier(0.2, 0.8, 0.4, 1) infinite;
+    }
+
+    /* 4. BUSCANDO / PROCESANDO ORDEN RECIBIDA */
+    .orb-wrapper.searching .orb-glow-back {
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.9) 0%, rgba(16, 185, 129, 0.5) 60%, transparent 80%);
+      filter: blur(18px);
+    }
+    .orb-wrapper.searching .cyber-radar-ring {
+      border-color: #06b6d4;
+      border-top-color: #ffffff;
+      border-width: 2px;
+      box-shadow: 0 0 16px rgba(6, 182, 212, 0.85);
+      animation: spin-radar-fast 0.9s infinite linear;
+    }
+    .orb-wrapper.searching .scanner-sweep-beam {
+      opacity: 1;
+    }
+    .orb-wrapper.searching .mascot-avatar-container {
+      transform: scale(1.05) rotate(4deg) translateY(-2px);
+      animation: searching-head-analytical 2s infinite ease-in-out alternate;
+    }
+    .orb-wrapper.searching .mascot-avatar-img {
+      border-color: #06b6d4;
+      box-shadow: 0 0 35px rgba(6, 182, 212, 0.95);
+    }
+
+    /* 5. HABLANDO / EXPLICANDO CON VOZ */
+    .orb-wrapper.speaking .orb-glow-back {
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.85) 0%, rgba(6, 182, 212, 0.4) 60%, transparent 80%);
+    }
+    .orb-wrapper.speaking .mascot-avatar-container {
+      animation: speaking-nod 0.5s infinite alternate ease-in-out;
+    }
+    .orb-wrapper.speaking .mascot-avatar-img {
+      border-color: #10b981;
+      box-shadow: 0 0 32px rgba(16, 185, 129, 0.95);
+      filter: brightness(1.12);
+    }
+
+    /* KEYFRAMES */
+    @keyframes mascot-float {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-4px) scale(1.02); }
+    }
+
+    @keyframes listening-head-tilt {
+      0% { transform: scale(1.08) translateY(-4px) rotate(1deg); }
+      100% { transform: scale(1.1) translateY(-5px) rotate(3deg); }
+    }
+
+    @keyframes typing-attentive {
+      0% { transform: scale(1.06) translateY(-3px) rotate(-1.5deg); }
+      100% { transform: scale(1.08) translateY(-4px) rotate(-3deg); }
+    }
+
+    @keyframes searching-head-analytical {
+      0% { transform: scale(1.05) rotate(3deg) translateY(-2px); }
+      50% { transform: scale(1.06) rotate(5deg) translateY(-3px); }
+      100% { transform: scale(1.05) rotate(2deg) translateY(-1px); }
+    }
+
+    @keyframes speaking-nod {
+      0% { transform: translateY(0px) scale(1.02); }
+      100% { transform: translateY(-3.5px) scale(1.06) rotate(-1deg); }
+    }
+
+    @keyframes pulse-ambient {
+      0%, 100% { transform: scale(1); opacity: 0.6; }
+      50% { transform: scale(1.18); opacity: 0.92; }
+    }
+
+    @keyframes spin-radar-slow {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes spin-radar-fast {
+      0% { transform: rotate(0deg) scale(1.05); }
+      100% { transform: rotate(360deg) scale(1.05); }
+    }
+
+    @keyframes sonic-pulse {
+      0% { transform: scale(0.95); border-color: rgba(236, 72, 153, 0.9); opacity: 1; }
+      100% { transform: scale(1.4); border-color: rgba(236, 72, 153, 0); opacity: 0; }
+    }
+
+    @keyframes glint-sweep {
+      0%, 80%, 100% { background-position: -150% -150%; opacity: 0; }
+      85% { opacity: 0.7; }
+      90% { background-position: 150% 150%; opacity: 0.2; }
+    }
+
+    @keyframes scan-vertical {
+      0% { top: 6%; opacity: 0.25; }
+      50% { opacity: 1; }
+      100% { top: 92%; opacity: 0.25; }
+    }
+
+    /* Tablet Holográfica de Scrapy */
+    .holographic-tablet {
+      flex: 1;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      border-radius: 10px;
+      padding: 6px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 0 12px rgba(6, 182, 212, 0.1);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      min-height: 84px;
+      justify-content: center;
+    }
+
+    .holographic-tablet:hover {
+      border-color: rgba(6, 182, 212, 0.85);
+      box-shadow: 0 6px 20px rgba(6, 182, 212, 0.3), inset 0 0 15px rgba(6, 182, 212, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .tablet-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(6, 182, 212, 0.25);
+      padding-bottom: 3px;
+    }
+
+    .tablet-brand {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #38bdf8;
+      letter-spacing: 0.04em;
+    }
+
+    .tablet-row {
+      font-size: 0.66rem;
+      color: #e2e8f0;
+      background: rgba(30, 41, 59, 0.45);
+      padding: 3px 6px;
+      border-radius: 5px;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Animación de Búsqueda dentro de la Tablet */
+    .search-progress-container {
+      width: 100%;
+      height: 6px;
+      background: rgba(30, 41, 59, 0.9);
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      margin: 2px 0;
+    }
+
+    .search-progress-fill {
+      height: 100%;
+      width: 40%;
+      background: linear-gradient(90deg, #06b6d4, #10b981, #ec4899);
+      border-radius: 4px;
+      animation: search-sweep 1.2s infinite ease-in-out;
+    }
+
+    @keyframes search-sweep {
+      0% { transform: translateX(-100%); }
+      50% { width: 65%; }
+      100% { transform: translateX(300%); }
+    }
+
+    .spin-icon {
+      display: inline-block;
+      animation: spin-radar-fast 1s infinite linear;
+      font-size: 0.78rem;
+    }
+
+    /* Barras de Audio de Respuesta dentro de la Tablet */
+    .voice-bars-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      height: 16px;
+      margin: 2px 0;
+    }
+
+    .voice-bar-col {
+      width: 3px;
+      border-radius: 2px;
+      background: #10b981;
+      animation: sound-bounce 0.6s infinite alternate ease-in-out;
+    }
+    .voice-bar-col:nth-child(1) { height: 6px; animation-delay: 0.1s; }
+    .voice-bar-col:nth-child(2) { height: 14px; animation-delay: 0.25s; background: #06b6d4; }
+    .voice-bar-col:nth-child(3) { height: 9px; animation-delay: 0.15s; }
+    .voice-bar-col:nth-child(4) { height: 16px; animation-delay: 0.35s; background: #38bdf8; }
+    .voice-bar-col:nth-child(5) { height: 7px; animation-delay: 0.05s; }
+
+    @keyframes sound-bounce {
+      0% { transform: scaleY(0.4); }
+      100% { transform: scaleY(1.3); }
+    }
+
+    /* VU Meter de Voz en Tiempo Real */
+    .vu-container {
+      width: 140px;
+      height: 5px;
+      background: rgba(30, 41, 59, 0.8);
+      border-radius: 4px;
+      margin-top: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    .vu-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #06b6d4, #10b981, #ec4899);
+      transition: width 0.08s ease;
+      border-radius: 4px;
+    }
+
+    .scrapy-badge-status {
+      margin-top: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(30, 41, 59, 0.6);
+      padding: 3px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      max-width: 90%;
+      text-align: center;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      flex-shrink: 0;
+    }
+
+    /* Contenedor de Conversación */
+    .chat-container {
+      flex: 1;
+      padding: 10px 14px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .msg {
+      max-width: 90%;
+      padding: 9px 13px;
+      border-radius: 12px;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      animation: popIn 0.2s ease-out;
+    }
+
+    .msg.scrapy {
+      align-self: flex-start;
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      color: #f1f5f9;
+    }
+
+    .msg.jack {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #4f46e5, #4338ca);
+      color: #ffffff;
+    }
+
+    .msg strong {
+      color: #ffffff;
+    }
+
+    /* Chips Rápidos */
+    .chips-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 4px 14px;
+      margin-bottom: 4px;
+      scrollbar-width: none;
+    }
+
+    .chips-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .chip-btn {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      color: #cbd5e1;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .chip-btn:hover {
+      background: rgba(99, 102, 241, 0.3);
+      color: #fff;
+    }
+
+    /* Barra Inferior */
+    .widget-input-bar {
+      padding: 10px 12px;
+      background: rgba(10, 15, 29, 0.95);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mic-button {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      color: #fff;
+      font-size: 1.15rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .mic-button.active {
+      background: linear-gradient(135deg, #ec4899, #f43f5e);
+      box-shadow: 0 0 18px rgba(236, 72, 153, 0.8);
+      animation: pulse-mic 0.9s infinite alternate;
+    }
+
+    @keyframes pulse-mic {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.12); }
+    }
+
+    .input-field {
+      flex: 1;
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 10px;
+      padding: 8px 12px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.82rem;
+      outline: none;
+    }
+
+    .input-field:focus {
+      border-color: var(--primary);
+    }
+
+    .action-btn {
+      background: rgba(99, 102, 241, 0.25);
+      border: 1px solid var(--primary);
+      color: #c7d2fe;
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Scrollbar */
+    .chat-container::-webkit-scrollbar {
+      width: 4px;
+    }
+    .chat-container::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.3);
+      border-radius: 2px;
+    }
+
+    /* Modal de Configuración */
+    .modal-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(9, 13, 22, 0.88);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+    }
+    .modal-card {
+      background: #111827;
+      border: 1px solid rgba(99, 102, 241, 0.45);
+      border-radius: 14px;
+      padding: 16px;
+      width: 100%;
+      max-width: 330px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+      animation: popIn 0.2s ease-out;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .modal-header h3 {
+      font-size: 0.92rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Modal de Configuración de Cerebros IA de Miambot -->
+  <div class="modal-overlay" id="configModal" style="display: none;">
+    <div class="modal-card" style="max-width: 430px; max-height: 88vh; display: flex; flex-direction: column;">
+      <div class="modal-header">
+        <h3>🧠 Cerebros IA (Cascada Miambot)</h3>
+        <button class="icon-btn" onclick="closeConfigModal()">✕</button>
+      </div>
+      <div class="modal-body" style="overflow-y: auto; flex: 1; padding-right: 4px;">
+        <p style="font-size: 0.74rem; color: #94a3b8; line-height: 1.4; margin-bottom: 10px;">
+          Arquitectura idéntica a <strong>Miambot SaaS</strong>: Cascada jerárquica multi-proveedor con <strong>Auto-Sanación</strong> de modelos caídos en tiempo real.
+        </p>
+
+        <!-- Banner Estado Actual -->
+        <div id="aiStatusBanner" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 8px 10px; margin-bottom: 10px; font-size: 0.72rem; color: #34d399; display: flex; align-items: center; justify-content: space-between;">
+          <span>Motor Activo: <strong id="activeEngineText">Offline Scrapy Core</strong></span>
+          <span id="modelsCountBadge" style="background: rgba(16, 185, 129, 0.2); padding: 2px 6px; border-radius: 4px; font-size: 0.65rem;">41 Modelos</span>
+        </div>
+
+        <!-- Conexión Cloud Vercel Automática -->
+        <div id="vercelCloudCard" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <span style="font-size: 0.74rem; color: #34d399; font-weight: 700;">⚡ Vercel Cloud Bridge (Miambot SaaS)</span>
+            <span id="vercelCloudStatusBadge" style="font-size: 0.62rem; background: #059669; color: #fff; padding: 2px 7px; border-radius: 4px; font-weight: 600;">EN LÍNEA</span>
+          </div>
+          <p id="vercelCloudDesc" style="font-size: 0.68rem; color: #a7f3d0; margin-bottom: 0; line-height: 1.35;">
+            Conectado a Vercel con tus 5 APIs de producción (OpenRouter, Groq, NVIDIA, Zhipu, Gemini). Scrapy ejecuta la cascada completa sin requerir reingresar claves manuales.
+          </p>
+        </div>
+
+        <div style="margin-bottom: 8px; font-size: 0.68rem; color: #94a3b8; font-weight: 600;">
+          <span>Opcional: Si deseas ingresar claves locales dedicadas para Scrapy:</span>
+        </div>
+
+        <!-- Tier 1: OpenRouter -->
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 8px; padding: 9px; margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+            <label style="font-size: 0.73rem; color: #e2e8f0; font-weight: 700;">1. OpenRouter (Modelos Free & Pago)</label>
+            <span style="font-size: 0.62rem; background: #4f46e5; color: #fff; padding: 1px 6px; border-radius: 4px;">Prioridad 1</span>
+          </div>
+          <p style="font-size: 0.66rem; color: #94a3b8; margin-bottom: 6px;">DeepSeek R1/Chat, Qwen 2.5 72B, Gemini Flash Free, Llama 3.3 70B, etc.</p>
+          <input type="password" id="openrouterKeyInput" class="input-field" style="width: 100%; font-size: 0.72rem;" placeholder="sk-or-v1-...">
+          <a href="https://openrouter.ai/keys" target="_blank" style="font-size: 0.65rem; color: #818cf8; text-decoration: none; display: inline-block; margin-top: 4px;">
+            🔗 Obtener clave en OpenRouter (Modelos gratuitos y de pago)
+          </a>
+        </div>
+
+        <!-- Tier 2: Groq -->
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(6, 182, 212, 0.25); border-radius: 8px; padding: 9px; margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+            <label style="font-size: 0.73rem; color: #e2e8f0; font-weight: 700;">2. Groq (Ultra Rápido - Llama 3.3)</label>
+            <span style="font-size: 0.62rem; background: #0891b2; color: #fff; padding: 1px 6px; border-radius: 4px;">Tier 2</span>
+          </div>
+          <p style="font-size: 0.66rem; color: #94a3b8; margin-bottom: 6px;">Llama-3.3-70b-versatile, Llama-3.1-8b-instant (Latencia mínima).</p>
+          <input type="password" id="groqKeyInput" class="input-field" style="width: 100%; font-size: 0.72rem;" placeholder="gsk_...">
+          <a href="https://console.groq.com/keys" target="_blank" style="font-size: 0.65rem; color: #22d3ee; text-decoration: none; display: inline-block; margin-top: 4px;">
+            🔗 Obtener clave gratuita en Groq Console
+          </a>
+        </div>
+
+        <!-- Tier 3: NVIDIA NIM -->
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(34, 197, 94, 0.25); border-radius: 8px; padding: 9px; margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+            <label style="font-size: 0.73rem; color: #e2e8f0; font-weight: 700;">3. NVIDIA NIM Cloud</label>
+            <span style="font-size: 0.62rem; background: #16a34a; color: #fff; padding: 1px 6px; border-radius: 4px;">Tier 3</span>
+          </div>
+          <p style="font-size: 0.66rem; color: #94a3b8; margin-bottom: 6px;">Nemotron 70B, Llama 3.3 70B Instruct, Autogen-34.</p>
+          <input type="password" id="nvidiaKeyInput" class="input-field" style="width: 100%; font-size: 0.72rem;" placeholder="nvapi-...">
+          <a href="https://build.nvidia.com" target="_blank" style="font-size: 0.65rem; color: #4ade80; text-decoration: none; display: inline-block; margin-top: 4px;">
+            🔗 Obtener clave en NVIDIA Build
+          </a>
+        </div>
+
+        <!-- Tier 4: Zhipu / GLM -->
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(234, 88, 12, 0.25); border-radius: 8px; padding: 9px; margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+            <label style="font-size: 0.73rem; color: #e2e8f0; font-weight: 700;">4. Zhipu AI / GLM (BigModel)</label>
+            <span style="font-size: 0.62rem; background: #ea580c; color: #fff; padding: 1px 6px; border-radius: 4px;">Tier 4</span>
+          </div>
+          <p style="font-size: 0.66rem; color: #94a3b8; margin-bottom: 6px;">GLM-4 Flash (Ultra eficiente y gratis en BigModel).</p>
+          <input type="password" id="zhipuKeyInput" class="input-field" style="width: 100%; font-size: 0.72rem;" placeholder="api_key...">
+          <a href="https://open.bigmodel.cn" target="_blank" style="font-size: 0.65rem; color: #fb923c; text-decoration: none; display: inline-block; margin-top: 4px;">
+            🔗 Obtener clave en Zhipu BigModel
+          </a>
+        </div>
+
+        <!-- Tier 5: Google Gemini -->
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 8px; padding: 9px; margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+            <label style="font-size: 0.73rem; color: #e2e8f0; font-weight: 700;">5. Google Gemini Nativo</label>
+            <span style="font-size: 0.62rem; background: #2563eb; color: #fff; padding: 1px 6px; border-radius: 4px;">Tier 5</span>
+          </div>
+          <p style="font-size: 0.66rem; color: #94a3b8; margin-bottom: 6px;">Gemini 2.5 Flash / Gemini 1.5 Flash (El cerebro de Antigravity).</p>
+          <input type="password" id="geminiKeyInput" class="input-field" style="width: 100%; font-size: 0.72rem;" placeholder="AIzaSy...">
+          <a href="https://aistudio.google.com/app/api-keys" target="_blank" style="font-size: 0.65rem; color: #60a5fa; text-decoration: none; display: inline-block; margin-top: 4px;">
+            🔗 Obtener clave gratis en Google AI Studio (1 clic sin tarjeta)
+          </a>
+        </div>
+
+        <!-- Tier 6: OpenAI -->
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 8px; padding: 9px; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+            <label style="font-size: 0.73rem; color: #e2e8f0; font-weight: 700;">6. OpenAI Nativo</label>
+            <span style="font-size: 0.62rem; background: #9333ea; color: #fff; padding: 1px 6px; border-radius: 4px;">Tier 6</span>
+          </div>
+          <p style="font-size: 0.66rem; color: #94a3b8; margin-bottom: 6px;">GPT-4o-mini, GPT-4o oficial.</p>
+          <input type="password" id="openaiKeyInput" class="input-field" style="width: 100%; font-size: 0.72rem;" placeholder="sk-proj-...">
+          <a href="https://platform.openai.com/api-keys" target="_blank" style="font-size: 0.65rem; color: #c084fc; text-decoration: none; display: inline-block; margin-top: 4px;">
+            🔗 Obtener clave en OpenAI Platform
+          </a>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 8px; position: sticky; bottom: 0; background: #111827; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
+          <button class="action-btn" style="background: transparent; border-color: #64748b; color: #94a3b8;" onclick="closeConfigModal()">Cerrar</button>
+          <button class="action-btn" onclick="saveApiKeys()">💾 Guardar y Conectar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Base de Conocimiento, Perfil y Habilidades Alexa -->
+  <div class="modal-overlay" id="knowledgeModal" style="display: none;">
+    <div class="modal-card" style="max-width: 440px; max-height: 88vh; display: flex; flex-direction: column;">
+      <div class="modal-header">
+        <h3>🧠 Perfil de Jack & Habilidades Alexa</h3>
+        <button class="icon-btn" onclick="closeKnowledgeModal()">✕</button>
+      </div>
+      <div class="modal-body" style="overflow-y: auto; flex: 1; padding-right: 6px;">
+        
+        <!-- Sección 1: Perfil Personal de Jack (Memoria Permanente Tipo Alexa) -->
+        <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 10px; padding: 10px; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 0.76rem; color: #a5b4fc; font-weight: 700;">👤 Perfil Personal de Jack</span>
+            <span style="font-size: 0.62rem; background: #4f46e5; color: #fff; padding: 1px 6px; border-radius: 4px;">Memoria Viva</span>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+            <div>
+              <label style="font-size: 0.68rem; color: #94a3b8; display: block; margin-bottom: 2px;">🎂 Cumpleaños de Jack:</label>
+              <input type="text" id="profileBirthdayInput" class="input-field" placeholder="Ej: 15 de marzo" style="width: 100%; font-size: 0.72rem; padding: 5px 8px;">
+            </div>
+            <div>
+              <label style="font-size: 0.68rem; color: #94a3b8; display: block; margin-bottom: 2px;">🎨 Pareja (Diseño):</label>
+              <input type="text" id="profilePartnerInput" class="input-field" placeholder="Diseñadora Gráfica" style="width: 100%; font-size: 0.72rem; padding: 5px 8px;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+            <div>
+              <label style="font-size: 0.68rem; color: #94a3b8; display: block; margin-bottom: 2px;">🎯 Meta Freelance Mensual:</label>
+              <input type="text" id="profileMetaInput" class="input-field" placeholder="$1500 USD" style="width: 100%; font-size: 0.72rem; padding: 5px 8px;">
+            </div>
+            <div>
+              <label style="font-size: 0.68rem; color: #94a3b8; display: block; margin-bottom: 2px;">⚡ Velocidad de Voz:</label>
+              <select id="profileSpeedSelect" class="input-field" style="width: 100%; font-size: 0.72rem; padding: 5px 8px; background: #0f172a; color: #f8fafc;">
+                <option value="+15%" selected>⚡ +15% Rápida y Fluida (Estilo Alexa)</option>
+                <option value="+20%">🚀 +20% Ultra Rápida</option>
+                <option value="+10%">🏃 +10% Dinámica</option>
+                <option value="+0%">🐢 +0% Normal (Lenta)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 8px;">
+            <label style="font-size: 0.68rem; color: #94a3b8; display: block; margin-bottom: 2px;">🎙️ Voz Neuronal de Scrapy (TTS):</label>
+            <select id="profileVoiceSelect" class="input-field" style="width: 100%; font-size: 0.72rem; padding: 5px 8px; background: #0f172a; color: #f8fafc;">
+              <option value="es-MX-JorgeNeural" selected>🇲🇽 Jorge (México - Súper Humano, Natural y Conversacional)</option>
+              <option value="es-PE-AlexNeural">🇵🇪 Alex (Perú - Masculina Natural)</option>
+              <option value="es-PE-CamilaNeural">🇵🇪 Camila (Perú - Femenina Cálida)</option>
+              <option value="es-CO-GonzaloNeural">🇨🇴 Gonzalo (Colombia - Expresiva)</option>
+              <option value="es-ES-AlvaroNeural">🇪🇸 Álvaro (España - Formal)</option>
+            </select>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end;">
+            <button class="action-btn" onclick="saveUserProfile()" style="padding: 4px 12px; font-size: 0.72rem;">💾 Guardar Perfil y Voz</button>
+          </div>
+        </div>
+
+        <!-- Sección 2: Habilidades Alexa Integradas -->
+        <div style="background: rgba(6, 182, 212, 0.06); border: 1px solid rgba(6, 182, 212, 0.25); border-radius: 10px; padding: 10px; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 0.74rem; color: #67e8f9; font-weight: 700;">⚡ Habilidades Asistente Activas (11 Módulos)</span>
+            <span style="font-size: 0.6rem; color: #06b6d4; font-weight: 600;">100% OPERATIVAS</span>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 5px; font-size: 0.66rem;">
+            <span style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6,182,212,0.3); color: #67e8f9; padding: 2px 7px; border-radius: 10px;">🎂 Cumpleaños & Perfil</span>
+            <span style="background: rgba(236, 72, 153, 0.15); border: 1px solid rgba(236,72,153,0.3); color: #f472b6; padding: 2px 7px; border-radius: 10px;">🧠 Memoria & Olvido</span>
+            <span style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; padding: 2px 7px; border-radius: 10px;">▶️ YouTube LibreWolf</span>
+            <span style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; padding: 2px 7px; border-radius: 10px;">🌤️ Clima Lima en Vivo</span>
+            <span style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245,158,11,0.3); color: #fcd34d; padding: 2px 7px; border-radius: 10px;">🔊 Control de Volumen</span>
+            <span style="background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139,92,246,0.3); color: #c4b5fd; padding: 2px 7px; border-radius: 10px;">📋 Tareas & Lista</span>
+            <span style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; padding: 2px 7px; border-radius: 10px;">⏰ Temporizadores</span>
+            <span style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16,185,129,0.3); color: #86efac; padding: 2px 7px; border-radius: 10px;">💱 Divisas & Horas</span>
+            <span style="background: rgba(236, 72, 153, 0.15); border: 1px solid rgba(236,72,153,0.3); color: #f9a8d4; padding: 2px 7px; border-radius: 10px;">😂 Humor & Chistes</span>
+            <span style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99,102,241,0.3); color: #c7d2fe; padding: 2px 7px; border-radius: 10px;">💻 Control Linux Mint</span>
+          </div>
+        </div>
+
+        <!-- Sección 3: Memoria Dinámica y Aprendizaje -->
+        <div>
+          <p style="font-size: 0.72rem; color: #94a3b8; line-height: 1.4; margin-bottom: 6px;">
+            Hechos y notas que Scrapy recuerda permanentemente:
+          </p>
+          <div id="knowledgeListContainer" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; max-height: 160px; overflow-y: auto;">
+            <!-- Items dinámicos -->
+          </div>
+          <div style="border-top: 1px solid rgba(99,102,241,0.2); padding-top: 8px;">
+            <label style="font-size: 0.7rem; color: #cbd5e1; font-weight: 600;">Enseñar algo nuevo a Scrapy:</label>
+            <div style="display: flex; gap: 6px; margin-top: 4px;">
+              <input type="text" id="newFactInput" class="input-field" placeholder="Ej: Mi comida favorita es el ceviche..." style="font-size: 0.74rem;">
+              <button class="action-btn" onclick="saveNewKnowledgeItem()">Enseñar</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra Superior -->
+  <div class="widget-header">
+    <div class="widget-brand">
+      <div class="widget-avatar">
+        <img src="/static/scrapy_avatar.png" alt="Scrapy">
+      </div>
+      <div class="widget-title">
+        <h2>Scrapy AI</h2>
+        <span id="brainIndicator">Asistente de Jack</span>
+      </div>
+    </div>
+    <div class="widget-controls">
+      <button class="icon-btn" id="knowToggle" onclick="openKnowledgeModal()" title="Memoria y Base de Conocimiento">🧠</button>
+      <button class="icon-btn" id="cfgToggle" onclick="openConfigModal()" title="Configuración de Scrapy">⚙️</button>
+      <button class="icon-btn" id="ttsToggle" onclick="toggleTtsVoice()" title="Alternar Voz de Scrapy">🔊</button>
+      <a href="/" target="_blank" class="icon-btn" title="Abrir Panel Web">↗</a>
+    </div>
+  </div>
+
+  <!-- Mascota Central Viva: Escenario Holográfico 3D de Scrapy con Voz Real -->
+  <div class="scrapy-core-section">
+    <div class="scrapy-mascot-stage" id="mascotStage" onclick="handleStageClick()" title="Haz clic para interactuar o saludar a Scrapy">
+      <!-- Pedestal Holográfico de Energía -->
+      <div class="holo-pedestal-platform">
+        <div class="holo-ring-outer"></div>
+        <div class="holo-ring-inner"></div>
+        <div class="holo-pedestal-glow"></div>
+      </div>
+
+      <!-- Vórtice Cibernético y Pantallas Holográficas (Modo Búsqueda) -->
+      <div class="cyber-search-vortex" id="cyberSearchVortex">
+        <div class="vortex-ring-3d vr-1"></div>
+        <div class="vortex-ring-3d vr-2"></div>
+        <div class="vortex-laser-sweep"></div>
+        <div class="cyber-floating-glyph fg-1">⚙️ FastAPI</div>
+        <div class="cyber-floating-glyph fg-2">🌐 Freelancer</div>
+        <div class="cyber-floating-glyph fg-3">🎨 CMYK 300DPI</div>
+        <div class="cyber-floating-glyph fg-4">⚡ $1,500/mes</div>
+      </div>
+
+      <!-- Entidad Viva 3D de Scrapy (Animación 3D CGI de Estudio con Fondo Transparente) -->
+      <div class="scrapy-living-entity" id="scrapyEntity">
+        <img id="scrapyLiveChar" src="/static/scrapy_3d_idle.webp" class="scrapy-char-img" alt="Scrapy AI 3D Living Character">
+      </div>
+
+      <!-- Badge HUD Superior en la Escena -->
+      <div class="stage-hud-badge" id="stageHudBadge">
+        <span class="hud-pulse-dot" id="hudDot"></span>
+        <span id="hudStateText">EN LÍNEA</span>
+      </div>
+
+      <!-- Botón de Audio de Voz Original -->
+      <div class="stage-audio-toggle" onclick="toggleVoiceAudio(event)" id="voiceAudioBtn" title="Activar/Silenciar voz original de Scrapy">
+        <span id="voiceAudioIcon">🔊</span>
+      </div>
+    </div>
+    
+    <!-- VU Meter de Audio en Vivo -->
+    <div class="vu-container" title="Nivel de captura de tu micrófono">
+      <div class="vu-bar" id="vuBar"></div>
+    </div>
+
+    <div class="scrapy-badge-status">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="scrapyStatusText">🟢 Te escucho Jack... Dime qué orden deseas darme</span>
+    </div>
+  </div>
+
+  <!-- Chips de Acciones Rápidas con Animación 3D y Ejecución Real (Habilidades Alexa) -->
+  <div class="chips-row">
+    <button class="chip-btn" style="border-color: rgba(236,72,153,0.5); color: #f472b6;" onclick="sendUserQuery('Qué día es mi cumpleaños')">🎂 Mi Cumpleaños</button>
+    <button class="chip-btn" style="border-color: rgba(6,182,212,0.5); color: #67e8f9;" onclick="sendUserQuery('¿Qué es lo que puedes hacer por mí y cuáles son tus funciones?')">⚡ ¿Qué puedes hacer?</button>
+    <button class="chip-btn" style="border-color: rgba(239,68,68,0.5); color: #fca5a5;" onclick="sendUserQuery('abre youtube y busca tecache')">▶️ YouTube Reusar</button>
+    <button class="chip-btn" style="border-color: #f59e0b; color: #fbbf24;" onclick="sendUserQuery('pausa el video')">⏸️ Pausar</button>
+    <button class="chip-btn" style="border-color: #10b981; color: #34d399;" onclick="sendUserQuery('reproduce el video')">▶️ Play</button>
+    <button class="chip-btn" style="border-color: #6366f1; color: #a5b4fc;" onclick="sendUserQuery('siguiente video')">⏭️ Siguiente</button>
+    <button class="chip-btn" style="border-color: #3b82f6; color: #93c5fd;" onclick="sendUserQuery('toma una captura de pantalla')">📸 Captura PC</button>
+    <button class="chip-btn" style="border-color: rgba(16,185,129,0.5); color: #6ee7b7;" onclick="sendUserQuery('¿Cómo está el clima en Lima?')">☀️ Clima Lima</button>
+    <button class="chip-btn" style="border-color: rgba(139,92,246,0.5); color: #c4b5fd;" onclick="sendUserQuery('¿Qué tareas tengo para hoy?')">📋 Mis Tareas</button>
+    <button class="chip-btn" onclick="sendUserQuery('abre whatsapp')">📱 WhatsApp</button>
+    <button class="chip-btn" onclick="sendUserQuery('sube el volumen')">🔊 Subir Volumen</button>
+    <button class="chip-btn" onclick="sendUserQuery('muestra el escritorio')">🖥️ Escritorio</button>
+    <button class="chip-btn" onclick="sendUserQuery('abre mis archivos')">📁 Archivos</button>
+    <button class="chip-btn" onclick="sendUserQuery('abre la terminal')">💻 Terminal</button>
+  </div>
+
+  <!-- Área de Chat -->
+  <div class="chat-container" id="chatContainer">
+    <div class="msg scrapy">
+      <div style="display: flex; align-items: flex-start; gap: 8px;">
+        <img src="/static/scrapy_avatar.png" alt="Scrapy" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex-shrink: 0; margin-top: 2px; border: 1px solid #06b6d4;">
+        <div style="flex: 1;">
+          <strong>¡Hola Jack!</strong> Soy Scrapy, tu asistente personal completo.
+          <br><br>
+          Estoy listo para obedecerte y ejecutar cualquier orden que me des al instante: <strong>abrir YouTube, el navegador, tus archivos, la terminal o controlar el volumen</strong>, además de cazar contratos por hora y proyectos de diseño para tu pareja.
+          <br><br>
+          <em>Dime tu orden por voz o escribe aquí abajo.</em>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de Entrada Inferior -->
+  <div class="widget-input-bar">
+    <button class="mic-button active" id="micBtn" onclick="toggleMicManual()" title="Activar/Pausar Micrófono">
+      🎙️
+    </button>
+    <input type="text" id="textMsgInput" class="input-field" placeholder="Di 'Abre YouTube', 'Abre el navegador' o escribe una orden..." onkeydown="handleInputKey(event)">
+    <button class="action-btn" onclick="sendInputText()">Enviar</button>
+  </div>
+
+  <script>
+    let isMicActive = true;
+    let voiceOutput = true;
+    let currentVoicePreference = 'es-MX-JorgeNeural';
+    let currentVoiceRate = '+15%';
+    let recognition = null;
+    let isAwake = true;
+    let isSpeaking = false;
+    let audioStream = null;
+    let audioCtx = null;
+    let scriptProcessor = null;
+
+    // Grabación de Audio WAV con Detección de Voz (VAD)
+    let isRecordingSpeech = false;
+    let audioChunks = [];
+    let silenceStart = 0;
+    let speechStartTime = 0;
+    let isTranscribing = false;
+
+    // =============================================================
+    // CONTROLADOR DE VOZ AMIGABLE REAL Y MASCOTA 3D ANIMADA DE SCRAPY
+    // =============================================================
+    let currentScrapyState = 'idle';
+    let isVoiceAudioEnabled = true;
+
+    // =============================================================
+    // MOTOR DE ANIMACIÓN 3D DE ESTUDIO (WebP Animados con Fondo Transparente)
+    // =============================================================
+    const SCRAPY_3D_ASSETS = {
+      idle: '/static/scrapy_3d_idle.webp',
+      waving: '/static/scrapy_3d_waving.webp',
+      searching: '/static/scrapy_3d_searching.webp',
+      speaking: '/static/scrapy_3d_speaking.webp',
+      listening: '/static/scrapy_3d_idle.webp',
+      typing: '/static/scrapy_3d_idle.webp'
+    };
+
+    // Precargar inmediatamente todas las animaciones 3D en memoria caché
+    Object.values(SCRAPY_3D_ASSETS).forEach(url => {
+      const img = new Image();
+      img.src = url;
+    });
+
+    function updateCharacterAnimation(state) {
+      const charImg = document.getElementById('scrapyLiveChar');
+      if (!charImg) return;
+      const targetSrc = SCRAPY_3D_ASSETS[state] || SCRAPY_3D_ASSETS.idle;
+      const currentSrc = charImg.getAttribute('src');
+      if (currentSrc !== targetSrc) {
+        charImg.src = targetSrc;
+      }
+    }
+
+    // Voz única dinámica profesional de Scrapy (cero interferencias con audio pregrabado)
+    let activeAudio = null;
+
+    function playScrapyVoice(voiceKey, onEnd) {
+      // Función desactivada: Se utiliza exclusivamente el motor de voz dinámico sintetizado
+      // para responder a cualquier pregunta y orden sin colisión de dos voces simultáneas.
+      if (onEnd) onEnd();
+    }
+
+    function setScrapyTalking(talking) {
+      const stage = document.getElementById('mascotStage');
+      const entity = document.getElementById('scrapyEntity');
+      if (!stage || !entity) return;
+
+      if (talking) {
+        stage.classList.add('talking');
+        entity.classList.add('talking');
+      } else {
+        stage.classList.remove('talking');
+        entity.classList.remove('talking');
+      }
+    }
+
+    function toggleVoiceAudio(e) {
+      if (e) e.stopPropagation();
+      isVoiceAudioEnabled = !isVoiceAudioEnabled;
+      voiceOutput = isVoiceAudioEnabled;
+      const icon = document.getElementById('voiceAudioIcon');
+      if (isVoiceAudioEnabled) {
+        if (icon) icon.innerText = '🔊';
+        speakText('Voz activada Jack. Dime en qué te puedo ayudar.');
+      } else {
+        if (icon) icon.innerText = '🔇';
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        setScrapyTalking(false);
+        setScrapyState('idle');
+      }
+    }
+
+    function handleStageClick() {
+      if (!isAwake) isAwake = true;
+      triggerScrapyWakeSequence(null);
+    }
+
+    // Efecto de inclinación e interacción 3D con el cursor del ratón
+    function initParallaxStage() {
+      const stage = document.getElementById('mascotStage');
+      const entity = document.getElementById('scrapyEntity');
+      if (!stage || !entity) return;
+
+      stage.addEventListener('mousemove', (e) => {
+        const rect = stage.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        const tiltX = (x / rect.width) * 14;
+        const tiltY = -(y / rect.height) * 10;
+        entity.style.transform = `perspective(600px) rotateY(${tiltX}deg) rotateX(${tiltY}deg) translateY(-5px)`;
+      });
+
+      stage.addEventListener('mouseleave', () => {
+        entity.style.transform = '';
+      });
+    }
+
+    function setScrapyState(state, customText) {
+      currentScrapyState = state;
+      const stage = document.getElementById('mascotStage');
+      const hudText = document.getElementById('hudStateText');
+      const hudDot = document.getElementById('hudDot');
+      const statusText = document.getElementById('scrapyStatusText');
+      const statusDot = document.getElementById('statusDot');
+
+      if (!stage) return;
+      stage.classList.remove('idle', 'listening', 'searching', 'talking', 'waving');
+      stage.classList.add(state);
+
+      updateCharacterAnimation(state);
+
+      if (state === 'idle') {
+        if (hudText) hudText.innerText = 'EN LÍNEA';
+        if (hudDot) { hudDot.style.background = '#10b981'; hudDot.style.boxShadow = '0 0 8px #10b981'; }
+        if (statusDot) { statusDot.style.background = '#10b981'; statusDot.style.boxShadow = '0 0 6px #10b981'; }
+        if (statusText) statusText.innerText = customText || (isAwake ? '🟢 Te escucho Jack...' : 'Di "Hola Scrapy" para hablar');
+      } else if (state === 'waving') {
+        stage.classList.add('waving', 'talking');
+        if (hudText) hudText.innerText = 'SALUDANDO';
+        if (hudDot) { hudDot.style.background = '#06b6d4'; hudDot.style.boxShadow = '0 0 14px #06b6d4'; }
+        if (statusDot) { statusDot.style.background = '#06b6d4'; statusDot.style.boxShadow = '0 0 8px #06b6d4'; }
+        if (statusText) statusText.innerText = customText || '👋 ¡Hola Jack! Aquí estoy...';
+      } else if (state === 'listening' || state === 'typing') {
+        stage.classList.add('listening');
+        if (hudText) hudText.innerText = 'ATENTO ESCUCHANDO';
+        if (hudDot) { hudDot.style.background = '#ec4899'; hudDot.style.boxShadow = '0 0 12px #ec4899'; }
+        if (statusDot) { statusDot.style.background = '#ec4899'; statusDot.style.boxShadow = '0 0 12px #ec4899'; }
+        if (statusText) statusText.innerText = customText || (state === 'typing' ? '⌨️ Atento a lo que escribes...' : '🎧 Atento escuchándote hablar...');
+      } else if (state === 'searching') {
+        stage.classList.add('searching');
+        if (hudText) hudText.innerText = 'BUSCANDO EN BASE';
+        if (hudDot) { hudDot.style.background = '#06b6d4'; hudDot.style.boxShadow = '0 0 14px #06b6d4'; }
+        if (statusDot) { statusDot.style.background = '#06b6d4'; statusDot.style.boxShadow = '0 0 14px #06b6d4'; }
+        if (statusText) statusText.innerText = customText || '⚡ Buscando y procesando orden...';
+      } else if (state === 'speaking') {
+        stage.classList.add('talking');
+        if (hudText) hudText.innerText = 'RESPONDIENDO';
+        if (hudDot) { hudDot.style.background = '#00f3ff'; hudDot.style.boxShadow = '0 0 12px #00f3ff'; }
+        if (statusDot) { statusDot.style.background = '#10b981'; statusDot.style.boxShadow = '0 0 12px #10b981'; }
+        if (statusText) statusText.innerText = customText || '🗣️ Scrapy respondiendo...';
+      }
+    }
+
+    // 1. Sonidos de retroalimentación de alta tecnología con Web Audio
+    function playChime(type) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+        if (type === 'wake') {
+          // Doble tono futurista ascendente (523Hz -> 784Hz)
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.12);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+          osc.start(now);
+          osc.stop(now + 0.28);
+        } else if (type === 'listen') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(880, now);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+          osc.start(now);
+          osc.stop(now + 0.15);
+        }
+      } catch (err) {
+        console.warn('Audio chime error:', err);
+      }
+    }
+
+    // 2. Codificador WAV 16kHz Mono estándar en JavaScript puro
+    function encodeWAV(samples, sampleRate) {
+      const buffer = new ArrayBuffer(44 + samples.length * 2);
+      const view = new DataView(buffer);
+
+      function writeString(view, offset, string) {
+        for (let i = 0; i < string.length; i++) {
+          view.setUint8(offset + i, string.charCodeAt(i));
+        }
+      }
+
+      writeString(view, 0, 'RIFF');
+      view.setUint32(4, 36 + samples.length * 2, true);
+      writeString(view, 8, 'WAVE');
+      writeString(view, 12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true); // PCM
+      view.setUint16(22, 1, true); // Mono
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * 2, true);
+      view.setUint16(32, 2, true); // Block align
+      view.setUint16(34, 16, true); // 16 bits
+      writeString(view, 36, 'data');
+      view.setUint32(40, samples.length * 2, true);
+
+      let offset = 44;
+      for (let i = 0; i < samples.length; i++, offset += 2) {
+        let s = Math.max(-1, Math.min(1, samples[i]));
+        view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+      }
+      return new Blob([view], { type: 'audio/wav' });
+    }
+
+    // 3. Reconocimiento de Voz Nativo de Alta Velocidad (Chrome Web Speech API - 0% CPU Lag)
+    let isRecognitionPaused = false;
+
+    function initNativeSpeechRecognition() {
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRec) {
+        console.warn('SpeechRecognition no disponible nativamente en este navegador');
+        return false;
+      }
+
+      try {
+        recognition = new SpeechRec();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'es-PE';
+
+        recognition.onstart = () => {
+          console.log('🎤 Reconocimiento de voz nativo Chrome iniciado');
+        };
+
+        recognition.onresult = (event) => {
+          if (isSpeaking || isRecognitionPaused || isTranscribing) return;
+
+          let interimTranscript = '';
+          let finalTranscript = '';
+
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalTranscript += transcript;
+            } else {
+              interimTranscript += transcript;
+            }
+          }
+
+          const statusText = document.getElementById('scrapyStatusText');
+          const vuBar = document.getElementById('vuBar');
+
+          if (interimTranscript) {
+            setScrapyState('listening', `🎧 "${interimTranscript}"`);
+            if (vuBar) vuBar.style.width = '65%';
+          }
+
+          if (finalTranscript) {
+            const phrase = finalTranscript.trim();
+            if (phrase.length >= 2) {
+              if (vuBar) vuBar.style.width = '0%';
+              handleUserSpokenPhrase(phrase);
+            }
+          }
+        };
+
+        recognition.onerror = (event) => {
+          console.warn('Speech recognition error:', event.error);
+          if (event.error === 'not-allowed') {
+            const st = document.getElementById('scrapyStatusText');
+            if (st) st.innerText = '⚠️ Haz clic en el orbe para permitir micro';
+          }
+        };
+
+        recognition.onend = () => {
+          // Auto-reiniciar si el micrófono sigue activo y Scrapy no está hablando
+          if (isMicActive && !isSpeaking && !isRecognitionPaused) {
+            setTimeout(() => {
+              try { recognition.start(); } catch(e) {}
+            }, 250);
+          }
+        };
+
+        recognition.start();
+        return true;
+      } catch (err) {
+        console.warn('Fallo al inicializar SpeechRec:', err);
+        return false;
+      }
+    }
+
+    function pauseSpeechRecognition() {
+      isRecognitionPaused = true;
+      if (recognition) {
+        try { recognition.stop(); } catch(e) {}
+      }
+    }
+
+    function resumeSpeechRecognition() {
+      isRecognitionPaused = false;
+      if (recognition && isMicActive && !isSpeaking) {
+        try { recognition.start(); } catch(e) {}
+      }
+    }
+
+    // 4. Captura Ligera de Audio para VU-Meter Visual (0% CPU con requestAnimationFrame)
+    function initAudioCapture() {
+      initNativeSpeechRecognition();
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+
+      navigator.mediaDevices.getUserMedia({ 
+        audio: { 
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        } 
+      }).then(stream => {
+        audioStream = stream;
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const source = audioCtx.createMediaStreamSource(stream);
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 64;
+        source.connect(analyser);
+
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        const vuBar = document.getElementById('vuBar');
+
+        function drawVU() {
+          requestAnimationFrame(drawVU);
+          if (!isMicActive || isSpeaking) {
+            if (vuBar) vuBar.style.width = '0%';
+            return;
+          }
+          analyser.getByteFrequencyData(dataArray);
+          let sum = 0;
+          for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+          let avg = sum / dataArray.length;
+          if (vuBar) {
+            let pct = Math.min(100, Math.round((avg / 128) * 100));
+            vuBar.style.width = (pct > 6 ? pct : 0) + '%';
+          }
+        }
+        drawVU();
+      }).catch(err => {
+        console.warn('Audio VU capture error:', err);
+      });
+    }
+
+    // 5. Gestión Conversacional del Texto Reconocido (Ejecución Directa de Cualquier Orden)
+    function handleUserSpokenPhrase(phrase) {
+      if (!phrase || phrase.trim().length < 2) return;
+      const cleanPhrase = phrase.trim();
+      document.getElementById('textMsgInput').value = cleanPhrase;
+      document.getElementById('scrapyStatusText').innerText = `🎙️ "${cleanPhrase}"`;
+
+      const lower = cleanPhrase.toLowerCase();
+      const wakeRegex = /^(hola\s*scrapy|hola\s*es?crapy|hola\s*scrappy|hola\s*es?crapi|oye\s*scrapy|hey\s*scrapy|scrapy|scrappy|escrapy|scrapi|escrapi|es\s*crapy|crapy)[\s,\.!]*/i;
+
+      // Si empieza con wake word
+      if (wakeRegex.test(lower)) {
+        const queryAfter = cleanPhrase.replace(wakeRegex, '').trim();
+        playChime('wake');
+
+        if (queryAfter.length > 2) {
+          sendUserQuery(queryAfter);
+        } else {
+          triggerScrapyWakeSequence(null);
+        }
+        return;
+      }
+
+      // Si Jack da cualquier orden directa (ej. "abre youtube", "abre el navegador", "pon música", etc.)
+      // Ejecutar INMEDIATAMENTE sin requerir prefijos robóticos
+      sendUserQuery(cleanPhrase);
+    }
+
+    // 6. Respuesta Inmediata al Wake Word con Voz Dinámica y Animación 3D
+    function triggerScrapyWakeSequence(followUpQuery) {
+      setScrapyState('waving', '👋 ¡Hola Jack! Aquí estoy...');
+      appendMessage('jack', followUpQuery ? `Hola Scrapy, ${followUpQuery}` : 'Hola Scrapy');
+
+      if (!followUpQuery) {
+        appendMessage('scrapy', `<strong>¡Hola Jack!</strong> Aquí estoy a tu servicio.<br><br><em>Dime qué orden deseas darme: abrir YouTube, el navegador, tus archivos, la terminal o buscar proyectos de diseño para tu pareja.</em>`);
+        speakText('¡Hola Jack! Aquí estoy listo para ayudarte. Dime qué orden deseas darme hoy.', () => {
+          setScrapyState('idle', '🟢 Atento a tu voz...');
+        });
+      } else {
+        sendUserQuery(followUpQuery);
+      }
+    }
+
+    function triggerWakeWordManual() {
+      playChime('wake');
+      if (!isAwake) isAwake = true;
+      triggerScrapyWakeSequence(null);
+    }
+
+    function toggleMicManual() {
+      if (isMicActive) {
+        isMicActive = false;
+        pauseSpeechRecognition();
+        document.getElementById('micBtn').classList.remove('active');
+        setScrapyState('idle', 'Micrófono pausado');
+        document.getElementById('statusDot').style.background = '#f59e0b';
+      } else {
+        isMicActive = true;
+        resumeSpeechRecognition();
+        document.getElementById('micBtn').classList.add('active');
+        setScrapyState('idle', isAwake ? '🟢 Te escucho Jack...' : 'Escuchando: Di "Hola Scrapy"');
+      }
+    }
+
+    function toggleTtsVoice() {
+      voiceOutput = !voiceOutput;
+      const btn = document.getElementById('ttsToggle');
+      if (voiceOutput) {
+        btn.innerText = '🔊';
+        playChime('listen');
+      } else {
+        btn.innerText = '🔇';
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+      }
+    }
+
+    let currentSpeechAudio = null;
+
+    // 7. Motor de Voz Única Profesional Dinámica de Scrapy (Zero Colisiones)
+    function speakText(text, onEndCallback) {
+      if (!voiceOutput || !text) {
+        if (onEndCallback) onEndCallback();
+        return;
+      }
+
+      // Detener cualquier audio previo inmediatamente para garantizar cero colisiones
+      if (currentSpeechAudio) {
+        try {
+          currentSpeechAudio.pause();
+          currentSpeechAudio.currentTime = 0;
+        } catch(e) {}
+        currentSpeechAudio = null;
+      }
+      if (window.speechSynthesis) {
+        try { window.speechSynthesis.cancel(); } catch(e) {}
+      }
+
+      // Pausar el reconocimiento de voz mientras Scrapy habla para que no se escuche a sí mismo
+      pauseSpeechRecognition();
+
+      const cleanText = text
+        .replace(/[*_#`•\[\]()]/g, ' ')
+        .replace(/https?:\/\/\S+/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (!cleanText) {
+        if (onEndCallback) onEndCallback();
+        return;
+      }
+
+      const voiceParam = currentVoicePreference ? `&voice=${encodeURIComponent(currentVoicePreference)}` : '&voice=es-MX-JorgeNeural';
+      const speedParam = currentVoiceRate ? `&speed=${encodeURIComponent(currentVoiceRate)}` : '&speed=%2B15%25';
+      const audioUrl = '/api/assistant/tts?text=' + encodeURIComponent(cleanText) + voiceParam + speedParam;
+      const audio = new Audio(audioUrl);
+      currentSpeechAudio = audio;
+
+      audio.onplay = () => {
+        isSpeaking = true;
+        setScrapyState('speaking', '🗣️ Scrapy respondiendo...');
+      };
+
+      const finishSpeak = () => {
+        isSpeaking = false;
+        currentSpeechAudio = null;
+        document.getElementById('textMsgInput').value = '';
+        setScrapyState('idle', '🟢 Atento a tu voz...');
+        resumeSpeechRecognition();
+        if (onEndCallback) onEndCallback();
+      };
+
+      audio.onended = finishSpeak;
+      audio.onerror = (e) => {
+        console.warn('Audio playback error:', e);
+        finishSpeak();
+      };
+
+      audio.play().catch(e => {
+        console.warn('Audio play prevented:', e);
+        finishSpeak();
+      });
+    }
+
+    // 8. Envío y Ejecución Directa de Cualquier Orden
+    async function sendUserQuery(text) {
+      if (!text || !text.trim() || isSpeaking) return;
+      const query = text.trim();
+      document.getElementById('textMsgInput').value = '';
+
+      if (!query.toLowerCase().includes('hola scrapy')) {
+        appendMessage('jack', query);
+      }
+
+      const shortQ = query.length > 24 ? query.substring(0, 24) + '...' : query;
+      setScrapyState('searching', `🔍 Procesando orden: "${shortQ}"`);
+
+      try {
+        const res = await fetch('/api/assistant/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: query })
+        });
+        if (!res.ok) throw new Error('Error al conectar con Scrapy');
+        const data = await res.json();
+
+        appendMessage('scrapy', data.reply_text);
+
+        // Ejecutar acción si existe (los controles de ventana y escritorio ya se ejecutaron nativamente en Linux Mint)
+        if (data.action === 'open_config_modal') {
+          openConfigModal();
+        } else if (data.action === 'open_knowledge_modal') {
+          openKnowledgeModal();
+        } else if (data.action === 'open_widget_tab' && data.url) {
+          try { window.open(data.url, '_blank'); } catch(e) {}
+        }
+
+        // Respuesta con la voz única profesional dinámica
+        const speechToSay = data.speech_text || data.reply_text;
+        speakText(speechToSay, () => {
+          setScrapyState('idle');
+        });
+      } catch (err) {
+        appendMessage('scrapy', '⚠️ No pude conectar con mi servidor local. Verifica que el servicio esté corriendo.');
+        setScrapyState('idle', '⚠️ Error de conexión');
+      }
+    }
+
+    function appendMessage(sender, text) {
+      const container = document.getElementById('chatContainer');
+      const div = document.createElement('div');
+      div.className = `msg ${sender}`;
+
+      let formatted = text
+        .replace(/```([\s\S]*?)```/g, '<pre style="background: rgba(0,0,0,0.5); padding: 8px 10px; border-radius: 8px; font-family: monospace; font-size: 0.78rem; overflow-x: auto; margin: 6px 0; border: 1px solid rgba(6,182,212,0.3); color: #a5f3fc; user-select: text; white-space: pre-wrap;"><code>$1</code></pre>')
+        .replace(/`([^`]+)`/g, '<code style="background: rgba(6,182,212,0.15); color: #06b6d4; padding: 2px 5px; border-radius: 4px; font-family: monospace; font-size: 0.82rem;">$1</code>')
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color: #00f3ff; text-decoration: underline; font-weight: 600;">$1 ↗</a>')
+        .replace(/\n\n/g, '<br><br>')
+        .replace(/\n/g, '<br>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+      if (sender === 'scrapy') {
+        div.innerHTML = `
+          <div style="display: flex; align-items: flex-start; gap: 8px;">
+            <img src="/static/scrapy_avatar.png" alt="Scrapy" style="width: 22px; height: 22px; border-radius: 50%; object-fit: cover; flex-shrink: 0; margin-top: 2px; border: 1px solid #06b6d4;">
+            <div style="flex: 1;">${formatted}</div>
+          </div>
+        `;
+      } else {
+        div.innerHTML = formatted;
+      }
+
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function sendInputText() {
+      const input = document.getElementById('textMsgInput');
+      const val = input.value.trim();
+      if (val) {
+        if (!isAwake) isAwake = true;
+        sendUserQuery(val);
+      }
+    }
+
+    function handleInputKey(e) {
+      if (e.key === 'Enter') sendInputText();
+    }
+
+    // Gestión del Modal de Configuración y Claves API de IA
+    function openConfigModal() {
+      document.getElementById('configModal').style.display = 'flex';
+      checkConfigStatus();
+    }
+
+    function closeConfigModal() {
+      document.getElementById('configModal').style.display = 'none';
+    }
+
+    async function checkConfigStatus() {
+      try {
+        const res = await fetch('/api/assistant/config');
+        if (!res.ok) return;
+        const data = await res.json();
+        const indicator = document.getElementById('brainIndicator');
+        const activeEngineText = document.getElementById('activeEngineText');
+        const modelsCountBadge = document.getElementById('modelsCountBadge');
+
+        if (modelsCountBadge && data.total_models) {
+          modelsCountBadge.innerText = `${data.total_models} Modelos`;
+        }
+
+        const p = data.providers || {};
+        const isVercelActive = p.vercel_cloud?.configured;
+
+        if (data.has_any_key || isVercelActive) {
+          const provName = data.active_provider || 'IA Conectada';
+          indicator.innerText = `✨ ${provName}`;
+          indicator.style.color = '#10b981';
+          if (activeEngineText) activeEngineText.innerText = provName;
+        } else {
+          indicator.innerText = '🧠 Inteligencia Local';
+          indicator.style.color = '#38bdf8';
+          if (activeEngineText) activeEngineText.innerText = 'Offline Scrapy Core + Web Live';
+        }
+
+        const vcBadge = document.getElementById('vercelCloudStatusBadge');
+        const vcDesc = document.getElementById('vercelCloudDesc');
+        if (isVercelActive) {
+          if (vcBadge) {
+            vcBadge.innerText = 'EN LÍNEA';
+            vcBadge.style.background = '#059669';
+          }
+          if (vcDesc) {
+            vcDesc.innerText = 'Conectado a Vercel con tus 5 APIs de producción (OpenRouter, Groq, NVIDIA, Zhipu, Gemini). Cascada de 41 modelos activa.';
+          }
+        } else {
+          if (vcBadge) {
+            vcBadge.innerText = 'DESCONECTADO';
+            vcBadge.style.background = '#dc2626';
+          }
+          if (vcDesc) {
+            vcDesc.innerText = 'No se detectó sesión de Vercel en LibreWolf. Puedes ingresar tus claves API manualmente en los campos a continuación.';
+          }
+        }
+
+        if (p.openrouter?.masked) document.getElementById('openrouterKeyInput').placeholder = p.openrouter.masked;
+        if (p.groq?.masked) document.getElementById('groqKeyInput').placeholder = p.groq.masked;
+        if (p.nvidia?.masked) document.getElementById('nvidiaKeyInput').placeholder = p.nvidia.masked;
+        if (p.zhipu?.masked) document.getElementById('zhipuKeyInput').placeholder = p.zhipu.masked;
+        if (p.gemini?.masked) document.getElementById('geminiKeyInput').placeholder = p.gemini.masked;
+        if (p.openai?.masked) document.getElementById('openaiKeyInput').placeholder = p.openai.masked;
+
+      } catch (err) {
+        console.warn('Config check error:', err);
+      }
+    }
+
+    async function saveApiKeys() {
+      const openrouterVal = document.getElementById('openrouterKeyInput').value.trim();
+      const groqVal = document.getElementById('groqKeyInput').value.trim();
+      const nvidiaVal = document.getElementById('nvidiaKeyInput').value.trim();
+      const zhipuVal = document.getElementById('zhipuKeyInput').value.trim();
+      const geminiVal = document.getElementById('geminiKeyInput').value.trim();
+      const openaiVal = document.getElementById('openaiKeyInput').value.trim();
+
+      const payload = {};
+      if (openrouterVal) payload.openrouter_api_key = openrouterVal;
+      if (groqVal) payload.groq_api_key = groqVal;
+      if (nvidiaVal) payload.nvidia_api_key = nvidiaVal;
+      if (zhipuVal) payload.zhipu_api_key = zhipuVal;
+      if (geminiVal) payload.gemini_api_key = geminiVal;
+      if (openaiVal) payload.openai_api_key = openaiVal;
+
+      if (Object.keys(payload).length === 0) {
+        alert('Por favor ingresa al menos una clave API para alguno de los proveedores.');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/assistant/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) throw new Error('Error al guardar las claves');
+        const data = await res.json();
+        
+        closeConfigModal();
+        checkConfigStatus();
+        playChime('wake');
+
+        appendMessage('scrapy', `🎉 **¡Cascada de IAs de Miambot Conectada!**\n\nClaves sincronizadas con éxito. Scrapy ahora opera con la jerarquía multi-proveedor de Miambot y auto-sanación activa.\n\n⚡ **Motor principal:** ${data.active_provider || 'Cascada Miambot'}`);
+        speakText("¡Cerebros de Miambot conectados con éxito, Jack! Ahora contamos con toda la cascada de modelos y auto sanación activa.");
+      } catch (err) {
+        alert('Error al guardar la configuración: ' + err.message);
+      }
+    }
+
+    // Gestión del Modal de Memoria, Perfil de Jack y Habilidades Alexa
+    function openKnowledgeModal() {
+      document.getElementById('knowledgeModal').style.display = 'flex';
+      loadKnowledgeList();
+      loadUserProfile();
+    }
+
+    function closeKnowledgeModal() {
+      document.getElementById('knowledgeModal').style.display = 'none';
+    }
+
+    async function loadUserProfile() {
+      try {
+        const res = await fetch('/api/assistant/profile');
+        if (!res.ok) return;
+        const p = await res.json();
+        if (p.birthday && document.getElementById('profileBirthdayInput')) {
+          document.getElementById('profileBirthdayInput').value = p.birthday;
+        }
+        if (p.partner_role && document.getElementById('profilePartnerInput')) {
+          document.getElementById('profilePartnerInput').value = p.partner_role;
+        }
+        if (p.target_monthly_earnings && document.getElementById('profileMetaInput')) {
+          document.getElementById('profileMetaInput').value = p.target_monthly_earnings;
+        }
+        if (p.voice_preference) {
+          currentVoicePreference = p.voice_preference;
+          if (document.getElementById('profileVoiceSelect')) {
+            document.getElementById('profileVoiceSelect').value = p.voice_preference;
+          }
+        }
+        if (p.voice_speed) {
+          currentVoiceRate = p.voice_speed;
+          if (document.getElementById('profileSpeedSelect')) {
+            document.getElementById('profileSpeedSelect').value = p.voice_speed;
+          }
+        }
+      } catch (e) {
+        console.warn('Error loading user profile:', e);
+      }
+    }
+
+    async function saveUserProfile() {
+      const bday = document.getElementById('profileBirthdayInput') ? document.getElementById('profileBirthdayInput').value.trim() : '';
+      const partner = document.getElementById('profilePartnerInput') ? document.getElementById('profilePartnerInput').value.trim() : '';
+      const meta = document.getElementById('profileMetaInput') ? document.getElementById('profileMetaInput').value.trim() : '';
+      const voice = document.getElementById('profileVoiceSelect') ? document.getElementById('profileVoiceSelect').value : 'es-MX-JorgeNeural';
+      const speed = document.getElementById('profileSpeedSelect') ? document.getElementById('profileSpeedSelect').value : '+15%';
+
+      try {
+        const res = await fetch('/api/assistant/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            birthday: bday,
+            partner_role: partner,
+            target_monthly_earnings: meta,
+            voice_preference: voice,
+            voice_speed: speed
+          })
+        });
+        if (!res.ok) throw new Error('Error al guardar el perfil');
+        currentVoicePreference = voice;
+        currentVoiceRate = speed;
+        playChime('listen');
+        speakText("He guardado tu perfil y tu voz favorita, Jack. Tus preferencias están actualizadas.");
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    }
+
+    async function loadKnowledgeList() {
+      const container = document.getElementById('knowledgeListContainer');
+      container.innerHTML = '<div style="color: #94a3b8; font-size: 0.74rem;">Cargando hechos aprendidos...</div>';
+      try {
+        const res = await fetch('/api/assistant/knowledge');
+        if (!res.ok) throw new Error('Error al cargar memoria');
+        const data = await res.json();
+        const facts = data.knowledge || [];
+        if (facts.length === 0) {
+          container.innerHTML = '<div style="color: #64748b; font-size: 0.74rem;">Aún no hay hechos aprendidos.</div>';
+          return;
+        }
+
+        container.innerHTML = facts.map((item, idx) => `
+          <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(99,102,241,0.25); border-radius: 8px; padding: 7px 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+            <div style="flex: 1;">
+              <span style="font-size: 0.65rem; color: #06b6d4; font-weight: 700; text-transform: uppercase;">${item.category || 'GENERAL'}</span>
+              <p style="font-size: 0.74rem; color: #e2e8f0; margin: 2px 0 0 0; line-height: 1.35;">${item.fact}</p>
+            </div>
+            <button onclick="deleteKnowledgeItem(${idx})" style="background: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 0.8rem; padding: 0 4px;" title="Olvidar hecho">✕</button>
+          </div>
+        `).join('');
+      } catch (err) {
+        container.innerHTML = `<div style="color: #ef4444; font-size: 0.74rem;">Error: ${err.message}</div>`;
+      }
+    }
+
+    async function saveNewKnowledgeItem() {
+      const input = document.getElementById('newFactInput');
+      const fact = input.value.trim();
+      if (!fact) return;
+
+      try {
+        const res = await fetch('/api/assistant/knowledge', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fact: fact, category: 'aprendizaje_usuario' })
+        });
+        if (!res.ok) throw new Error('Error al guardar hecho');
+        input.value = '';
+        loadKnowledgeList();
+        playChime('listen');
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    }
+
+    async function deleteKnowledgeItem(idx) {
+      if (!confirm('¿Deseas que Scrapy olvide este dato?')) return;
+      try {
+        const res = await fetch(`/api/assistant/knowledge/${idx}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Error al eliminar');
+        loadKnowledgeList();
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initAudioCapture();
+      checkConfigStatus();
+      loadUserProfile();
+      initParallaxStage();
+
+      // Reacción de Atención Inmediata al Escribir
+      const textInput = document.getElementById('textMsgInput');
+      if (textInput) {
+        textInput.addEventListener('focus', () => {
+          if (currentScrapyState === 'idle') setScrapyState('typing');
+        });
+        textInput.addEventListener('input', () => {
+          if (currentScrapyState !== 'searching' && currentScrapyState !== 'speaking') {
+            setScrapyState('typing');
+          }
+        });
+        textInput.addEventListener('blur', () => {
+          if (currentScrapyState === 'typing') {
+            setTimeout(() => {
+              if (currentScrapyState === 'typing') setScrapyState('idle');
+            }, 350);
+          }
+        });
+      }
+
+      if (window.speechSynthesis) {
+        window.speechSynthesis.onvoiceschanged = () => {};
+      }
+    });
+
+    // Desbloquear AudioContext y Speech al interactuar
+    document.addEventListener('click', () => {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (window.speechSynthesis && window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    });
+  </script>
+</body>
+</html>

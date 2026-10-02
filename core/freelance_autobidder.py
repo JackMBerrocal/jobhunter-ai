@@ -54,7 +54,8 @@ class FreelanceAutoBidder:
                 categories = [
                     "customer_support_whatsapp", "sales_setter_crm", "ai_chatbot_system",
                     "social_media_growth", "ecommerce_stores", "virtual_assistant_admin",
-                    "power_bi_data", "qa_testing", "sql_database", "web_dev", "python_automation_scraping"
+                    "power_bi_data", "qa_testing", "sql_database", "web_dev", "python_automation_scraping",
+                    "graphic_design_creative"
                 ]
 
             return {

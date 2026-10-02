@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scrapy AI | Asistente de Voz & Escritorio</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/scrapy_icon_32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/scrapy_icon_16.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="/static/scrapy_icon_48.png">
+  <link rel="icon" type="image/png" sizes="128x128" href="/static/scrapy_icon_128.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/static/scrapy_app_icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+  <link rel="shortcut icon" href="/static/favicon.ico">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #070913;
+      --bg-card: rgba(15, 23, 42, 0.75);
+      --border-card: rgba(99, 102, 241, 0.2);
+      --primary: #6366f1;
+      --primary-glow: rgba(99, 102, 241, 0.5);
+      --accent-cyan: #06b6d4;
+      --accent-pink: #ec4899;
+      --accent-green: #10b981;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, sans-serif;
+      background: radial-gradient(circle at 50% 20%, #1e1b4b 0%, #070913 70%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Barra Superior */
+    header {
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(7, 9, 19, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-card);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      box-shadow: 0 0 15px var(--primary-glow);
+    }
+
+    .brand-info h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #ffffff, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-info p {
+      font-size: 0.75rem;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-nav {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      color: #e2e8f0;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-nav:hover {
+      background: rgba(99, 102, 241, 0.25);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    /* Contenedor Principal */
+    main {
+      flex: 1;
+      max-width: 1000px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Orbe de IA Central */
+    .orb-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 20px 20px 20px;
+      position: relative;
+    }
+
+    .orb-container {
+      position: relative;
+      width: 160px;
+      height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .orb-glow {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, rgba(6, 182, 212, 0.15) 50%, transparent 70%);
+      filter: blur(20px);
+      animation: pulse-glow 3s infinite ease-in-out;
+    }
+
+    .orb-core {
+      position: relative;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+      box-shadow: 0 0 35px rgba(99, 102, 241, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.8rem;
+      transition: all 0.3s ease;
+      z-index: 2;
+    }
+
+    .orb-ring {
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      border: 2px dashed rgba(6, 182, 212, 0.4);
+      animation: rotate-ring 12s infinite linear;
+    }
+
+    /* Estados del Orbe */
+    .orb-container.listening .orb-core {
+      transform: scale(1.15);
+      background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+      box-shadow: 0 0 50px rgba(236, 72, 153, 0.8), inset 0 0 25px rgba(255, 255, 255, 0.6);
+    }
+
+    .orb-container.speaking .orb-core {
+      animation: speaking-pulse 0.8s infinite alternate ease-in-out;
+      background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+      box-shadow: 0 0 45px rgba(16, 185, 129, 0.8);
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { transform: scale(1); opacity: 0.6; }
+      50% { transform: scale(1.25); opacity: 0.9; }
+    }
+
+    @keyframes rotate-ring {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes speaking-pulse {
+      0% { transform: scale(1.02); }
+      100% { transform: scale(1.18); }
+    }
+
+    .orb-status {
+      margin-top: 14px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 8px var(--accent-green);
+    }
+
+    /* Chips de Comandos Rápidos */
+    .quick-chips {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .chip {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      color: #cbd5e1;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chip:hover {
+      background: rgba(99, 102, 241, 0.3);
+      border-color: var(--primary);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    /* Chat Feed */
+    .chat-box {
+      flex: 1;
+      min-height: 380px;
+      max-height: 480px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 16px;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .chat-msg {
+      display: flex;
+      gap: 12px;
+      max-width: 85%;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .chat-msg.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .chat-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .chat-msg.assistant .chat-avatar {
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+    }
+
+    .chat-msg.user .chat-avatar {
+      background: #334155;
+    }
+
+    .chat-bubble {
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
+    .chat-msg.assistant .chat-bubble {
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      color: #f1f5f9;
+    }
+
+    .chat-msg.user .chat-bubble {
+      background: linear-gradient(135deg, #4f46e5, #4338ca);
+      color: #ffffff;
+    }
+
+    .chat-bubble p {
+      margin-bottom: 6px;
+    }
+
+    .chat-bubble p:last-child {
+      margin-bottom: 0;
+    }
+
+    .chat-bubble ul, .chat-bubble ol {
+      margin-left: 18px;
+      margin-bottom: 6px;
+    }
+
+    /* Barra de Entrada de Voz y Texto */
+    .input-bar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.85);
+      padding: 10px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--border-card);
+      backdrop-filter: blur(12px);
+    }
+
+    .mic-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      color: #fff;
+      font-size: 1.25rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px var(--primary-glow);
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .mic-btn:hover {
+      transform: scale(1.06);
+    }
+
+    .mic-btn.active {
+      background: linear-gradient(135deg, #ec4899, #f43f5e);
+      box-shadow: 0 0 25px rgba(236, 72, 153, 0.8);
+      animation: pulse-mic 1s infinite alternate;
+    }
+
+    @keyframes pulse-mic {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.12); }
+    }
+
+    .text-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.95rem;
+      padding: 6px 4px;
+    }
+
+    .text-input::placeholder {
+      color: #64748b;
+    }
+
+    .send-btn {
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid var(--primary);
+      color: #c7d2fe;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .send-btn:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .voice-toggle {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 4px;
+      transition: color 0.2s;
+    }
+
+    .voice-toggle.active {
+      color: var(--accent-green);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Scrollbar */
+    .chat-box::-webkit-scrollbar {
+      width: 6px;
+    }
+    .chat-box::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.3);
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Cabecera -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🤖</div>
+      <div class="brand-info">
+        <h1>JobHunter AI Companion</h1>
+        <p>Asistente Personal de Escritorio &bull; Jack Berrocal</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-nav" onclick="launchBrowserSession()">🌐 Abrir Navegador Autónomo</button>
+      <a href="/" class="btn-nav">📊 Panel Principal</a>
+    </div>
+  </header>
+
+  <!-- Principal -->
+  <main>
+
+    <!-- Orbe Visual -->
+    <div class="orb-section">
+      <div class="orb-container" id="orbContainer" onclick="toggleVoiceRecognition()" title="Haz clic para hablar">
+        <div class="orb-glow"></div>
+        <div class="orb-ring"></div>
+        <div class="orb-core" id="orbCore">🎙️</div>
+      </div>
+      <div class="orb-status" id="orbStatus">
+        <span class="status-dot"></span>
+        <span id="statusText">En línea &bull; Presiona el micrófono o el orbe para hablar</span>
+      </div>
+    </div>
+
+    <!-- Chips Rápidos -->
+    <div class="quick-chips">
+      <div class="chip" onclick="sendQuickPrompt('Hola, ¿qué proyectos hay disponibles hoy?')">👋 Saludar al Asistente</div>
+      <div class="chip" onclick="sendQuickPrompt('¿Qué proyectos de diseño gráfico hay para mi pareja?')">🎨 Oportunidades para mi Pareja</div>
+      <div class="chip" onclick="sendQuickPrompt('Muéstrame los contratos de WhatsApp y por horas')">⏱️ Contratos por Hora</div>
+      <div class="chip" onclick="sendQuickPrompt('¿Cómo vamos con la meta de los 1500 dólares mensuales?')">💰 Meta de $1,500 USD</div>
+      <div class="chip" onclick="sendQuickPrompt('Dame un consejo para cerrar clientes en Freelancer')">🧠 Estrategia de Cierre</div>
+    </div>
+
+    <!-- Chat Feed -->
+    <div class="chat-box" id="chatBox">
+      <div class="chat-msg assistant">
+        <div class="chat-avatar">🤖</div>
+        <div class="chat-bubble">
+          <p><strong>¡Hola Jack!</strong> Soy tu asistente personal JobHunter AI.</p>
+          <p>Estoy activo monitoreando el mercado 24/7. Puedes hablarme por el micrófono, pedirme que revise proyectos, prepare propuestas de software o de diseño para tu pareja, o que calculemos nuestro progreso hacia la meta de <strong>$1,500 USD mensuales</strong>.</p>
+          <p><em>¿En qué nos enfocamos ahora?</em></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de Entrada -->
+    <div class="input-bar">
+      <button class="mic-btn" id="micBtn" onclick="toggleVoiceRecognition()" title="Activar/Desactivar Micrófono">
+        🎙️
+      </button>
+      <input type="text" id="textInput" class="text-input" placeholder="Háblame o escribe una instrucción..." onkeydown="handleInputKey(event)">
+      <button class="voice-toggle active" id="ttsToggle" onclick="toggleTtsVoice()" title="Alternar Voz en Altavoces">
+        🔊
+      </button>
+      <button class="send-btn" onclick="sendTextMessage()">Enviar</button>
+    </div>
+
+  </main>
+
+  <script>
+    let isListening = false;
+    let voiceOutputEnabled = true;
+    let recognition = null;
+    let currentUtterance = null;
+
+    // Inicializar Reconocimiento de Voz (Web Speech API)
+    function initSpeech() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.lang = 'es-PE';
+        recognition.continuous = false;
+        recognition.interimResults = true;
+
+        recognition.onstart = () => {
+          isListening = true;
+          document.getElementById('orbContainer').classList.add('listening');
+          document.getElementById('micBtn').classList.add('active');
+          document.getElementById('statusText').innerText = 'Escuchando tu voz... Habla ahora';
+        };
+
+        recognition.onresult = (event) => {
+          let transcript = '';
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            transcript += event.results[i][0].transcript;
+          }
+          document.getElementById('textInput').value = transcript;
+        };
+
+        recognition.onend = () => {
+          isListening = false;
+          document.getElementById('orbContainer').classList.remove('listening');
+          document.getElementById('micBtn').classList.remove('active');
+          document.getElementById('statusText').innerText = 'En línea &bull; Presiona el micrófono para hablar';
+          
+          const text = document.getElementById('textInput').value.trim();
+          if (text) {
+            sendUserMessage(text);
+          }
+        };
+
+        recognition.onerror = (err) => {
+          console.error('Speech error:', err);
+          isListening = false;
+          document.getElementById('orbContainer').classList.remove('listening');
+          document.getElementById('micBtn').classList.remove('active');
+          document.getElementById('statusText').innerText = 'En línea &bull; Error al capturar micrófono';
+        };
+      } else {
+        console.warn('Web Speech Recognition no soportado en este navegador.');
+      }
+    }
+
+    function toggleVoiceRecognition() {
+      if (!recognition) {
+        initSpeech();
+      }
+      if (!recognition) {
+        alert('Tu navegador no tiene activado el reconocimiento por voz. Puedes escribir en la barra de texto.');
+        return;
+      }
+      if (isListening) {
+        recognition.stop();
+      } else {
+        // Detener habla si estaba hablando
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        try {
+          recognition.start();
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+
+    function toggleTtsVoice() {
+      voiceOutputEnabled = !voiceOutputEnabled;
+      const btn = document.getElementById('ttsToggle');
+      if (voiceOutputEnabled) {
+        btn.classList.add('active');
+        btn.innerText = '🔊';
+      } else {
+        btn.classList.remove('active');
+        btn.innerText = '🔇';
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+      }
+    }
+
+    function speakText(text) {
+      if (!voiceOutputEnabled || !window.speechSynthesis || !text) return;
+      window.speechSynthesis.cancel();
+
+      const cleanText = text.replace(/[*_#`•]/g, ' ').replace(/\s+/g, ' ');
+      currentUtterance = new SpeechSynthesisUtterance(cleanText);
+      currentUtterance.lang = 'es-ES';
+      currentUtterance.rate = 1.05;
+
+      const orb = document.getElementById('orbContainer');
+      currentUtterance.onstart = () => {
+        orb.classList.add('speaking');
+        document.getElementById('statusText').innerText = 'Hablando...';
+      };
+      currentUtterance.onend = () => {
+        orb.classList.remove('speaking');
+        document.getElementById('statusText').innerText = 'En línea &bull; Listo';
+      };
+      currentUtterance.onerror = () => {
+        orb.classList.remove('speaking');
+        document.getElementById('statusText').innerText = 'En línea &bull; Listo';
+      };
+
+      // Buscar voz en español
+      const voices = window.speechSynthesis.getVoices();
+      const esVoice = voices.find(v => v.lang.startsWith('es'));
+      if (esVoice) currentUtterance.voice = esVoice;
+
+      window.speechSynthesis.speak(currentUtterance);
+    }
+
+    async function sendUserMessage(message) {
+      if (!message.trim()) return;
+      document.getElementById('textInput').value = '';
+
+      // Agregar burbuja del usuario
+      appendMessage('user', message);
+
+      document.getElementById('statusText').innerText = 'Pensando...';
+
+      try {
+        const res = await fetch('/api/assistant/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: message })
+        });
+        if (!res.ok) throw new Error('Error al comunicar con el asistente');
+        const data = await res.json();
+
+        appendMessage('assistant', data.reply_text);
+        if (data.action === 'open_url' && data.url) {
+          try { window.open(data.url, '_blank'); } catch(e) {}
+        }
+        if (data.speech_text) {
+          speakText(data.speech_text);
+        }
+      } catch (err) {
+        appendMessage('assistant', '⚠️ Hubo un error de conexión con mi servidor. Por favor verifica que el servicio esté corriendo.');
+        console.error(err);
+      } finally {
+        if (!window.speechSynthesis.speaking) {
+          document.getElementById('statusText').innerText = 'En línea &bull; Listo';
+        }
+      }
+    }
+
+    function appendMessage(sender, text) {
+      const chatBox = document.getElementById('chatBox');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `chat-msg ${sender}`;
+
+      const avatar = document.createElement('div');
+      avatar.className = 'chat-avatar';
+      avatar.innerText = sender === 'assistant' ? '🤖' : '👤';
+
+      const bubble = document.createElement('div');
+      bubble.className = 'chat-bubble';
+
+      // Formatear markdown básico (enlaces, negrita, viñetas, saltos de línea)
+      let formatted = text
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color: #00f3ff; text-decoration: underline; font-weight: 600;">$1 ↗</a>')
+        .replace(/\n\n/g, '<br><br>')
+        .replace(/\n/g, '<br>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+      bubble.innerHTML = formatted;
+      msgDiv.appendChild(avatar);
+      msgDiv.appendChild(bubble);
+      chatBox.appendChild(msgDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function sendTextMessage() {
+      const input = document.getElementById('textInput');
+      const val = input.value.trim();
+      if (val) sendUserMessage(val);
+    }
+
+    function handleInputKey(e) {
+      if (e.key === 'Enter') {
+        sendTextMessage();
+      }
+    }
+
+    function sendQuickPrompt(prompt) {
+      sendUserMessage(prompt);
+    }
+
+    async function launchBrowserSession() {
+      appendMessage('assistant', '🚀 Abriendo el navegador interactivo persistente para iniciar sesión en Freelancer.com... Revisa la ventana que aparecerá en tu escritorio.');
+      try {
+        const res = await fetch('/api/assistant/browser_session', { method: 'POST' });
+        const data = await res.json();
+        if (data.status === 'success') {
+          appendMessage('assistant', '🟢 ' + data.message);
+        } else {
+          appendMessage('assistant', '⚠️ ' + (data.error || 'No se pudo abrir el navegador'));
+        }
+      } catch (e) {
+        appendMessage('assistant', 'Error ejecutando comando de navegador: ' + e.message);
+      }
+    }
+
+    // Inicializar al cargar
+    window.addEventListener('DOMContentLoaded', () => {
+      initSpeech();
+      if (window.speechSynthesis) {
+        window.speechSynthesis.onvoiceschanged = () => {};
+      }
+    });
+  </script>
+</body>
+</html>

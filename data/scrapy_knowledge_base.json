@@ -1,0 +1,129 @@
+[
+  {
+    "category": "user",
+    "topic": "identidad",
+    "fact": "Jack Berrocal es Ingeniero de Sistemas en Lima, Perú. Especializado en desarrollo Full Stack, Python, FastAPI, React, SQL, scraping y soporte."
+  },
+  {
+    "category": "partner",
+    "topic": "diseño",
+    "fact": "La pareja de Jack es Diseñadora Gráfica experta en Photoshop, Illustrator, creación de logotipos, banners publicitarios, piezas para redes sociales y retoque digital."
+  },
+  {
+    "category": "business",
+    "topic": "meta",
+    "fact": "Meta mensual conjunta: Generar mínimo $1,500 USD netos al mes mediante contratos remotos por hora y proyectos freelance."
+  },
+  {
+    "category": "business",
+    "topic": "membresia",
+    "fact": "Membresía activa en Freelancer Plus por $9.90 USD/mes, la cual se amortiza rápidamente con un contrato recurrente."
+  },
+  {
+    "category": "preferences",
+    "topic": "comunicacion",
+    "fact": "A Jack le gusta la comunicación directa, sincera, inteligente, ejecutiva y colaborativa, sin rodeos robóticos."
+  },
+  {
+    "category": "preferencia_usuario",
+    "topic": "aprendizaje_continuo",
+    "fact": "Preferencia expresada por Jack: 'Quiero que tengas la misma inteligencia tuya, para que trabaje para mi localmente, que tenga la capacidad de aprender e investigar si no conoce un tema, para dar una respuesta correcta , sin cometer errores o estar adivinando'",
+    "learned_at": "2026-10-01 15:12:12"
+  },
+  {
+    "category": "directiva_maestra",
+    "topic": "aprendizaje_continuo",
+    "fact": "Directiva Maestra de Jack: Scrapy debe operar con el mismo nivel de inteligencia y razonamiento que Antigravity/Gemini, investigar en tiempo real en la web si no conoce un tema, y responder con precisión fáctica sin adivinar ni cometer errores.",
+    "learned_at": "2026-10-01 15:15:05"
+  },
+  {
+    "category": "aprendizaje_usuario",
+    "topic": "aprendizaje_continuo",
+    "fact": "mi tarifa mínima de Python son 25 dólares por hora",
+    "learned_at": "2026-10-01 15:15:06"
+  },
+  {
+    "category": "preferencia_usuario",
+    "topic": "aprendizaje_continuo",
+    "fact": "Preferencia expresada por Jack: 'quiero que abras mi navegador'",
+    "learned_at": "2026-10-01 18:31:46"
+  },
+  {
+    "category": "aprendizaje_usuario",
+    "topic": "aprendizaje_continuo",
+    "fact": "mi cliente favorito se llama TechCorp y paga 25 dolares la hora",
+    "learned_at": "2026-10-01 20:23:57"
+  },
+  {
+    "category": "directiva_maestra",
+    "topic": "aprendizaje_continuo",
+    "fact": "Directiva Maestra y Capacidades de Scrapy: 1. Abrir cualquier programa (Flatpak y nativo). 2. Buscar archivos en /home/jack. 3. Entrar a cualquier página web. 4. Control total de escritorio (capturas, volumen, ventanas). 5. Investigar en vivo en la web sin adivinar y aprender de Jack permanentemente. 6. Comunicación 100% humana, cálida y leal, cero robotizada.",
+    "learned_at": "2026-10-01 20:23:57"
+  },
+  {
+    "category": "investigacion_web",
+    "topic": "aprendizaje_continuo",
+    "fact": "Investigación sobre 'cuanto cobra un diseñador grafico por un logo en 2026': Tabla de precios por país y nivel Actualizado: junio 2026 · Lectura de 7 minutos \"¿Cuánto me cobras por un logo?\" es probablemente el mensaje más frecuente —y más traicionero— que recibe un diseñador freelance. Responde  (Fuente: ¿Cuánto cobrar por un logo en 2026? Tabla por país y nivel)",
+    "learned_at": "2026-10-01 20:25:14"
+  },
+  {
+    "category": "aprendizaje_usuario",
+    "topic": "aprendizaje_continuo",
+    "fact": "mi meta de este mes son 2000 dolares",
+    "learned_at": "2026-10-01 20:26:13"
+  },
+  {
+    "category": "investigacion_web",
+    "topic": "aprendizaje_continuo",
+    "fact": "Investigación sobre ', cómo estás hoy': Translate ¿Cómo estás hoy?. See authoritative translations of ¿Cómo estás hoy? in English with example sentences and audio pronunciations. (Fuente: ¿Cómo estás hoy? | Spanish to English Translation ...)",
+    "learned_at": "2026-10-01 22:27:38"
+  },
+  {
+    "category": "investigacion_web",
+    "topic": "aprendizaje_continuo",
+    "fact": "Investigación sobre 'Cuáles son los modelos de IA de Miambot que tienes disponibles': Compara GPT-6 Astra y los mejores modelos de inteligencia artificial de OpenAI, Anthropic, Google y más. Precios, contexto, capacidades y casos de uso. (Fuente: Comparativa de modelos de IA (2026) — cual.ai)",
+    "learned_at": "2026-10-01 22:29:09"
+  },
+  {
+    "category": "investigacion_web",
+    "topic": "aprendizaje_continuo",
+    "fact": "Investigación sobre 'Cuáles son los modelos de IA de Miambot que tienes integrados': La IA se entrena automáticamente con los documentos que tú le proporcionas: subes un PDF de tu catálogo, el link de tu tienda online o un Excel de precios, y la IA aprende tu negocio en cuestión de minutos. No necesitas  (Fuente: Preguntas Frecuentes | Soporte y Centro de Ayuda Miambot ...)",
+    "learned_at": "2026-10-01 22:29:47"
+  },
+  {
+    "category": "preferencia_usuario",
+    "topic": "aprendizaje_continuo",
+    "fact": "Preferencia expresada por Jack: 'quiero que bajes el volumen del sistema al 20%'",
+    "learned_at": "2026-10-01 22:36:01"
+  },
+  {
+    "category": "investigacion_web",
+    "topic": "aprendizaje_continuo",
+    "fact": "Investigación sobre 'lo que puedes hacer por mí': Lo más importante es informar a un adulto responsable. Puede ser tentador tratar de ayudar a tu amigo por ti mismo, pero siempre es mejor y más seguro pedir ... (Fuente: Mi amigo está hablando sobre el suicidio. ¿Qué debería hacer?)",
+    "learned_at": "2026-10-01 23:00:40"
+  },
+  {
+    "category": "preferencia_usuario",
+    "topic": "aprendizaje_continuo",
+    "fact": "Preferencia expresada por Jack: 'quiero que abras YouTube y busques en el buscador tekashi 69'",
+    "learned_at": "2026-10-01 23:06:00"
+  },
+  {
+    "category": "preferencia_usuario",
+    "topic": "aprendizaje_continuo",
+    "fact": "Preferencia expresada por Jack: 'quiero que la lactes'",
+    "learned_at": "2026-10-01 23:06:21"
+  },
+  {
+    "category": "preferencia_usuario",
+    "topic": "aprendizaje_continuo",
+    "fact": "Preferencia expresada por Jack: 'quiero que busques mix Santiago'",
+    "learned_at": "2026-10-01 23:06:51"
+  },
+  {
+    "category": "investigacion_web",
+    "topic": "aprendizaje_continuo",
+    "fact": "Investigación sobre 'Por qué no tienes acceso a mi pantalla si ya te estoy dando los permisos necesarios para que tú puedas hacerlo por mí tú eres mi asistente recuerdas de trappi': Si tienes problemas para compartir tu pantalla con otro Mac o para ver una pantalla compartida en el Mac, hay varias cosas que comprobar. (Fuente: Si no puedes compartir pantallas del Mac - Soporte técnico de ...)",
+    "learned_at": "2026-10-01 23:28:40"
+  }
+]
