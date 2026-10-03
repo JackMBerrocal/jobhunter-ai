@@ -1628,110 +1628,45 @@
       return new Blob([view], { type: 'audio/wav' });
     }
 
-    // 3. Reconocimiento de Voz Nativo de Alta Velocidad (Chrome Web Speech API - 0% CPU Lag)
+    // 3. Detector de Audio Local Neuronal (Whisper Local en GPU + VAD con AnalyserNode)
     let isRecognitionPaused = false;
-
-    function initNativeSpeechRecognition() {
-      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRec) {
-        console.warn('SpeechRecognition no disponible nativamente en este navegador');
-        return false;
-      }
-
-      try {
-        recognition = new SpeechRec();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'es-PE';
-
-        recognition.onstart = () => {
-          console.log('🎤 Reconocimiento de voz nativo Chrome iniciado');
-        };
-
-        recognition.onresult = (event) => {
-          if (isSpeaking || isRecognitionPaused || isTranscribing) return;
-
-          let interimTranscript = '';
-          let finalTranscript = '';
-
-          for (let i = event.resultIndex; i < event.results.length; ++i) {
-            const transcript = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-              finalTranscript += transcript;
-            } else {
-              interimTranscript += transcript;
-            }
-          }
-
-          const statusText = document.getElementById('scrapyStatusText');
-          const vuBar = document.getElementById('vuBar');
-
-          if (interimTranscript) {
-            setScrapyState('listening', `🎧 "${interimTranscript}"`);
-            if (vuBar) vuBar.style.width = '65%';
-          }
-
-          if (finalTranscript) {
-            const phrase = finalTranscript.trim();
-            if (phrase.length >= 2) {
-              if (vuBar) vuBar.style.width = '0%';
-              handleUserSpokenPhrase(phrase);
-            }
-          }
-        };
-
-        recognition.onerror = (event) => {
-          console.warn('Speech recognition error:', event.error);
-          if (event.error === 'not-allowed') {
-            const st = document.getElementById('scrapyStatusText');
-            if (st) st.innerText = '⚠️ Haz clic en el orbe para permitir micro';
-          }
-        };
-
-        recognition.onend = () => {
-          // Auto-reiniciar si el micrófono sigue activo y Scrapy no está hablando
-          if (isMicActive && !isSpeaking && !isRecognitionPaused) {
-            setTimeout(() => {
-              try { recognition.start(); } catch(e) {}
-            }, 250);
-          }
-        };
-
-        recognition.start();
-        return true;
-      } catch (err) {
-        console.warn('Fallo al inicializar SpeechRec:', err);
-        return false;
-      }
-    }
+    let localMediaRecorder = null;
+    let localAudioChunks = [];
+    let isVadRecording = false;
+    let vadSilenceTimer = null;
+    let vadSilenceThresholdMs = 750; // 750 ms de silencio tras hablar concluye la frase de forma ágil
+    let speechEnergyThreshold = 11;   // Sensibilidad optimizada para voz humana sin esfuerzo
+    let speechDetectedInChunk = false;
 
     function pauseSpeechRecognition() {
       isRecognitionPaused = true;
-      if (recognition) {
-        try { recognition.stop(); } catch(e) {}
+      if (isVadRecording && localMediaRecorder && localMediaRecorder.state === 'recording') {
+        isVadRecording = false;
+        speechDetectedInChunk = false;
+        try { localMediaRecorder.stop(); } catch(e) {}
       }
     }
 
     function resumeSpeechRecognition() {
       isRecognitionPaused = false;
-      if (recognition && isMicActive && !isSpeaking) {
-        try { recognition.start(); } catch(e) {}
-      }
     }
 
-    // 4. Captura Ligera de Audio para VU-Meter Visual (0% CPU con requestAnimationFrame)
-    function initAudioCapture() {
-      initNativeSpeechRecognition();
+    // 4. Captura de Audio de Alta Definición y VAD Automático
+    async function initAudioCapture() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.warn('getUserMedia no disponible en este navegador');
+        return;
+      }
 
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          audio: { 
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          } 
+        });
 
-      navigator.mediaDevices.getUserMedia({ 
-        audio: { 
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        } 
-      }).then(stream => {
         audioStream = stream;
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -1744,31 +1679,145 @@
         const dataArray = new Uint8Array(analyser.frequencyBinCount);
         const vuBar = document.getElementById('vuBar');
 
+        // Configurar MediaRecorder para enviar audio crudo al Whisper local en GPU
+        const mimeTypes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4'];
+        const supportedMime = mimeTypes.find(m => MediaRecorder.isTypeSupported(m)) || '';
+
+        function setupRecorder() {
+          try {
+            localMediaRecorder = supportedMime ? new MediaRecorder(stream, { mimeType: supportedMime }) : new MediaRecorder(stream);
+            localMediaRecorder.ondataavailable = (e) => {
+              if (e.data && e.data.size > 0) {
+                localAudioChunks.push(e.data);
+              }
+            };
+            localMediaRecorder.onstop = async () => {
+              const chunks = [...localAudioChunks];
+              localAudioChunks = [];
+              const hadSpeech = speechDetectedInChunk;
+              speechDetectedInChunk = false; // Resetear para el siguiente ciclo
+              if (chunks.length === 0 || !hadSpeech) {
+                if (isMicActive && !isSpeaking) setScrapyState('idle', '🟢 Atento a tu voz...');
+                return;
+              }
+
+              const blob = new Blob(chunks, { type: supportedMime || 'audio/webm' });
+              if (blob.size < 600) {
+                if (isMicActive && !isSpeaking) setScrapyState('idle', '🟢 Atento a tu voz...');
+                return;
+              }
+
+              setScrapyState('searching', '🧠 Procesando voz con Whisper local...');
+              const formData = new FormData();
+              formData.append('audio', blob, 'user_speech.webm');
+
+              try {
+                const res = await fetch('/api/assistant/transcribe', {
+                  method: 'POST',
+                  body: formData
+                });
+                const data = await res.json();
+                if (data.status === 'success' && data.text && data.text.trim().length >= 2) {
+                  console.log('🎤 [Whisper Local]:', data.text);
+                  handleUserSpokenPhrase(data.text.trim());
+                } else {
+                  if (isMicActive && !isSpeaking) setScrapyState('idle', '🟢 Atento a tu voz...');
+                }
+              } catch (err) {
+                console.warn('Error transcribiendo con Whisper:', err);
+                if (isMicActive && !isSpeaking) setScrapyState('idle', '🟢 Atento a tu voz...');
+              }
+            };
+          } catch(err) {
+            console.warn('Fallo al inicializar MediaRecorder:', err);
+          }
+        }
+
+        setupRecorder();
+
+        // Loop de Voice Activity Detection (VAD) y VU-meter
         function drawVU() {
           requestAnimationFrame(drawVU);
-          if (!isMicActive || isSpeaking) {
+          if (!isMicActive || isSpeaking || isRecognitionPaused) {
             if (vuBar) vuBar.style.width = '0%';
+            if (isVadRecording && localMediaRecorder && localMediaRecorder.state === 'recording') {
+              isVadRecording = false;
+              speechDetectedInChunk = false;
+              try { localMediaRecorder.stop(); } catch(e) {}
+            }
             return;
           }
+
           analyser.getByteFrequencyData(dataArray);
           let sum = 0;
           for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
           let avg = sum / dataArray.length;
+
           if (vuBar) {
             let pct = Math.min(100, Math.round((avg / 128) * 100));
             vuBar.style.width = (pct > 6 ? pct : 0) + '%';
           }
+
+          // Detección de actividad vocal (VAD)
+          if (avg >= speechEnergyThreshold) {
+            // Usuario está hablando
+            speechDetectedInChunk = true;
+            if (vadSilenceTimer) {
+              clearTimeout(vadSilenceTimer);
+              vadSilenceTimer = null;
+            }
+
+            if (!isVadRecording && localMediaRecorder && localMediaRecorder.state === 'inactive') {
+              isVadRecording = true;
+              localAudioChunks = [];
+              try {
+                localMediaRecorder.start(100);
+                setScrapyState('listening', '🎧 Escuchando tu orden...');
+              } catch(e) {
+                console.warn('Error starting recorder:', e);
+                isVadRecording = false;
+              }
+            }
+          } else if (isVadRecording) {
+            // Usuario se quedó en silencio: concluir frase completa
+            if (!vadSilenceTimer) {
+              vadSilenceTimer = setTimeout(() => {
+                vadSilenceTimer = null;
+                if (isVadRecording && localMediaRecorder && localMediaRecorder.state === 'recording') {
+                  isVadRecording = false;
+                  try {
+                    localMediaRecorder.stop();
+                  } catch(e) {}
+                }
+              }, vadSilenceThresholdMs);
+            }
+          }
         }
         drawVU();
-      }).catch(err => {
-        console.warn('Audio VU capture error:', err);
-      });
+
+      } catch (err) {
+        console.warn('Audio capture initialization error:', err);
+      }
+    }
+
+
+    function normalizeSpeechClient(text) {
+      if (!text) return '';
+      return text
+        .replace(/\b(libre\s*el\s*gol|live\s*gold|librewald|libre\s*gold|libre\s*golf|libregolf|libre\s*gol|libro\s*wolf|libre\s*wolf)\b/gi, 'librewolf')
+        .replace(/\b(tecache|tekashi\s*69|tekasi|tashi)\b/gi, '6ix9ine')
+        .replace(/\b(trappi|trapy|escrapi|es\s*crapi|scrapi|escrapy)\b/gi, 'scrapy')
+        .replace(/\b(wasap|watsap|whasap|guasap)\b/gi, 'whatsapp')
+        .replace(/\b(yutu|yutub|yutuv)\b/gi, 'youtube')
+        .replace(/\b(feisbuk|feis)\b/gi, 'facebook')
+        .replace(/\b(calculador)\b/gi, 'calculadora')
+        .trim();
     }
 
     // 5. Gestión Conversacional del Texto Reconocido (Ejecución Directa de Cualquier Orden)
     function handleUserSpokenPhrase(phrase) {
       if (!phrase || phrase.trim().length < 2) return;
-      const cleanPhrase = phrase.trim();
+      const cleanPhrase = normalizeSpeechClient(phrase.trim());
       document.getElementById('textMsgInput').value = cleanPhrase;
       document.getElementById('scrapyStatusText').innerText = `🎙️ "${cleanPhrase}"`;
 

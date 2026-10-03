@@ -322,13 +322,66 @@ class DesktopAssistantTools:
             pass
         return windows
 
+    PROTECTED_WINDOW_TERMS = [
+        "antigravity", "antigravity ide", "antigravity-ide", "gemini",
+        "cursor", "vscode", "code - oss", "vscodium", "visual studio code", "code"
+    ]
+
+    @classmethod
+    def is_window_protected(cls, title: str, wm_class: str = "") -> bool:
+        """Determina si una ventana es el IDE o entorno crítico de desarrollo y debe ser protegida contra cierres o minimizaciones."""
+        t_low = (title or "").lower()
+        c_low = (wm_class or "").lower()
+        return any(term in t_low or term in c_low for term in cls.PROTECTED_WINDOW_TERMS)
+
+    @classmethod
+    def get_xdotool_bin(cls) -> Optional[str]:
+        """Localiza el binario xdotool funcional en el sistema de Jack."""
+        xdo = shutil.which("xdotool") or "/home/jack/.local/bin/xdotool"
+        return xdo if os.path.exists(xdo) else None
+
+    @classmethod
+    def get_active_window_info(cls) -> Tuple[Optional[str], str]:
+        """Obtiene el ID y el título de la ventana activa en X11."""
+        env = cls.get_desktop_env()
+        xdo = cls.get_xdotool_bin()
+        if xdo:
+            try:
+                wid = subprocess.check_output([xdo, "getactivewindow"], env=env, text=True, timeout=1).strip()
+                title = subprocess.check_output([xdo, "getwindowname", wid], env=env, text=True, timeout=1).strip()
+                return wid, title
+            except Exception:
+                pass
+        try:
+            out = subprocess.check_output(["xprop", "-root", "_NET_ACTIVE_WINDOW"], env=env, text=True, timeout=1)
+            m = re.search(r'0x[0-9a-fA-F]+', out)
+            if m:
+                hex_id = m.group(0)
+                int_id = str(int(hex_id, 16))
+                title = ""
+                if xdo:
+                    try:
+                        title = subprocess.check_output([xdo, "getwindowname", int_id], env=env, text=True, timeout=1).strip()
+                    except Exception:
+                        pass
+                return int_id, title
+        except Exception:
+            pass
+        return None, ""
+
     @classmethod
     def close_window(cls, window_query: str) -> bool:
-        """Cierra una ventana específica por su título o nombre de programa."""
+        """Cierra una ventana específica por su título o nombre de programa, protegiendo siempre Antigravity IDE."""
         env = cls.get_desktop_env()
         clean_q = window_query.strip().lower()
+        if cls.is_window_protected(clean_q):
+            print(f"🛡️ [Shield Active]: Rechazado cierre de ventana protegida '{clean_q}' (Antigravity IDE).")
+            return False
+
         windows = cls.get_open_windows()
         for w in windows:
+            if cls.is_window_protected(w.get("title", "")):
+                continue
             if clean_q in w["title"].lower():
                 try:
                     subprocess.check_call(["wmctrl", "-c", w["title"]], env=env)
@@ -336,12 +389,6 @@ class DesktopAssistantTools:
                 except Exception:
                     pass
         return False
-
-    @classmethod
-    def get_xdotool_bin(cls) -> Optional[str]:
-        """Localiza el binario xdotool funcional en el sistema de Jack."""
-        xdo = shutil.which("xdotool") or "/home/jack/.local/bin/xdotool"
-        return xdo if os.path.exists(xdo) else None
 
     @classmethod
     def focus_window(cls, window_query: str) -> bool:
@@ -538,11 +585,18 @@ class DesktopAssistantTools:
                     return True
             elif action_low in ["minimize", "minimizar"]:
                 if target:
+                    if cls.is_window_protected(target):
+                        print(f"🛡️ [Shield Active]: Rechazada minimización de ventana protegida '{target}'.")
+                        return False
                     win = cls.find_window_by_keyword(target)
                     if win and win.get("id") and xdo:
                         subprocess.run([xdo, "windowminimize", win["id"]], env=env, timeout=2)
                         return True
                 if xdo:
+                    wid, act_title = cls.get_active_window_info()
+                    if cls.is_window_protected(act_title):
+                        print(f"🛡️ [Shield Active]: Rechazada minimización de ventana activa protegida '{act_title}'.")
+                        return False
                     act_win = subprocess.check_output([xdo, "getactivewindow"], env=env, text=True).strip()
                     subprocess.run([xdo, "windowminimize", act_win], env=env, timeout=2)
                     return True
@@ -551,7 +605,15 @@ class DesktopAssistantTools:
                 return True
             elif action_low in ["close", "cerrar"]:
                 if target:
+                    if cls.is_window_protected(target):
+                        print(f"🛡️ [Shield Active]: Rechazado cierre de ventana protegida '{target}' (Antigravity IDE).")
+                        return False
                     return cls.close_window(target)
+                # Si no hay target, verificar que la ventana activa no sea el IDE
+                wid, act_title = cls.get_active_window_info()
+                if cls.is_window_protected(act_title):
+                    print(f"🛡️ [Shield Active]: Bloqueado cierre de ventana activa protegida '{act_title}' (Antigravity IDE).")
+                    return False
                 subprocess.run(["wmctrl", "-c", ":ACTIVE:"], env=env, timeout=2)
                 return True
         except Exception as e:
@@ -631,6 +693,48 @@ class DesktopAssistantTools:
         # Fallback universal xdg-open
         try:
             subprocess.Popen(["xdg-open", url], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            return True
+        except Exception:
+            return False
+
+    @classmethod
+    def volume_up(cls, delta: int = 10) -> bool:
+        """Sube el volumen del sistema mediante pactl."""
+        env = cls.get_desktop_env()
+        try:
+            subprocess.run(["pactl", "set-sink-volume", "@DEFAULT_SINK@", f"+{delta}%"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            return True
+        except Exception:
+            return False
+
+    @classmethod
+    def volume_down(cls, delta: int = 10) -> bool:
+        """Baja el volumen del sistema mediante pactl."""
+        env = cls.get_desktop_env()
+        try:
+            subprocess.run(["pactl", "set-sink-volume", "@DEFAULT_SINK@", f"-{delta}%"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            return True
+        except Exception:
+            return False
+
+    @classmethod
+    def mute_audio(cls, mute: bool = True) -> bool:
+        """Silencia o desilencia el audio del sistema."""
+        env = cls.get_desktop_env()
+        try:
+            val = "1" if mute else "0"
+            subprocess.run(["pactl", "set-sink-mute", "@DEFAULT_SINK@", val], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            return True
+        except Exception:
+            return False
+
+    @classmethod
+    def set_volume(cls, percentage: int) -> bool:
+        """Fija el volumen a un porcentaje específico."""
+        env = cls.get_desktop_env()
+        try:
+            pct = max(0, min(100, int(percentage)))
+            subprocess.run(["pactl", "set-sink-volume", "@DEFAULT_SINK@", f"{pct}%"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             return True
         except Exception:
             return False

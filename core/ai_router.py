@@ -379,6 +379,58 @@ class AiRouter:
             pass
         return None
 
+    def is_ollama_online(self) -> bool:
+        """Verifica si el servicio local Ollama está activo y respondiendo."""
+        try:
+            req = urllib.request.Request("http://127.0.0.1:11434/api/tags")
+            with urllib.request.urlopen(req, timeout=1.5) as resp:
+                return resp.status == 200
+        except Exception:
+            return False
+
+    def _call_local_ollama(
+        self,
+        messages: List[Dict[str, str]],
+        model_name: str = "qwen2.5:7b",
+        timeout: int = 35,
+        temperature: float = 0.5
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Invoca el motor neuronal local Ollama acelerado por GPU (NVIDIA GTX 1660 SUPER).
+        100% offline, privado, sin límites de peticiones y con razonamiento autónomo.
+        """
+        url = "http://127.0.0.1:11434/v1/chat/completions"
+        payload = {
+            "model": model_name,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": 1600
+        }
+        try:
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json"}
+            )
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                choice = data["choices"][0]["message"]
+                content = choice.get("content", "").strip()
+                if content:
+                    return {
+                        "content": content,
+                        "model_used": f"local-ollama/{model_name} (GPU GTX 1660 Super)",
+                        "provider": "Ollama Local Neural Core (100% Offline)",
+                        "success": True
+                    }
+        except Exception:
+            if model_name != "qwen2.5:3b":
+                try:
+                    return self._call_local_ollama(messages, model_name="qwen2.5:3b", timeout=12, temperature=temperature)
+                except Exception:
+                    pass
+        return None
+
     def generate_ai_response(
         self,
         user_message: str,
@@ -387,14 +439,15 @@ class AiRouter:
         research_findings: str = ""
     ) -> Optional[Dict[str, Any]]:
         """
-        Ejecuta la cascada jerárquica de IAs en el orden exacto de Miambot SaaS:
-        0. Vercel Cloud Bridge (Todas las APIs en producción de Vercel cuando no hay claves locales)
-        1. OpenRouter (Modelos gratuitos y de pago con auto-priorización)
-        2. Groq (Llama 3.3 70B Versatile)
-        3. NVIDIA NIM (meta/llama-3.3-70b-instruct / Nemotron)
-        4. Zhipu / GLM (glm-4-flash)
-        5. Google Gemini Nativo (gemini-2.5-flash / gemini-1.5-flash)
-        6. OpenAI Nativo (gpt-4o-mini)
+        Ejecuta la cascada jerárquica de IAs de Scrapy:
+        0. OLLAMA LOCAL NEURAL CORE (Qwen 2.5 7B en GPU NVIDIA GTX 1660 SUPER - 100% Offline y Autónomo)
+        1. Vercel Cloud Bridge (Todas las APIs en producción de Vercel como apoyo en la nube)
+        2. OpenRouter (Modelos gratuitos y de pago con auto-priorización)
+        3. Groq (Llama 3.3 70B Versatile)
+        4. NVIDIA NIM (meta/llama-3.3-70b-instruct / Nemotron)
+        5. Zhipu / GLM (glm-4-flash)
+        6. Google Gemini Nativo (gemini-2.5-flash / gemini-1.5-flash)
+        7. OpenAI Nativo (gpt-4o-mini)
         """
         keys = self.get_api_keys()
 
@@ -410,7 +463,15 @@ class AiRouter:
         messages.append({"role": "user", "content": user_message})
 
         # ----------------------------------------------------------------------
-        # TIER 0: PUENTE DIRECTO A VERCEL CLOUD (Si no hay llaves locales ingresadas)
+        # TIER 0: MOTOR NEURONAL LOCAL OLLAMA (Pensamiento Autónomo en GPU GTX 1660 Super)
+        # ----------------------------------------------------------------------
+        if self.is_ollama_online():
+            local_res = self._call_local_ollama(messages, model_name="qwen2.5:7b")
+            if local_res and local_res.get("content"):
+                return local_res
+
+        # ----------------------------------------------------------------------
+        # TIER 1: PUENTE DIRECTO A VERCEL CLOUD (Apoyo en la nube cuando no hay llaves locales)
         # ----------------------------------------------------------------------
         if not any(keys.values()):
             cloud_res = self._call_vercel_miambot_cloud(

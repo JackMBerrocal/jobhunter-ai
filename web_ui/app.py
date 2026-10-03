@@ -35,8 +35,12 @@ from core.freelance_autobidder import FreelanceAutoBidder
 from core.miambot_copilot import MiamBotSalesCopilot
 from core.assistant_brain import AssistantBrain
 from core.browser_bidder import BrowserBidder
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("JobHunterWeb")
 
 app = FastAPI(title="JobHunter AI - Dashboard de Búsqueda Laboral")
+
 
 # Inicializar Base de Datos
 init_db()
@@ -1693,45 +1697,33 @@ async def assistant_chat(request: Request):
     """Procesa mensajes de voz o texto del asistente personal de Jack."""
     data = await request.json()
     message = data.get("message", "")
+    logger.info(f"📨 [Scrapy API] Consulta recibida de Jack: «{message}»")
     response = assistant_brain.process_query(message)
+    action_info = response.get("action", "none")
+    logger.info(f"⚡ [Scrapy API] Respuesta generada: acción={action_info} | speech=«{response.get('speech_text', '')[:60]}...»")
     return response
 
 
 @app.post("/api/assistant/transcribe")
 async def assistant_transcribe(audio: UploadFile = File(...)):
-    """Transcribe un fragmento de audio WAV grabado por el gadget usando SpeechRecognition."""
-    import tempfile
-    import speech_recognition as sr
-    
+    """Transcribe audio grabado por el micrófono del usuario usando Whisper local en GPU."""
     try:
+        from core.audio_detector import audio_detector
         content = await audio.read()
-        if len(content) < 1000:
+        if len(content) < 800:
             return {"status": "empty", "text": ""}
-        
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tf:
-            tf.write(content)
-            temp_path = tf.name
-        
-        try:
-            r = sr.Recognizer()
-            with sr.AudioFile(temp_path) as source:
-                audio_data = r.record(source)
-                try:
-                    text = r.recognize_google(audio_data, language="es-PE")
-                except sr.UnknownValueError:
-                    text = ""
-                except Exception:
-                    try:
-                        text = r.recognize_google(audio_data, language="es-ES")
-                    except Exception:
-                        text = ""
-        finally:
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
-        
-        return {"status": "success", "text": (text or "").strip()}
+
+        filename = audio.filename or "audio.webm"
+        ext = os.path.splitext(filename)[1] or ".webm"
+        if not ext.startswith("."):
+            ext = f".{ext}"
+
+        result = audio_detector.transcribe_bytes(content, file_suffix=ext)
+        return result
     except Exception as e:
+        logger.error(f"❌ Error en endpoint /api/assistant/transcribe: {e}")
         return {"status": "error", "message": str(e), "text": ""}
+
 
 
 TTS_CACHE_DIR = Path("data/tts_cache")

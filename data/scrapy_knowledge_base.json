@@ -125,5 +125,29 @@
     "topic": "aprendizaje_continuo",
     "fact": "Investigación sobre 'Por qué no tienes acceso a mi pantalla si ya te estoy dando los permisos necesarios para que tú puedas hacerlo por mí tú eres mi asistente recuerdas de trappi': Si tienes problemas para compartir tu pantalla con otro Mac o para ver una pantalla compartida en el Mac, hay varias cosas que comprobar. (Fuente: Si no puedes compartir pantallas del Mac - Soporte técnico de ...)",
     "learned_at": "2026-10-01 23:28:40"
+  },
+  {
+    "category": "preferencia_usuario",
+    "topic": "aprendizaje_continuo",
+    "fact": "Preferencia expresada por Jack: 'del mismo apartado de correo hay una pestaña que dice promociones quiero que elimines las cinco primeros correos que encuentras'",
+    "learned_at": "2026-10-02 06:19:15"
+  },
+  {
+    "category": "investigacion_web",
+    "topic": "aprendizaje_continuo",
+    "fact": "Investigación sobre 'LangGraph ¿para qué sirve': Aprende sobre LangGraph Qué es Para qué sirve Características Características Ventajas y Desventajas ¡Haz clic ahora!",
+    "learned_at": "2026-10-02 07:11:14"
+  },
+  {
+    "category": "investigacion_web",
+    "topic": "aprendizaje_continuo",
+    "fact": "Investigación sobre 'GOOBA de tekashi 669': \" Gooba \" (stylized in all caps) is a song by American rapper 6ix9ine. It was released on May 8, 2020, 6ix9ine's birthday, as the first single after his prison release on April 2, 2020. [3]",
+    "learned_at": "2026-10-02 07:32:29"
+  },
+  {
+    "category": "aprendizaje_usuario",
+    "topic": "aprendizaje_continuo",
+    "fact": "mi tarifa para desarrollo backend es de 25 dólares por hora",
+    "learned_at": "2026-10-02 22:14:39"
   }
 ]

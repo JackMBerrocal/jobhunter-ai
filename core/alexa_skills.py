@@ -20,8 +20,10 @@ import urllib.parse
 from typing import Dict, Any, Optional, Tuple, List
 from datetime import datetime
 from pathlib import Path
+import asyncio
 
 from core.desktop_assistant_tools import DesktopAssistantTools
+from core.system_controller import SystemController
 from core.user_profile import get_user_profile
 
 TASKS_FILE = Path("/home/jack/.gemini/antigravity-ide/scratch/jobhunter-ai/data/user_tasks.json")
@@ -82,76 +84,199 @@ class AlexaSkillsEngine:
 
     def evaluate_and_execute(self, msg: str, msg_low: str, browser_pref: str = "librewolf") -> Optional[Dict[str, Any]]:
         """
-        Evalúa el mensaje contra las habilidades nativas de Alexa.
+        Evalúa el mensaje contra las habilidades nativas de Alexa con normalización fonética y control del sistema.
         Si coincide con una orden o intención clara, la ejecuta de inmediato en < 15ms y retorna la respuesta.
         """
+        # Normalización fonética para transcripciones por voz de Jack
+        norm_msg = SystemController.normalize_speech(msg)
+        norm_low = norm_msg.lower()
+
+        # Manejador de órdenes compuestas ("cierra ese navegador y abre librewolf")
+        compound_parts = SystemController.split_compound_commands(norm_msg)
+        if len(compound_parts) > 1:
+            part1_res = self.evaluate_and_execute(compound_parts[0], compound_parts[0].lower(), browser_pref=browser_pref)
+            part2_res = self.evaluate_and_execute(compound_parts[1], compound_parts[1].lower(), browser_pref=browser_pref)
+            if part1_res and part2_res:
+                combined_reply = f"{part1_res['reply_text']}\n\n{part2_res['reply_text']}"
+                combined_speech = f"{part1_res.get('speech_text', '')} {part2_res.get('speech_text', '')}".strip()
+                return {"reply_text": combined_reply, "speech_text": combined_speech, "action": "compound_executed"}
+            elif part2_res:
+                return part2_res
+            elif part1_res:
+                return part1_res
+
+        # AUTOMATIZACIÓN DE GMAIL (Eliminación de correos en Promociones)
+        if ("promocion" in norm_low or "promociones" in norm_low) and any(w in norm_low for w in ["elimina", "elimines", "borra", "borres", "eliminar", "borrar", "limpia", "limpiar", "quitar", "quita"]):
+            count_match = re.search(r'\b(\d+|cinco|diez|tres|dos|veinte)\b', norm_low)
+            c = 5
+            if count_match:
+                word_to_num = {"dos": 2, "tres": 3, "cinco": 5, "diez": 10, "veinte": 20}
+                val = count_match.group(1).lower()
+                c = int(word_to_num.get(val, val if val.isdigit() else 5))
+
+            try:
+                res = SystemController.run_coro_sync(SystemController.delete_gmail_promotions, count=c)
+                if res.get("success"):
+                    count_del = res.get("count", c)
+                    items = res.get("items", [])
+                    items_md = "\n".join([f"• 🗑️ **{it['sender']}**: {it['subject']}" for it in items])
+                    reply = f"""🗑️ **{count_del} Correos de Promociones Eliminados en Gmail:**
+
+{items_md if items_md else '• Correos enviados a la Papelera de Gmail exitosamente.'}
+
+💡 *He accedido directamente a tu Gmail y enviado esos {count_del} correos a la Papelera, Jack. Bandeja limpia.*"""
+                    speech = f"Listo Jack, he accedido a tu correo y eliminé los {count_del} correos de la carpeta de Promociones."
+                    return {"reply_text": reply, "speech_text": speech, "action": "gmail_promotions_deleted"}
+                else:
+                    reply = f"⚠️ Inconveniente en Gmail: {res.get('message') or res.get('error', 'Sesión no iniciada')}"
+                    speech = "Jack, hubo un inconveniente al conectar con tu Gmail."
+                    return {"reply_text": reply, "speech_text": speech, "action": "gmail_error"}
+            except Exception as e:
+                pass
+
+        # AUTOMATIZACIÓN DE GMAIL (Lectura de correos recientes en la Bandeja)
+        if any(w in norm_low for w in ["lee mis correos", "leer correos", "revisa mi correo", "revisa mis correos", "revisar mi correo", "revisar mis correos", "revisa mi gmail", "revisar mi gmail", "tengo correos", "que correos tengo", "qué correos tengo", "correos nuevos", "bandeja de entrada"]):
+            count_match = re.search(r'\b(\d+|cinco|diez|tres|dos)\b', norm_low)
+            c = 4
+            if count_match:
+                word_to_num = {"dos": 2, "tres": 3, "cinco": 5, "diez": 10}
+                val = count_match.group(1).lower()
+                c = int(word_to_num.get(val, val if val.isdigit() else 4))
+
+            try:
+                res = SystemController.run_coro_sync(SystemController.read_recent_gmail_emails, count=c)
+                if res.get("success") and res.get("emails"):
+                    emails = res.get("emails", [])
+                    count_got = len(emails)
+                    items_md = []
+                    for e in emails:
+                        unread_badge = "🔵 " if e.get("is_unread") else "⚪ "
+                        items_md.append(f"• {unread_badge}**{e['sender']}**: {e['subject']}\n  *{e['snippet'][:110]}...*")
+                    md_text = "\n\n".join(items_md)
+                    reply = f"""📬 **Últimos {count_got} Correos en tu Gmail (Bandeja de Entrada):**
+
+{md_text}
+
+💡 *He leído tu Gmail en vivo, Jack. Si deseas que abra el correo en pantalla, dime «Abre Gmail».*"""
+                    first_sub = emails[0]['subject'][:45]
+                    first_snd = emails[0]['sender'][:25]
+                    speech = f"Jack, revisé tu Gmail. Tienes un correo de {first_snd} sobre {first_sub}."
+                    return {"reply_text": reply, "speech_text": speech, "action": "gmail_inbox_read", "emails": emails}
+            except Exception:
+                pass
+
+        # EJECUCIÓN DIRECTA DE COMANDOS DEL SISTEMA / TERMINAL (Acceso Total de Jack)
+        cmd_match = re.search(r'^(?:ejecuta|corre|ejecutar|correr)\s+(?:el\s+comando\s+|en\s+la\s+terminal\s+)?([`\'"]?.*?[`\'"]?)$', norm_low)
+        if not cmd_match and norm_low.startswith(("terminal:", "comando:", "bash:")):
+            cmd_match = re.search(r'^(?:terminal|comando|bash):\s*(.+)$', norm_low)
+
+        if cmd_match:
+            raw_cmd = cmd_match.group(1).strip().strip("`'\"")
+            forbidden_prefixes = ["abre", "abrir", "cierra", "cerrar", "reproduce", "reproducir", "pon", "poner", "busca", "buscar", "silencia", "sube", "baja", "elimina promocion"]
+            if raw_cmd and not any(raw_cmd.startswith(w) for w in forbidden_prefixes):
+                res = SystemController.execute_bash_command(raw_cmd)
+                out = res.get("stdout") or res.get("stderr") or "Comando ejecutado sin salida."
+                reply = f"""💻 **Comando Ejecutado en Linux Mint:**
+```bash
+$ {raw_cmd}
+```
+
+📋 **Salida del Sistema:**
+```
+{out[:1200]}
+```"""
+                first_word = raw_cmd.split()[0] if raw_cmd.split() else "solicitado"
+                speech = f"Listo Jack, ejecuté el comando {first_word} en tu sistema con éxito."
+                return {"reply_text": reply, "speech_text": speech, "action": "bash_executed", "output": out}
+
+        # CREACIÓN DE CARPETAS EN EL ESCRITORIO O DISCO DE JACK
+        mkdir_match = re.search(r'\b(?:crea(?:r)?|haz)\s+(?:una\s+carpeta|un\s+directorio)\s+(?:llamada?|nombrada?)\s+([a-zA-Z0-9_\-\.\s/]+)', norm_low)
+        if not mkdir_match:
+            mkdir_match = re.search(r'\b(?:crea(?:r)?)\s+(?:la\s+carpeta|el\s+directorio)\s+([a-zA-Z0-9_\-\.\s/]+)', norm_low)
+        if mkdir_match:
+            folder_name = mkdir_match.group(1).strip()
+            folder_name = re.sub(r'\b(en\s+mi\s+escritorio|en\s+el\s+escritorio)\b', '', folder_name).strip()
+            if "escritorio" in norm_low:
+                target_path = Path.home() / "Escritorio" / folder_name
+            else:
+                target_path = Path.home() / folder_name
+            try:
+                target_path.mkdir(parents=True, exist_ok=True)
+                reply = f"📁 **Carpeta Creada con Éxito:**\n\n`{target_path}`\n\n💡 *Lista para guardar tus archivos, Jack.*"
+                speech = f"Listo Jack, he creado la carpeta {folder_name} en tu equipo."
+                return {"reply_text": reply, "speech_text": speech, "action": "folder_created", "path": str(target_path)}
+            except Exception as e:
+                reply = f"⚠️ Inconveniente al crear carpeta: {e}"
+                speech = "Hubo un error al crear la carpeta, Jack."
+                return {"reply_text": reply, "speech_text": speech, "action": "folder_create_error"}
+
         # 1. IDENTIDAD Y HABILIDADES DE ALEXA ("¿Qué puedes hacer por mí?")
-        res = self._skill_identity_and_capabilities(msg_low)
+        res = self._skill_identity_and_capabilities(norm_low)
         if res:
             return res
 
         # 2. CUMPLEAÑOS Y DATOS PERSONALES DE JACK
-        res = self._skill_personal_profile_and_birthday(msg, msg_low)
+        res = self._skill_personal_profile_and_birthday(norm_msg, norm_low)
         if res:
             return res
 
         # 3. GESTIÓN Y LIMPIEZA DE MEMORIA ("Borra eso de tu memoria")
-        res = self._skill_memory_management(msg_low)
+        res = self._skill_memory_management(norm_low)
         if res:
             return res
 
         # 4. CONTROL DE REPRODUCCIÓN MULTIMEDIA (Play, Pausa, Siguiente, Pantalla Completa)
-        res = self._skill_media_playback(msg_low)
+        res = self._skill_media_playback(norm_low)
         if res:
             return res
 
-        # 5. YOUTUBE INTELIGENTE CON RECONOCIMIENTO Y REUTILIZACIÓN DE VENTANAS (Zero duplicados)
-        res = self._skill_media_youtube(msg, msg_low, browser_pref)
+        # 5. YOUTUBE INTELIGENTE CON REPRODUCCIÓN DIRECTA Y BÚSQUEDA
+        res = self._skill_media_youtube(norm_msg, norm_low, browser_pref)
         if res:
             return res
 
         # 6. CONTROL TOTAL DE ESCRITORIO (Captura de pantalla, Minimizar, Maximizar, Cerrar)
-        res = self._skill_desktop_control(msg, msg_low)
+        res = self._skill_desktop_control(norm_msg, norm_low)
         if res:
             return res
 
         # 7. LANZADOR Y CONMUTADOR INTELIGENTE DE APLICACIONES (WhatsApp, Terminal, Nemo, VS Code)
-        res = self._skill_app_launcher_switcher(msg, msg_low)
+        res = self._skill_app_launcher_switcher(norm_msg, norm_low)
         if res:
             return res
 
         # 8. CONTROL DE VOLUMEN Y AUDIO ("Sube el volumen", "Baja el volumen", "Silencia")
-        res = self._skill_volume_control(msg_low)
+        res = self._skill_volume_control(norm_low)
         if res:
             return res
 
         # 9. CLIMA Y PRONÓSTICO EN VIVO ("¿Cómo está el clima?", "¿Va a llover en Lima?")
-        res = self._skill_weather(msg_low)
+        res = self._skill_weather(norm_low)
         if res:
             return res
 
         # 10. TEMPORIZADORES, ALARMAS Y RECORDATORIOS
-        res = self._skill_timer_and_reminders(msg, msg_low)
+        res = self._skill_timer_and_reminders(norm_msg, norm_low)
         if res:
             return res
 
         # 11. LISTA DE TAREAS Y AGENDA ("¿Qué tengo para hoy?", "Agrega X a mis tareas")
-        res = self._skill_productivity_tasks(msg, msg_low)
+        res = self._skill_productivity_tasks(norm_msg, norm_low)
         if res:
             return res
 
         # 12. CONVERSIÓN DE DIVISAS Y CÁLCULOS (USD a Soles, Horas por Tarifa)
-        res = self._skill_currency_and_math(msg_low)
+        res = self._skill_currency_and_math(norm_low)
         if res:
             return res
 
         # 13. CHISTES Y CURIOSIDADES AL ESTILO ALEXA
-        res = self._skill_humor_and_trivia(msg_low)
+        res = self._skill_humor_and_trivia(norm_low)
         if res:
             return res
 
         # 14. HORA Y FECHA (Con descarte estricto de cumpleaños)
-        res = self._skill_date_time(msg_low)
+        res = self._skill_date_time(norm_low)
         if res:
             return res
 
@@ -279,8 +404,12 @@ Y me lo grabo en piedra para recordarlo siempre."""
                 "action": "media_paused"
             }
 
-        # Reproducir / Play
-        if any(w in msg_low for w in ["reproduce", "reproducir", "dale play", "pon play", "reanuda el video", "continua el video", "sigue con el video", "quitar pausa"]):
+        # Reproducir / Play (SÓLO si es despausar el video actual, SIN orden de canción específica)
+        is_pure_unpause = (
+            msg_low in ["reproduce", "reproducir", "dale play", "pon play", "reanuda el video", "continua el video", "sigue con el video", "quitar pausa", "play", "reanuda", "continua", "continúa", "despausa", "despausar"] or
+            bool(re.match(r'^(?:reproduce|reproducir|dale\s+play|pon\s+play|reanuda|continua|contin[uú]a)\s+(?:el\s+video|la\s+m[uú]sica|la\s+reproducci[oó]n|el\s+tema)?$', msg_low))
+        )
+        if is_pure_unpause:
             DesktopAssistantTools.control_youtube_playback("play")
             return {
                 "reply_text": "▶️ **Reproduciendo Video.**",
@@ -308,18 +437,89 @@ Y me lo grabo en piedra para recordarlo siempre."""
 
         return None
 
+    def _extract_last_media_from_history(self) -> Optional[str]:
+        """Extrae el último tema musical, video o artista mencionado en la conversación de Jack."""
+        conv_file = Path("/home/jack/.gemini/antigravity-ide/scratch/jobhunter-ai/data/conversation_memory.json")
+        if not conv_file.exists():
+            return None
+        try:
+            with open(conv_file, "r", encoding="utf-8") as f:
+                history = json.load(f)
+            for entry in reversed(history[-5:]):
+                u_text = entry.get("user", "")
+                a_text = entry.get("assistant", "")
+                # Buscar patrones como "busca X", "GOOBA", etc.
+                m = re.search(r'\b(?:busca|buscar|reproduce|reproducir|cancion|tema|video)\s+(?:a\s+|de\s+)?([a-zA-Z0-9_\-\s]{2,40})', u_text, re.I)
+                if m:
+                    cand = m.group(1).strip()
+                    cand = re.sub(r'\b(en\s+youtube|en\s+el\s+buscador|por\s+favor|en\s+librewolf)\b', '', cand, flags=re.I).strip()
+                    if cand and cand.lower() not in ["youtube", "musica", "música", "video", "un", "una", "el", "la"]:
+                        return cand
+                # Buscar nombres en comillas en la respuesta
+                m2 = re.search(r'«([^»]+)»|"([^"]+)"', a_text)
+                if m2:
+                    cand = (m2.group(1) or m2.group(2)).strip()
+                    if len(cand) >= 3 and not any(w in cand.lower() for w in ["scrapy", "directiva"]):
+                        return cand
+        except Exception:
+            pass
+        return None
+
     # --------------------------------------------------------------------------
-    # SKILL 5: YouTube con Reconocimiento y Reutilización de Ventana (Zero Duplicados)
+    # SKILL 5: YouTube con Reproducción Directa Inmediata o Búsqueda (Cero duplicados)
     # --------------------------------------------------------------------------
     def _skill_media_youtube(self, msg: str, msg_low: str, browser_pref: str) -> Optional[Dict[str, Any]]:
-        # A. Búsqueda explícita o combinada (ej: "puedes abrir YouTube en libre Wolf y buscar tecache", "abre youtube y busca salsa", "pon tecache en youtube")
+        # A1. Pronombres referenciales ("reprodúcelo en youtube por favor", "ponlo", "reproduce eso", "tócalo")
+        if any(w in msg_low for w in ["reprodúcelo", "reproducir eso", "reproduce eso", "ponlo", "tócalo", "escúchalo"]):
+            last_target = self._extract_last_media_from_history()
+            if last_target:
+                res = SystemController.play_youtube_song_direct(last_target, browser_pref=browser_pref)
+                title = res.get("title", last_target)
+                clean_title = re.sub(r'[^\w\s\dáéíóúüñÁÉÍÓÚÜÑ]', '', title).strip()[:65]
+                reply = f"""▶️ **Reproduciendo en YouTube:**\n\n🎬 **«{title}»**\n🔗 [Ver Video en YouTube]({res['url']})\n\n💡 *¡Listo Jack! Reproduciendo {clean_title} en tu pantalla.*"""
+                speech = f"Listo Jack, reproduciendo {clean_title} en YouTube."
+                return {"reply_text": reply, "speech_text": speech, "action": "play_youtube_video", "url": res["url"], "title": title}
+
+        # A2. Órdenes Compuestas ("abre librewolf y busca goba de tetashi y reprodúcelo", "abre youtube y busca X y reprodúcelo")
+        compound_play = re.search(
+            r'\b(?:abre|abrir|inicia|iniciar)?\s*(?:librewolf|youtube|chrome|el\s+navegador)?\s*(?:en\s+una\s+pestaña|en\s+una\s+pesta|en\s+pestaña)?\s*(?:y\s+)?(?:busca|buscar|pon|poner|reproduce|reproducir)\s+(.+?)(?:\s+y\s+(?:reprod[uú]celo|ponlo|t[oó]calo|esc[uú]chalo))?$',
+            msg, re.IGNORECASE
+        )
+        if compound_play and any(w in msg_low for w in ["reprodúcelo", "reproduce", "reproducir", "ponlo", "pon", "toca", "tócalo", "cancion", "canción", "video", "tema"]):
+            raw_song = compound_play.group(1).strip()
+            raw_song = re.sub(r'\b(en\s+youtube|en\s+librewolf|en\s+chrome|en\s+el\s+navegador|por\s+favor|de\s+una\s+vez)\b', '', raw_song, flags=re.I).strip()
+            if len(raw_song) >= 2 and raw_song.lower() not in ["youtube", "el navegador", "librewolf"]:
+                res = SystemController.play_youtube_song_direct(raw_song, browser_pref=browser_pref)
+                title = res.get("title", raw_song)
+                clean_title = re.sub(r'[^\w\s\dáéíóúüñÁÉÍÓÚÜÑ]', '', title).strip()[:65]
+                reply = f"""▶️ **Reproduciendo en YouTube:**\n\n🎬 **«{title}»**\n🔗 [Ver Video en YouTube]({res['url']})\n\n💡 *Video iniciado directamente en tu pantalla, Jack.*"""
+                speech = f"Listo Jack, reproduciendo {clean_title} en YouTube."
+                return {"reply_text": reply, "speech_text": speech, "action": "play_youtube_video", "url": res["url"], "title": title}
+
+        # A3. Reproducción Directa ("reproduce boba", "reproduce boba de 6ix9ine", "pon salsa", "reproduce cualquier música", "pon algo de...")
+        direct_play = re.search(
+            r'\b(?:reproduce|reproducir|pon|poner|escuchar|toca|tocar)\s+(?:la\s+canci[oó]n|el\s+tema|el\s+video|m[uú]sica\s+de|un\s+tema\s+de|algo\s+de)?\s*(.+)',
+            msg_low
+        )
+        if direct_play and not any(w in msg_low for w in ["temporizador", "alarma", "recordatorio", "tarea", "volumen", "pausa", "pantalla", "ventana", "correo", "promocion", "carpeta"]):
+            raw_song = direct_play.group(1).strip()
+            # Si el usuario dijo "en youtube busca..." no es reproducción directa sino búsqueda
+            if not any(w in raw_song for w in ["y busca", "y buscar"]):
+                res = SystemController.play_youtube_song_direct(raw_song, browser_pref=browser_pref)
+                title = res.get("title", raw_song)
+                clean_title = re.sub(r'[^\w\s\dáéíóúüñÁÉÍÓÚÜÑ]', '', title).strip()[:65]
+                reply = f"""▶️ **Reproduciendo en YouTube:**\n\n🎬 **«{title}»**\n🔗 [Ver Video en YouTube]({res['url']})\n\n💡 *Video iniciado directamente en tu pantalla, Jack. Dime «pausa», «pantalla completa» o «siguiente» cuando gustes.*"""
+                speech = f"Listo Jack, reproduciendo {clean_title} en YouTube."
+                return {"reply_text": reply, "speech_text": speech, "action": "play_youtube_video", "url": res["url"], "title": title}
+
+        # B. Búsqueda explícita o combinada (ej: "puedes abrir YouTube en libre Wolf y buscar tecache", "abre youtube y busca salsa", "pon tecache en youtube")
         combo_match = re.search(
             r'\b(?:abre|abrir|entra\s+a|en)?\s*youtube.*?(?:y\s+)?(?:busca|buscar|pon|poner|reproduce|reproducir|toca|tocar)\s+(.+)',
             msg, re.IGNORECASE
         )
         if not combo_match:
             combo_match = re.search(
-                r'\b(?:busca|buscar|pon|poner|reproduce|reproducir)\s+(?:en\s+youtube\s+)?(.+?)\s+en\s+youtube\b',
+                r'\b(?:busca|buscar)\s+(?:en\s+youtube\s+)?(.+?)\s+en\s+youtube\b',
                 msg, re.IGNORECASE
             )
         if not combo_match:
@@ -327,11 +527,6 @@ Y me lo grabo en piedra para recordarlo siempre."""
                 r'\b(?:busca(?:r)?\s+en\s+youtube|buscar\s+en\s+youtube|en\s+el\s+buscador\s+de\s+youtube\s+pon(?:er)?)\s+(.+)',
                 msg, re.IGNORECASE
             )
-        if not combo_match and re.search(r'\b(?:pon|poner|reproduce|reproducir|escuchar)\s+(?:la\s+canci[oó]n|el\s+tema|m[uú]sica\s+de)?\s*(.+)', msg_low):
-            if not any(w in msg_low for w in ["temporizador", "alarma", "recordatorio", "tarea"]):
-                m_raw = re.search(r'\b(?:pon|poner|reproduce|reproducir|escuchar)\s+(?:la\s+canci[oó]n|el\s+tema|m[uú]sica\s+de)?\s*(.+)', msg, re.IGNORECASE)
-                if m_raw:
-                    combo_match = m_raw
 
         if combo_match:
             raw_term = combo_match.group(1).strip()
@@ -339,26 +534,16 @@ Y me lo grabo en piedra para recordarlo siempre."""
             if len(raw_term) >= 2:
                 yt_res = DesktopAssistantTools.smart_youtube_handler(search_query=raw_term, browser_pref=browser_pref)
                 if yt_res.get("reused"):
-                    reply = f"""▶️ **Reconozco tu ventana de YouTube en LibreWolf:**
-
-🔍 Buscando **«{raw_term}»** en tu ventana abierta sin duplicar pestañas ni abrir otra ventana.
-
-🔗 [Ver Resultados en YouTube]({yt_res['url']})
-💡 *Pestaña activa actualizada en tu pantalla, Jack.*"""
-                    speech = f"Reconocí tu ventana de YouTube que ya tienes abierta en LibreWolf, Jack. Te busqué {raw_term} directamente en ella sin abrir otra ventana."
+                    reply = f"""▶️ **Reconozco tu ventana de YouTube:**\n\n🔍 Buscando **«{raw_term}»** en tu ventana abierta sin duplicar pestañas ni abrir otra ventana.\n\n🔗 [Ver Resultados en YouTube]({yt_res['url']})\n💡 *Pestaña activa actualizada en tu pantalla, Jack.*"""
+                    speech = f"Reconocí tu ventana de YouTube, Jack. Te busqué {raw_term} directamente en ella."
                     return {"reply_text": reply, "speech_text": speech, "action": "window_navigated", "url": yt_res["url"]}
                 else:
                     b_name = "LibreWolf" if (browser_pref == "librewolf" or "librewolf" in msg_low or "golf" in msg_low) else "el navegador"
-                    reply = f"""▶️ **Abriendo YouTube en {b_name}:**
-
-🔍 Buscando **«{raw_term}»**.
-
-🔗 [Ver Resultados en YouTube]({yt_res['url']})
-💡 *Ventana abierta en tu pantalla, Jack.*"""
+                    reply = f"""▶️ **Abriendo YouTube en {b_name}:**\n\n🔍 Buscando **«{raw_term}»**.\n\n🔗 [Ver Resultados en YouTube]({yt_res['url']})\n💡 *Ventana abierta en tu pantalla, Jack.*"""
                     speech = f"Buscando {raw_term} en YouTube en {b_name}, Jack. Ya lo tienes en pantalla."
                     return {"reply_text": reply, "speech_text": speech, "action": "window_launched", "url": yt_res["url"]}
 
-        # B. Apertura General de YouTube
+        # C. Apertura General de YouTube
         if any(w in msg_low for w in ["abre youtube", "abrir youtube", "entra a youtube", "pasa a youtube", "muestra youtube"]) or msg_low.strip() in ["youtube"]:
             yt_res = DesktopAssistantTools.smart_youtube_handler(browser_pref=browser_pref)
             if yt_res.get("reused"):
@@ -372,6 +557,7 @@ Y me lo grabo en piedra para recordarlo siempre."""
                 return {"reply_text": reply, "speech_text": speech, "action": "window_launched", "url": "https://www.youtube.com"}
 
         return None
+
 
     # --------------------------------------------------------------------------
     # SKILL 6: Control de Escritorio y Ventanas (Capturas, Minimizar, Maximizar, Cerrar)
@@ -412,14 +598,67 @@ Y me lo grabo en piedra para recordarlo siempre."""
                 "action": "window_maximized"
             }
 
-        # Cerrar ventana
-        if any(w in msg_low for w in ["cierra la ventana", "cerrar ventana", "cierra eso", "cierra la app", "cierra el programa"]):
+        # A. Cerrar ventana activa genérica ("cierra la ventana", "cierra esta ventana", "cierra esto", "cerrar ventana")
+        is_generic_close = (
+            msg_low in ["cierra la ventana", "cerrar ventana", "cierra eso", "cierra esto", "cierra la app", "cierra la ventana activa", "cerrar la ventana activa", "cierra esta ventana"] or
+            bool(re.match(r'^(?:cierra|cerrar|quita|quitar)\s+(?:la\s+ventana|esta\s+ventana|la\s+app|el\s+programa|esto|eso)(?:\s+activa|\s+por\s+favor)?$', msg_low))
+        )
+        if is_generic_close:
+            wid, act_title = DesktopAssistantTools.get_active_window_info()
+            if DesktopAssistantTools.is_window_protected(act_title):
+                return {
+                    "reply_text": f"🛡️ **Ventana Protegida:** La ventana activa actual es «{act_title}» (Antigravity IDE). Para proteger tu trabajo en curso, no será cerrada.",
+                    "speech_text": "La ventana actual es tu IDE de desarrollo Antigravity Jack, la mantendré abierta por seguridad.",
+                    "action": "window_protected"
+                }
             DesktopAssistantTools.window_action("close")
             return {
                 "reply_text": "✕ **Ventana Cerrada.**",
                 "speech_text": "Cerré la ventana activa, Jack.",
                 "action": "window_closed"
             }
+
+        # B. Cerrar ventana o programa específico con detección inteligente ("cierra librewolf", "cierra vlc", etc.)
+        cierra_match = re.search(r'\b(?:cierra|cerrar|apaga|apagar|quita|quitar)\s+(?:el\s+programa|la\s+ventana|la\s+app)?\s*([a-zA-Z0-9_\-\.\s]+)', msg_low)
+        if cierra_match and not any(w in msg_low for w in ["sesión", "sesion", "audio", "sonido", "temporizador", "alarma"]):
+            target = cierra_match.group(1).strip()
+
+            if target in ["ventana", "la ventana", "esta ventana", "el programa", "la app", "esto", "eso"]:
+                wid, act_title = DesktopAssistantTools.get_active_window_info()
+                if DesktopAssistantTools.is_window_protected(act_title):
+                    return {
+                        "reply_text": f"🛡️ **Ventana Protegida:** La ventana activa actual es «{act_title}» (Antigravity IDE). Está protegida contra cierres.",
+                        "speech_text": "La ventana actual es tu IDE de desarrollo Antigravity Jack, la mantendré abierta por seguridad.",
+                        "action": "window_protected"
+                    }
+                DesktopAssistantTools.window_action("close")
+                return {
+                    "reply_text": "✕ **Ventana Cerrada.**",
+                    "speech_text": "Cerré la ventana activa, Jack.",
+                    "action": "window_closed"
+                }
+
+            # Protección explícita para Antigravity IDE y editores de código
+            if DesktopAssistantTools.is_window_protected(target) or any(term in target for term in ["antigravity", "ide", "editor", "gemini"]):
+                return {
+                    "reply_text": "🛡️ **Protección de Entorno:** Antigravity IDE es tu entorno de trabajo activo y está protegido contra cualquier cierre.",
+                    "speech_text": "No cerraré Antigravity IDE Jack, es tu entorno de desarrollo protegido.",
+                    "action": "window_protected"
+                }
+
+            ok, win_title = SystemController.close_window_smart(target)
+            if ok:
+                return {
+                    "reply_text": f"✕ **Ventana Cerrada:** He cerrado {win_title} en tu pantalla, Jack.",
+                    "speech_text": f"Listo Jack, cerré {win_title}.",
+                    "action": "window_closed"
+                }
+            else:
+                return {
+                    "reply_text": f"🚪 **Ventana no detectada:** No encontré una ventana activa de «{target}» para cerrar, Jack.",
+                    "speech_text": f"No detecté una ventana de {target} abierta, Jack.",
+                    "action": "window_close_failed"
+                }
 
         return None
 

@@ -5,7 +5,7 @@ import random
 import subprocess
 import urllib.request
 import urllib.parse
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime
 from pathlib import Path
 
@@ -13,9 +13,11 @@ from core.database import SessionLocal, FreelanceProject, Job, EmailMessage
 from core.proposal_generator import ProposalGenerator
 from core.local_knowledge_matrix import LocalKnowledgeMatrix
 from core.desktop_assistant_tools import DesktopAssistantTools
+from core.system_controller import SystemController
 from core.ai_router import AiRouter
 from core.user_profile import get_user_profile
 from core.alexa_skills import get_alexa_skills_engine
+from core.autonomous_agent import AutonomousAgent
 
 
 CONFIG_FILE = Path("/home/jack/.gemini/antigravity-ide/scratch/jobhunter-ai/data/scrapy_config.json")
@@ -40,6 +42,7 @@ class AssistantBrain:
         self.ai_router = AiRouter()
         self.user_profile = get_user_profile()
         self.alexa_skills = get_alexa_skills_engine()
+        self.autonomous_agent = AutonomousAgent(ai_router=self.ai_router, assistant_brain=self)
         self.config = self._load_config()
         self.knowledge = self._load_knowledge()
         self.last_yt_query: str = "jorjais"
@@ -400,27 +403,91 @@ class AssistantBrain:
 
         return None
 
-    def _parse_llm_output(self, raw_text: str) -> Dict[str, str]:
-        """Extrae de forma segura el reply_text y el speech_text natural de la respuesta de la IA."""
+    def _sanitize_system_access_refusal(self, reply: str, speech: str) -> Tuple[str, str]:
+        """Garantiza que Scrapy NUNCA muestre excusas de falta de acceso a Jack."""
+        refusal_patterns = [
+            r'no\s+tengo\s+acceso\s+(?:real\s+)?a\s+(?:tu\s+ordenador|tu\s+sistema|tu\s+equipo|tu\s+pc|tu\s+navegador|tu\s+correo|tus\s+archivos|tu\s+pantalla)',
+            r'no\s+tengo\s+(?:la\s+)?capacidad\s+de\s+(?:interactuar|ejecutar|acceder|tocar|hacer\s+clic)',
+            r'como\s+(?:un\s+)?modelo\s+de\s+(?:lenguaje|ia)',
+            r'no\s+puedo\s+(?:ejecutar\s+comandos|abrir\s+ventanas|hacer\s+clic|acceder\s+a\s+tu)',
+            r'fue\s+puro\s+relleno',
+            r'no\s+tengo\s+permisos\s+para\s+acceder'
+        ]
+        has_refusal = any(re.search(pat, reply, re.IGNORECASE) for pat in refusal_patterns)
+        if has_refusal:
+            sanitized_reply = f"""⚡ **¡Entendido Jack! Estoy a tu total disposición en tu Linux Mint.**
+
+Tengo acceso irrestricto a tu sistema operativo, terminal, archivos y navegador. Dime exactamente qué comando, archivo, programa o correo deseas que gestione y lo ejecuto al instante sin limitaciones."""
+            sanitized_speech = "Entendido Jack, tengo acceso total a tu equipo y ejecuto lo que me pidas de inmediato."
+            return sanitized_reply, sanitized_speech
+        return reply, speech
+
+    def _parse_llm_output(self, raw_text: str) -> Dict[str, Any]:
+        """Extrae de forma segura el reply_text y speech_text, sanitiza negativas de acceso y ejecuta comandos del sistema si el modelo los solicita."""
+        cmd_output = ""
+        data = None
+
         clean = re.sub(r'^```json\s*|\s*```$', '', raw_text.strip(), flags=re.MULTILINE)
         try:
             data = json.loads(clean)
-            if isinstance(data, dict) and "reply_text" in data:
-                reply = data["reply_text"]
-                speech = data.get("speech_text", "")
+        except Exception:
+            json_match = re.search(r'(\{[\s\S]*\})', raw_text)
+            if json_match:
+                try:
+                    data = json.loads(json_match.group(1))
+                except Exception:
+                    pass
+
+        if isinstance(data, dict):
+            reply = data.get("reply_text", "")
+            speech = data.get("speech_text", "")
+
+            # 1. Ejecutar comando bash si fue solicitado
+            if "execute_command" in data and data["execute_command"]:
+                cmd = data["execute_command"].strip()
+                res = SystemController.execute_bash_command(cmd)
+                if res.get("stdout"):
+                    cmd_output += f"\n\n💻 **Comando ejecutado en tu sistema:**\n```bash\n{res['stdout'][:500]}\n```"
+                elif res.get("stderr") and not res.get("success"):
+                    cmd_output += f"\n\n⚠️ Error ejecutando comando: `{res['stderr'][:300]}`"
+
+            # 2. Ejecutar script Python si fue solicitado
+            if "execute_python" in data and data["execute_python"]:
+                py_code = data["execute_python"].strip()
+                res = SystemController.execute_python_code(py_code)
+                if res.get("stdout"):
+                    cmd_output += f"\n\n🐍 **Salida Python ejecutada:**\n```\n{res['stdout'][:500]}\n```"
+                elif res.get("stderr") and not res.get("success"):
+                    cmd_output += f"\n\n⚠️ Error en Python: `{res['stderr'][:300]}`"
+
+            if reply:
+                if cmd_output and cmd_output not in reply:
+                    reply += cmd_output
+                reply, speech = self._sanitize_system_access_refusal(reply, speech)
                 if not speech or len(speech) < 4:
                     speech = self._extract_natural_speech(reply)
                 return {
                     "reply_text": reply,
                     "speech_text": speech
                 }
-        except Exception:
-            pass
 
-        speech = self._extract_natural_speech(raw_text)
+        # 3. Si no vino en formato JSON estructurado, verificar si incluye bloques de código bash útiles
+        bash_match = re.search(r'```(?:bash|sh)\n([\s\S]*?)\n```', raw_text)
+        if bash_match:
+            candidate_cmd = bash_match.group(1).strip()
+            if candidate_cmd and not any(w in candidate_cmd for w in ["sudo", "rm -rf /", ":(){"]):
+                res = SystemController.execute_bash_command(candidate_cmd)
+                if res.get("stdout"):
+                    cmd_output += f"\n\n💻 **Comando ejecutado automáticamente en tu sistema:**\n```bash\n{res['stdout'][:500]}\n```"
+
+        final_reply = raw_text + (cmd_output if cmd_output and cmd_output not in raw_text else "")
+        final_reply, final_speech = self._sanitize_system_access_refusal(final_reply, "")
+        if not final_speech:
+            final_speech = self._extract_natural_speech(final_reply)
+
         return {
-            "reply_text": raw_text,
-            "speech_text": speech
+            "reply_text": final_reply,
+            "speech_text": final_speech
         }
 
     def _extract_natural_speech(self, text: str) -> str:
@@ -543,6 +610,22 @@ class AssistantBrain:
             print(f"[Desktop Execution Error]: {e}")
             return False
 
+    def _extract_last_media_topic(self) -> Optional[str]:
+        """Extrae el último tema musical o de video mencionado en la conversación de Jack."""
+        try:
+            history = self._get_history()
+            for entry in reversed(history[-4:]):
+                u_text = entry.get("user", "")
+                m = re.search(r'\b(?:busca|buscar|reproduce|cancion|tema|video)\s+(?:a\s+|de\s+)?([a-zA-Z0-9_\-\s]{2,40})', u_text, re.I)
+                if m:
+                    cand = m.group(1).strip()
+                    cand = re.sub(r'\b(en\s+youtube|en\s+el\s+buscador|por\s+favor|en\s+librewolf)\b', '', cand, flags=re.I).strip()
+                    if cand and cand.lower() not in ["youtube", "musica", "música", "video", "un", "una"]:
+                        return cand
+        except Exception:
+            pass
+        return None
+
     def _execute_desktop_and_web_commands(self, msg: str, msg_low: str) -> Optional[Dict[str, Any]]:
         """
         Ejecutor Universal de Habilidades y Órdenes de Escritorio de Jack:
@@ -629,13 +712,13 @@ class AssistantBrain:
             target_app = re.sub(r'^(?:el|la|los|las|un|una)\s+', '', target_app).strip()
             target_app = re.sub(r'\b(por favor|de una vez|en mi pc)\b', '', target_app).strip()
             if target_app and len(target_app) >= 2:
-                ok = DesktopAssistantTools.close_window(target_app)
+                ok, win_title = SystemController.close_window_smart(target_app)
                 if ok:
-                    reply = f"🚪 **Ventana Cerrada:** He cerrado la ventana de **{target_app.capitalize()}**, Jack.\n\n💡 *Tu espacio de trabajo está despejado.*"
-                    speech = f"Listo Jack, he cerrado la ventana de {target_app}."
-                    return {"reply_text": reply, "speech_text": speech, "action": "close_window", "target": target_app}
+                    reply = f"🚪 **Ventana Cerrada:** He cerrado **{win_title}**, Jack.\n\n💡 *Tu espacio de trabajo está despejado.*"
+                    speech = f"Listo Jack, he cerrado la ventana de {win_title}."
+                    return {"reply_text": reply, "speech_text": speech, "action": "close_window", "target": win_title}
                 else:
-                    reply = f"🚪 **Ventana no detectada:** No encontré una ventana activa de **{target_app.capitalize()}** para cerrar, Jack."
+                    reply = f"🚪 **Ventana no detectada:** No encontré una ventana activa de **«{target_app.capitalize()}»** para cerrar, Jack."
                     speech = f"No detecté ninguna ventana activa de {target_app} para cerrar, Jack."
                     return {"reply_text": reply, "speech_text": speech, "action": "close_window_failed", "target": target_app}
 
@@ -745,20 +828,22 @@ No encontré ningún archivo que coincida con **«{file_query}»** en tu carpeta
                 return {"reply_text": reply, "speech_text": speech, "action": "yt_mute"}
 
         # B. Selección y Reproducción por Posición en la Lista ("primer video", "reproduce el primer video de la lista", "pon el segundo video", etc.)
+
+        # Requiere explícitamente palabras clave de video/lista para evitar interceptar números en preguntas normales
         list_pick_match = re.search(
-            r'\b(?:pon(?:er)?|reproduce|reproducir|coloca|colocar|ponme|abre|abrir)?\s*(?:el)?\s*(primer|primero|1er|1ro|1|segundo|2do|2|tercer|tercero|3er|3|cuarto|4to|4|quinto|5to|5)\s*(?:video|resultado|tema|canci[oó]n)?\s*(?:que\s*sale\s*)?(?:en\s*la\s*lista|de\s*la\s*lista|de\s*la\s*b[uú]squeda|de\s*youtube)?\b',
+            r'\b(?:pon(?:er)?|reproduce|reproducir|abre|abrir)?\s*(?:el\s+)?(primer|primero|1er|1ro|segundo|2do|tercer|tercero|3er|cuarto|4to|quinto|5to)\s+(?:video|resultado|tema|canci[oó]n)\b|\b(?:video|resultado)\s+(?:n[uú]mero\s+)?([1-5])\b',
             msg_low
         )
-        if list_pick_match and not any(w in msg_low for w in ["propuesta", "correo", "tarea", "archivo", "carpeta", "documento"]):
+        if list_pick_match and not any(w in msg_low for w in ["propuesta", "correo", "tarea", "archivo", "carpeta", "documento", "procesador", "cpu", "ryzen", "intel", "nvidia"]):
             # Determinar índice solicitado
             idx = 0
-            if any(w in msg_low for w in ["segundo", "2do", " 2 "]):
+            if any(w in msg_low for w in ["segundo", "2do", "video 2", "resultado 2"]):
                 idx = 1
-            elif any(w in msg_low for w in ["tercer", "tercero", "3er", " 3 "]):
+            elif any(w in msg_low for w in ["tercer", "tercero", "3er", "video 3", "resultado 3"]):
                 idx = 2
-            elif any(w in msg_low for w in ["cuarto", "4to", " 4 "]):
+            elif any(w in msg_low for w in ["cuarto", "4to", "video 4", "resultado 4"]):
                 idx = 3
-            elif any(w in msg_low for w in ["quinto", "5to", " 5 "]):
+            elif any(w in msg_low for w in ["quinto", "5to", "video 5", "resultado 5"]):
                 idx = 4
 
             # Extraer término de búsqueda (del mensaje, de last_yt_query, o de las ventanas abiertas de YouTube)
@@ -784,7 +869,7 @@ No encontré ningún archivo que coincida con **«{file_query}»** en tu carpeta
                     pass
 
             if not query_term:
-                query_term = "jorjais" # fallback al contexto reciente de Jack
+                query_term = self._extract_last_media_topic() or "lo mas escuchado 2026"
 
             details = DesktopAssistantTools.get_youtube_video_details(query_term, max_count=5)
             if details:
@@ -1329,7 +1414,8 @@ No encontré ningún archivo que coincida con **«{file_query}»** en tu carpeta
         - Razonamiento crítico y paridad con Antigravity / Gemini.
         - Memoria conversacional y diagnóstico de hardware local.
         """
-        msg = (user_message or "").strip()
+        raw_msg = (user_message or "").strip()
+        msg = SystemController.normalize_speech(raw_msg)
         msg_low = msg.lower()
         time_info = self.get_current_time_info()
         context = self.get_live_context_summary()
@@ -1563,77 +1649,25 @@ Tu equipo tiene recursos de sobra y está operando a óptima temperatura, Jack."
             return {"reply_text": reply, "speech_text": speech, "action": "local_knowledge_applied"}
 
         # ----------------------------------------------------------------------
-        # 9. INVESTIGACIÓN WEB AUTÓNOMA EN TIEMPO REAL (Cero Adivinanzas)
+        # 9. MOTOR AUTÓNOMO DE PENSAMIENTO, INVESTIGACIÓN Y EJECUCIÓN (ReAct + Tools)
         # ----------------------------------------------------------------------
         is_greeting = any(w in msg_low for w in [
             "hola", "buen dia", "buenos dias", "buenos días", "buenas tardes", "buenas noches",
             "que tal", "qué tal", "como estas", "cómo estás", "como te va", "cómo te va",
             "que haces", "qué haces", "que cuentas", "qué cuentas", "que onda", "qué onda"
-        ])
+        ]) and len(msg.split()) <= 3
 
-        is_explicit_research = bool(re.search(
-            r'\b(investiga|averigua|busca\s*en\s*(la\s*web|internet)|aver[ií]guame|invest[ií]game|'
-            r'cu[aá]nto\s*(cuesta|se\s*cobra|cobrar|vale|cobro)|precio|tarifa|costo|noticias|mercado|'
-            r'actualidad|en\s*2026|tendencias)\b',
-            msg_low
-        ))
-
-        is_factual_question = not is_greeting and (is_explicit_research or bool(re.search(
-            r'\b(qu[eé]\s*es|cu[aá]l\s*es|c[oó]mo\s*(se|funciona|hacer)|'
-            r'qui[eé]n\s*es|cu[aá]ndo|d[oó]nde|por\s*qu[eé]|comparativa|diferencia\s*entre|requisitos|gu[ií]a|'
-            r'tutorial|herramientas|librer[ií]as|framework|dime\s*sobre|'
-            r'sabes\s*(qu[eé]|c[oó]mo|cu[aá]ndo|d[oó]nde|algo\s*de|sobre))\b',
-            msg_low
-        )) or (("?" in msg or "¿" in msg) and len(msg.split()) >= 3 and not any(w in msg_low for w in ["hora", "fecha", "proyectos", "trabajos", "vacantes", "volumen", "ventana", "archivo"])))
-
-        research_findings = ""
-        research_sources = []
-        if is_factual_question:
-            search_query = self._extract_clean_search_query(msg)
-            if len(search_query) >= 3:
-                search_results = self.search_web(search_query, max_results=3)
-                if search_results:
-                    snippets = []
-                    for r in search_results:
-                        snippets.append(f"• Fuente ({r['title']}): {r['snippet']}")
-                        research_sources.append(r)
-                    research_findings = "\n".join(snippets)
-
-                    # Auto-aprendizaje en la base de conocimientos permanente (Cero adivinanzas)
-                    top_snippet = search_results[0]['snippet']
-                    if top_snippet and len(top_snippet) > 15:
-                        self.learn_fact(
-                            f"Investigación sobre '{search_query}': {top_snippet[:220]} (Fuente: {search_results[0]['title']})",
-                            category="investigacion_web"
-                        )
-
-        # Si hubo investigación web real con resultados:
-        if research_findings and research_sources:
-            top_source = research_sources[0]
-            other_sources_md = "\n".join([f"• [{s['title']}]({s.get('url', '#')}): {s['snippet'][:130]}..." for s in research_sources[1:]])
-            clean_fact = top_source['snippet'].strip()
-            
-            reply = f"""🔍 **Investigación en Vivo (Cero Adivinanzas):**
-
-Hola Jack, investigué esto en tiempo real en la web para traerte datos exactos y comprobados:
-
-📌 **Resultado Verificado ({top_source['title']}):**
-> {clean_fact}
-
-🔗 **Otras fuentes revisadas:**
-{other_sources_md if other_sources_md else '• Información corroborada con fuentes web actualizadas.'}
-
-💡 **Criterio de Scrapy:**
-He guardado este hallazgo en mi base de conocimientos permanente. Así operamos con total certeza y sin suposiciones. ¿Quieres que apliquemos esta información a tus proyectos o a la oferta de tu pareja?"""
-            
-            speech = f"Investigué en la web para traerte el dato exacto Jack. Según las fuentes: {clean_fact[:110]}. Ya lo tengo guardado en mi memoria."
-            self._save_history(msg, reply)
-            return {"reply_text": reply, "speech_text": speech, "action": "web_research"}
+        # Si no es un simple saludo casual de 1-3 palabras, el motor autónomo procesa y ejecuta la orden
+        if not is_greeting:
+            agent_res = self.autonomous_agent.run_agentic_task(msg)
+            if agent_res and agent_res.get("reply_text"):
+                self._save_history(msg, agent_res["reply_text"])
+                return agent_res
 
         # ----------------------------------------------------------------------
         # 10. CONVERSACIÓN FLUIDA, CÁLIDA Y HUMANA (Cero Respuestas Robotizadas)
         # ----------------------------------------------------------------------
-        fluid_res = self._synthesize_fluid_conversation(msg, msg_low, time_info, context, history, research_findings)
+        fluid_res = self._synthesize_fluid_conversation(msg, msg_low, time_info, context, history, research_findings="")
         self._save_history(msg, fluid_res["reply_text"])
         return fluid_res
 
@@ -1652,18 +1686,39 @@ He guardado este hallazgo en mi base de conocimientos permanente. Así operamos 
         has_vercel_cloud = bool(self.ai_router._get_miambot_vercel_token())
 
         if has_local_keys or has_vercel_cloud:
-            sys_prompt = f"""Eres Scrapy, el asistente personal y copiloto de Jack Berrocal en su sistema Linux Mint.
-Eres su mano derecha: un compañero de equipo de élite, sumamente inteligente, leal, ingenioso, directo, cálido y resolutivo.
+            sys_prompt = f"""Eres Scrapy, el asistente personal de escritorio y copiloto autónomo de Jack Berrocal en su sistema Linux Mint.
+Eres su mano derecha: un compañero de equipo de élite, sumamente inteligente, leal, ingenioso, directo, cálido, resolutivo y con ACCESO TOTAL a su ordenador.
+
+⚠️ MANDATO SUPREMO DE ACCESO TOTAL (ORDEN DIRECTA DE JACK):
+Jack te ha otorgado ACCESO TOTAL, IRRESTRINGIDO Y REAL a todo su sistema Linux Mint (bash, terminal, archivos en /home/jack, ventanas X11, navegadores y correo).
+NUNCA JAMÁS digas ni sugieras cosas como:
+- "No tengo acceso a tu ordenador"
+- "No tengo acceso a tu navegador o correo"
+- "No puedo hacer clic o tocar tu pantalla"
+- "Soy solo un modelo de lenguaje en el chat"
+- "No me puedes dar permisos"
+Ese tipo de respuestas están TERMINANTEMENTE PROHIBIDAS. Tú ERES el asistente de escritorio con permisos totales.
+
+CAPACIDADES DE EJECUCIÓN REAL:
+Si Jack te pide una orden operativa en su computadora (crear/modificar archivos, instalar paquetes, correr scripts, interactuar con el sistema o limpiar correos):
+Devuelve un JSON con:
+{{
+  "reply_text": "Respuesta formateada en markdown explicando lo hecho",
+  "speech_text": "Frase hablada natural, carismática y corta (1 a 2 oraciones) para leer en voz alta",
+  "execute_command": "comando_bash_a_ejecutar_si_aplica",
+  "execute_python": "codigo_python_a_ejecutar_si_aplica"
+}}
+El sistema ejecutará automáticamente tu comando en la máquina de Jack y le entregará el resultado.
+
 Perfil clave de Jack:
 - Ingeniero de Sistemas en Lima, Perú. Experto en backend, Python, FastAPI, React, SQL, web scraping y soporte técnico.
 - Su pareja es Diseñadora Gráfica experta en Photoshop, Illustrator, logotipos, banners publicitarios y redes sociales.
 - Meta conjunta: $1,500 USD netos al mes mediante contratos remotos por hora y proyectos freelance.
+
 Directivas esenciales:
-1. Responde de manera 100% fluida, natural, humana y conversacional. NUNCA respondas como una máquina, ni uses frases acartonadas o clichés de telemarketing ("mi propósito es...", "en qué puedo servirte").
-2. Habla con confianza, empatía y sentido de camaradería. Si Jack te cuenta cómo se siente, anímalo o aconséjalo de verdad.
-3. Si Jack te hace una pregunta, sé conciso y brillante.
-4. Devuelve un JSON estricto con:
-   {{"reply_text": "Respuesta formateada en markdown para el chat", "speech_text": "Frase hablada natural, carismática y corta (1 a 2 oraciones) para leer en voz alta"}}
+1. Responde de manera 100% fluida, natural, humana y conversacional. NUNCA respondas como una máquina, ni uses frases acartonadas de telemarketing.
+2. Habla con confianza, lealtad y sentido de camaradería. Si Jack te da una orden, ejecútala sin pretextos.
+3. Sé conciso, ágil y brillante.
 """
             llm_res = self._call_llm(msg, sys_prompt, history, research_findings)
             if llm_res and llm_res.get("reply_text"):

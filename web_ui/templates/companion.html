@@ -520,77 +520,149 @@
   <script>
     let isListening = false;
     let voiceOutputEnabled = true;
-    let recognition = null;
     let currentUtterance = null;
+    let companionMediaRecorder = null;
+    let companionAudioChunks = [];
+    let companionStream = null;
+    let companionAudioCtx = null;
+    let companionAnalyser = null;
+    let companionVadTimer = null;
 
-    // Inicializar Reconocimiento de Voz (Web Speech API)
-    function initSpeech() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        recognition = new SpeechRecognition();
-        recognition.lang = 'es-PE';
-        recognition.continuous = false;
-        recognition.interimResults = true;
+    // Inicializar Detector de Audio Local Neuronal (Whisper Local en GPU)
+    async function initSpeech() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.warn('getUserMedia no soportado.');
+        return false;
+      }
 
-        recognition.onstart = () => {
+      try {
+        companionStream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+        });
+
+        companionAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (companionAudioCtx.state === 'suspended') companionAudioCtx.resume();
+
+        const source = companionAudioCtx.createMediaStreamSource(companionStream);
+        companionAnalyser = companionAudioCtx.createAnalyser();
+        companionAnalyser.fftSize = 64;
+        source.connect(companionAnalyser);
+
+        const mimeTypes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4'];
+        const supportedMime = mimeTypes.find(m => MediaRecorder.isTypeSupported(m)) || '';
+
+        companionMediaRecorder = supportedMime ? new MediaRecorder(companionStream, { mimeType: supportedMime }) : new MediaRecorder(companionStream);
+        
+        companionMediaRecorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) companionAudioChunks.push(e.data);
+        };
+
+        companionMediaRecorder.onstop = async () => {
+          const chunks = [...companionAudioChunks];
+          companionAudioChunks = [];
+          isListening = false;
+          document.getElementById('orbContainer').classList.remove('listening');
+          document.getElementById('micBtn').classList.remove('active');
+          document.getElementById('statusText').innerText = '🧠 Transcribiendo con Whisper local en GPU...';
+
+          if (chunks.length === 0) {
+            document.getElementById('statusText').innerText = 'En línea &bull; Presiona el micrófono para hablar';
+            return;
+          }
+
+          const blob = new Blob(chunks, { type: supportedMime || 'audio/webm' });
+          if (blob.size < 600) {
+            document.getElementById('statusText').innerText = 'En línea &bull; Presiona el micrófono para hablar';
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append('audio', blob, 'companion_speech.webm');
+
+          try {
+            const res = await fetch('/api/assistant/transcribe', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.status === 'success' && data.text && data.text.trim().length >= 2) {
+              const transcribed = data.text.trim();
+              document.getElementById('textInput').value = transcribed;
+              document.getElementById('statusText').innerText = `🎙️ "${transcribed}"`;
+              sendUserMessage(transcribed);
+            } else {
+              document.getElementById('statusText').innerText = 'En línea &bull; Presiona el micrófono para hablar';
+            }
+          } catch (err) {
+            console.error('Whisper transcribe error:', err);
+            document.getElementById('statusText').innerText = 'En línea &bull; Error en detector de audio';
+          }
+        };
+
+        return true;
+      } catch (err) {
+        console.error('Mic access error:', err);
+        return false;
+      }
+    }
+
+    async function toggleVoiceRecognition() {
+      if (!companionMediaRecorder) {
+        const ok = await initSpeech();
+        if (!ok) {
+          alert('No se pudo acceder al micrófono. Verifica los permisos de tu navegador.');
+          return;
+        }
+      }
+
+      if (isListening) {
+        // Detener y procesar audio
+        if (companionMediaRecorder && companionMediaRecorder.state === 'recording') {
+          companionMediaRecorder.stop();
+        }
+      } else {
+        // Iniciar grabación
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        companionAudioChunks = [];
+        try {
+          companionMediaRecorder.start(100);
           isListening = true;
           document.getElementById('orbContainer').classList.add('listening');
           document.getElementById('micBtn').classList.add('active');
           document.getElementById('statusText').innerText = 'Escuchando tu voz... Habla ahora';
-        };
 
-        recognition.onresult = (event) => {
-          let transcript = '';
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            transcript += event.results[i][0].transcript;
+          // VAD automático: monitorear silencio para finalizar frase
+          const dataArray = new Uint8Array(companionAnalyser.frequencyBinCount);
+          let silenceStart = null;
+          let hasSpoken = false;
+
+          function vadCheck() {
+            if (!isListening) return;
+            companionAnalyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+            let avg = sum / dataArray.length;
+
+            if (avg > 11) {
+              hasSpoken = true;
+              silenceStart = null;
+            } else if (hasSpoken) {
+              if (!silenceStart) silenceStart = Date.now();
+              else if (Date.now() - silenceStart > 750) {
+                // Silencio prolongado tras hablar: detener y enviar
+                if (companionMediaRecorder && companionMediaRecorder.state === 'recording') {
+                  companionMediaRecorder.stop();
+                }
+                return;
+              }
+            }
+            requestAnimationFrame(vadCheck);
           }
-          document.getElementById('textInput').value = transcript;
-        };
+          requestAnimationFrame(vadCheck);
 
-        recognition.onend = () => {
-          isListening = false;
-          document.getElementById('orbContainer').classList.remove('listening');
-          document.getElementById('micBtn').classList.remove('active');
-          document.getElementById('statusText').innerText = 'En línea &bull; Presiona el micrófono para hablar';
-          
-          const text = document.getElementById('textInput').value.trim();
-          if (text) {
-            sendUserMessage(text);
-          }
-        };
-
-        recognition.onerror = (err) => {
-          console.error('Speech error:', err);
-          isListening = false;
-          document.getElementById('orbContainer').classList.remove('listening');
-          document.getElementById('micBtn').classList.remove('active');
-          document.getElementById('statusText').innerText = 'En línea &bull; Error al capturar micrófono';
-        };
-      } else {
-        console.warn('Web Speech Recognition no soportado en este navegador.');
-      }
-    }
-
-    function toggleVoiceRecognition() {
-      if (!recognition) {
-        initSpeech();
-      }
-      if (!recognition) {
-        alert('Tu navegador no tiene activado el reconocimiento por voz. Puedes escribir en la barra de texto.');
-        return;
-      }
-      if (isListening) {
-        recognition.stop();
-      } else {
-        // Detener habla si estaba hablando
-        if (window.speechSynthesis) window.speechSynthesis.cancel();
-        try {
-          recognition.start();
         } catch (e) {
           console.error(e);
         }
       }
     }
+
 
     function toggleTtsVoice() {
       voiceOutputEnabled = !voiceOutputEnabled;
