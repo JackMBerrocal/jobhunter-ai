@@ -660,6 +660,96 @@ Y me lo grabo en piedra para recordarlo siempre."""
                     "action": "window_close_failed"
                 }
 
+        # Control del Ratón (Clics físicos, Doble Clic y Clic Derecho)
+        if any(w in msg_low for w in ["doble clic", "haz doble clic", "da doble clic"]):
+            DesktopAssistantTools.mouse_click(button="left", double=True)
+            return {"reply_text": "🖱️ **Doble Clic Realizado.**", "speech_text": "Listo Jack, hice doble clic.", "action": "mouse_double_click"}
+
+        if any(w in msg_low for w in ["clic derecho", "haz clic derecho", "da clic derecho", "menu contextual"]):
+            DesktopAssistantTools.mouse_click(button="right")
+            return {"reply_text": "🖱️ **Clic Derecho Realizado.**", "speech_text": "Listo Jack, hice clic derecho.", "action": "mouse_right_click"}
+
+        if any(w in msg_low for w in ["haz clic", "da clic", "haz click", "da click", "clic izquierdo", "presiona clic"]):
+            DesktopAssistantTools.mouse_click(button="left")
+            return {"reply_text": "🖱️ **Clic Realizado.**", "speech_text": "Clic realizado, Jack.", "action": "mouse_click"}
+
+        # Desplazamiento / Scroll de pantalla
+        if any(w in msg_low for w in ["baja la pagina", "baja la página", "scroll abajo", "desplaza hacia abajo", "baja un poco", "baja mas", "baja más"]):
+            DesktopAssistantTools.mouse_scroll("down", clicks=6)
+            return {"reply_text": "📜 **Desplazando hacia abajo.**", "speech_text": "Bajé la página, Jack.", "action": "mouse_scroll_down"}
+
+        if any(w in msg_low for w in ["sube la pagina", "sube la página", "scroll arriba", "desplaza hacia arriba", "sube un poco", "sube mas", "sube más"]):
+            DesktopAssistantTools.mouse_scroll("up", clicks=6)
+            return {"reply_text": "📜 **Desplazando hacia arriba.**", "speech_text": "Subí la página, Jack.", "action": "mouse_scroll_up"}
+
+        # Escritura Directa en Ventana / Campo Enfocado
+        type_match = re.search(r'^(?:escribe|teclea|escribir|teclear|pon el texto)\s+[:"\'“]?(.*?)["\'”]?$', msg, re.IGNORECASE)
+        if type_match:
+            text_to_type = type_match.group(1).strip()
+            if text_to_type:
+                DesktopAssistantTools.type_text(text_to_type)
+                return {
+                    "reply_text": f"⌨️ **Texto Tecleado:**\n> «{text_to_type}»",
+                    "speech_text": "Listo Jack, tecleé el texto en tu pantalla.",
+                    "action": "text_typed",
+                    "typed_text": text_to_type
+                }
+
+        # Presión de Teclas y Atajos del Sistema
+        key_match = re.search(r'^(?:presiona|aprieta|pulsa|pulsar|tecla)\s+(?:la\s+tecla\s+|el\s+atajo\s+|combinacion\s+)?([a-zA-Z0-9_\+\-\s]+)$', msg_low)
+        if key_match:
+            raw_key = key_match.group(1).strip()
+            if raw_key and raw_key not in ["volumen", "play", "pausa"]:
+                ok = DesktopAssistantTools.press_key(raw_key)
+                if ok:
+                    return {
+                        "reply_text": f"⌨️ **Tecla/Atajo Presionado:** `{raw_key}`",
+                        "speech_text": f"Presioné la tecla {raw_key}, Jack.",
+                        "action": "key_pressed",
+                        "key": raw_key
+                    }
+
+        # Bloqueo de Pantalla y Energía
+        if any(w in msg_low for w in ["bloquea la pantalla", "bloquear pantalla", "bloquea el equipo", "bloquea la pc", "bloquear pc"]):
+            ok, msg_pwr = DesktopAssistantTools.system_power("lock")
+            return {
+                "reply_text": "🔒 **Pantalla Bloqueada:** Tu sesión de Linux Mint ha sido bloqueada por seguridad.",
+                "speech_text": "Bloqueé tu pantalla por seguridad, Jack.",
+                "action": "screen_locked"
+            }
+
+        if any(w in msg_low for w in ["suspende el equipo", "suspender equipo", "suspende la pc", "suspende la computadora", "suspender pc"]):
+            return {
+                "reply_text": "💤 **Suspendiendo Equipo...**",
+                "speech_text": "Suspendiendo el equipo, Jack.",
+                "action": "system_suspend_triggered"
+            }
+
+        # Monitoreo de Procesos Pesados
+        if any(w in msg_low for w in ["que consume mas cpu", "qué consume más cpu", "procesos que mas consumen", "procesos que más consumen", "procesos pesados", "procesos activos"]):
+            procs = DesktopAssistantTools.get_top_processes(sort_by="cpu", limit=6)
+            if procs:
+                lines = [f"• **{p['comm']}** (PID: `{p['pid']}`) — CPU: `{p['cpu']}%` | RAM: `{p['mem']}%`" for p in procs]
+                md = "\n".join(lines)
+                reply = f"""📊 **Procesos con Mayor Consumo en Linux Mint:**
+
+{md}
+
+💡 *Puedes finalizar cualquier proceso problemático diciendo: «Mata el proceso [PID o Nombre]»*"""
+                speech = f"Jack, el proceso que más recursos consume es {procs[0]['comm']} con {procs[0]['cpu']} por ciento de CPU."
+                return {"reply_text": reply, "speech_text": speech, "action": "top_processes_reported", "processes": procs}
+
+        # Finalizar / Matar Proceso Específico
+        kill_match = re.search(r'\b(?:mata|matar|finaliza|finalizar|termina|terminar)\s+(?:el\s+proceso|la\s+tarea)?\s*([a-zA-Z0-9_\-\.]+)\b', msg_low)
+        if kill_match:
+            proc_target = kill_match.group(1).strip()
+            ok, kill_msg = DesktopAssistantTools.kill_process(proc_target)
+            return {
+                "reply_text": f"{'✅' if ok else '⚠️'} **Gestión de Procesos:** {kill_msg}",
+                "speech_text": kill_msg,
+                "action": "kill_process_result"
+            }
+
         return None
 
     # --------------------------------------------------------------------------

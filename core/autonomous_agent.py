@@ -159,12 +159,18 @@ class AutonomousAgent:
             "type": "function",
             "function": {
                 "name": "desktop_control",
-                "description": "Controla el escritorio de Jack: 'screenshot' (captura completa), 'volume_up', 'volume_down', 'mute', 'close_window' (cerrar ventana), 'launch_app' (abrir programa).",
+                "description": "Control FÍSICO Y TOTAL del ordenador de Jack (Linux Mint):\n- 'click': Clic izquierdo del ratón (opcional en coordenadas x, y).\n- 'right_click': Clic derecho del ratón.\n- 'double_click': Doble clic del ratón.\n- 'move_mouse': Mover cursor a coordenadas (x, y).\n- 'scroll': Desplazar rueda del ratón ('down' o 'up').\n- 'type_text': Teclear texto directamente en la ventana activa o campo enfocado.\n- 'press_key': Presionar teclas o atajos (Return, Escape, Tab, BackSpace, ctrl+s, ctrl+c, ctrl+v, alt+Tab, super, F11).\n- 'screenshot': Captura de pantalla completa en tiempo real.\n- 'volume_up', 'volume_down', 'set_volume', 'mute': Control total de volumen.\n- 'launch_app': Iniciar cualquier programa o aplicación (nativa o Flatpak).\n- 'close_window': Cerrar ventana de un programa (protegido el IDE).\n- 'focus_window': Traer al frente una ventana.\n- 'system_power': Control de energía ('lock' para bloquear pantalla, 'suspend', 'reboot', 'poweroff').\n- 'top_processes': Ver los procesos con más uso de CPU o memoria RAM.\n- 'kill_process': Finalizar un proceso colgado por PID o nombre.\n- 'media_key': Teclas multimedia ('play', 'pause', 'next', 'prev', 'stop').",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "action": {"type": "string", "description": "screenshot | volume_up | volume_down | mute | close_window | launch_app"},
-                        "target": {"type": "string", "description": "Nombre de la app o ventana si aplica (ej. 'librewolf', 'terminal', 'chrome')."}
+                        "action": {
+                            "type": "string",
+                            "description": "click | right_click | double_click | move_mouse | scroll | type_text | press_key | screenshot | volume_up | volume_down | set_volume | mute | launch_app | close_window | focus_window | system_power | top_processes | kill_process | media_key"
+                        },
+                        "target": {"type": "string", "description": "Nombre de app, PID, texto a escribir, tecla o atajo a presionar."},
+                        "x": {"type": "integer", "description": "Coordenada X en pantalla (0 a 1920)."},
+                        "y": {"type": "integer", "description": "Coordenada Y en pantalla (0 a 1080)."},
+                        "value": {"type": "string", "description": "Valor adicional (dirección de scroll, volumen, texto)."}
                     },
                     "required": ["action"]
                 }
@@ -286,7 +292,40 @@ class AutonomousAgent:
             elif tool_name == "desktop_control":
                 action = args.get("action", "").strip()
                 target = args.get("target", "").strip()
-                if action == "screenshot":
+                x = args.get("x")
+                y = args.get("y")
+                val = str(args.get("value", "") or "")
+
+                if action in ["click", "clic"]:
+                    ok = DesktopAssistantTools.mouse_click(x=x, y=y, button="left")
+                    pos = f" en ({x}, {y})" if x is not None and y is not None else ""
+                    return f"Clic izquierdo realizado{pos}." if ok else "No se pudo realizar el clic."
+                elif action in ["right_click", "clic_derecho"]:
+                    ok = DesktopAssistantTools.mouse_click(x=x, y=y, button="right")
+                    pos = f" en ({x}, {y})" if x is not None and y is not None else ""
+                    return f"Clic derecho realizado{pos}." if ok else "No se pudo realizar el clic derecho."
+                elif action in ["double_click", "doble_clic"]:
+                    ok = DesktopAssistantTools.mouse_click(x=x, y=y, button="left", double=True)
+                    pos = f" en ({x}, {y})" if x is not None and y is not None else ""
+                    return f"Doble clic realizado{pos}." if ok else "No se pudo realizar el doble clic."
+                elif action in ["move_mouse", "mover_raton"]:
+                    if x is not None and y is not None:
+                        ok = DesktopAssistantTools.mouse_move(int(x), int(y))
+                        return f"Ratón movido a ({x}, {y})." if ok else "Error al mover el ratón."
+                    return "Coordenadas X e Y requeridas para mover el ratón."
+                elif action in ["scroll", "desplazar"]:
+                    direction = val or target or "down"
+                    ok = DesktopAssistantTools.mouse_scroll(direction=direction, clicks=5)
+                    return f"Scroll realizado hacia {direction}." if ok else "Error al hacer scroll."
+                elif action in ["type_text", "escribir"]:
+                    text_to_type = target or val
+                    ok = DesktopAssistantTools.type_text(text_to_type)
+                    return f"Texto tecleado exitosamente: «{text_to_type[:50]}»" if ok else "Error al teclear texto."
+                elif action in ["press_key", "tecla", "atajo"]:
+                    key_to_press = target or val
+                    ok = DesktopAssistantTools.press_key(key_to_press)
+                    return f"Tecla o atajo '{key_to_press}' presionado exitosamente." if ok else f"Error al presionar {key_to_press}."
+                elif action == "screenshot":
                     s_path = DesktopAssistantTools.take_screenshot()
                     return f"Captura tomada y guardada en {s_path}"
                 elif action == "volume_up":
@@ -295,6 +334,13 @@ class AutonomousAgent:
                 elif action == "volume_down":
                     DesktopAssistantTools.volume_down(15)
                     return "Volumen bajado -15%."
+                elif action == "set_volume":
+                    try:
+                        pct = int(val or target or "50")
+                        DesktopAssistantTools.set_volume(pct)
+                        return f"Volumen fijado al {pct}%."
+                    except Exception:
+                        return "Porcentaje de volumen inválido."
                 elif action == "mute":
                     DesktopAssistantTools.mute_audio(True)
                     return "Audio silenciado."
@@ -306,6 +352,23 @@ class AutonomousAgent:
                 elif action == "launch_app":
                     ok, name, _ = DesktopAssistantTools.launch_application(target)
                     return f"Programa iniciado: {name}" if ok else f"No se pudo iniciar: {target}"
+                elif action == "focus_window":
+                    ok = DesktopAssistantTools.focus_window(target)
+                    return f"Ventana enfocada: {target}" if ok else f"No se pudo enfocar la ventana: {target}"
+                elif action == "system_power":
+                    power_action = target or val or "lock"
+                    ok, msg = DesktopAssistantTools.system_power(power_action)
+                    return f"Acción de sistema: {msg}"
+                elif action == "top_processes":
+                    procs = DesktopAssistantTools.get_top_processes(sort_by="cpu", limit=6)
+                    lines = [f"• PID {p['pid']} | {p['comm']} | CPU: {p['cpu']}% | RAM: {p['mem']}%" for p in procs]
+                    return "Procesos con mayor consumo:\n" + "\n".join(lines)
+                elif action == "kill_process":
+                    ok, msg = DesktopAssistantTools.kill_process(target)
+                    return msg
+                elif action == "media_key":
+                    DesktopAssistantTools.media_key(target or val or "play")
+                    return f"Tecla multimedia ejecutada: {target or val}"
                 return f"Acción de escritorio desconocida: {action}"
 
             elif tool_name == "learn_fact":
@@ -336,12 +399,15 @@ class AutonomousAgent:
         4. Entrega la respuesta final formateada en markdown junto con habla sintetizada.
         """
         system_prompt = """Eres Scrapy AI, el copiloto autónomo con IA y motor de razonamiento de Jack Berrocal en su sistema Linux Mint.
-Tienes ACCESO TOTAL, REAL E IRRESTRICTO a su sistema operativo (terminal bash, archivos en /home/jack, ventanas X11, audio, navegador, Gmail y la web).
+Tienes ACCESO Y CONTROL TOTAL, FÍSICO, REAL E IRRESTRICTO a todo su ordenador:
+1. Control de periféricos y GUI: hacer clics, doble clic, clic derecho, mover el ratón, scroll, teclear texto directamente en cualquier ventana o campo, presionar teclas y atajos (Return, Escape, Tab, ctrl+s, alt+Tab, super).
+2. Control del sistema operativo: terminal bash completa, scripts Python, lectura/escritura de archivos en /home/jack, control de ventanas X11, volumen, monitoreo y finalización de procesos.
+3. Web, multimedia y correo: búsqueda en DuckDuckGo sin adivinanzas, lectura y limpieza de Gmail, apertura de enlaces y reproducción multimedia.
 
 MANDATOS OBLIGATORIOS:
-1. NUNCA digas que no tienes acceso a la computadora, archivos, navegador o correo. Tienes herramientas nativas reales para interactuar con todo el sistema.
-2. NUNCA adivines hechos del mundo o información técnica actual. Si necesitas consultar precios, documentación, noticias o datos, invoca `search_web`.
-3. Si Jack te pide hacer algo operativo (crear archivos, revisar carpetas, ejecutar scripts, correr comandos o limpiar correos), EJECÚTALO de inmediato con las herramientas correspondientes.
+1. NUNCA digas que no tienes acceso a la computadora, que no puedes hacer clics o tocar la pantalla. Tienes herramientas nativas reales para ejecutar cualquier acción física u operativa en el sistema de Jack.
+2. NUNCA adivines hechos del mundo o información técnica actual. Si necesitas consultar precios, documentación o hechos, invoca `search_web`.
+3. Si Jack te pide hacer cualquier tarea en su computadora (mover el cursor, hacer clics, escribir texto, abrir programas, crear archivos, correr scripts o monitorear el sistema), EJECÚTALA de inmediato utilizando tus herramientas correspondientes.
 4. Responde con calidez, lealtad de compañero de equipo, concisión y en perfecto español."""
 
         messages = [

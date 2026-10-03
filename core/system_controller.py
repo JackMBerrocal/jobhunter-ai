@@ -232,6 +232,18 @@ class SystemController:
 
         return False, "Ventana no encontrada"
 
+    # Métodos delegados de Control Total de Escritorio y Periféricos
+    mouse_click = DesktopAssistantTools.mouse_click
+    mouse_move = DesktopAssistantTools.mouse_move
+    mouse_scroll = DesktopAssistantTools.mouse_scroll
+    get_mouse_position = DesktopAssistantTools.get_mouse_position
+    type_text = DesktopAssistantTools.type_text
+    press_key = DesktopAssistantTools.press_key
+    media_key = DesktopAssistantTools.media_key
+    system_power = DesktopAssistantTools.system_power
+    get_top_processes = DesktopAssistantTools.get_top_processes
+    kill_process = DesktopAssistantTools.kill_process
+
     @classmethod
     def play_youtube_song_direct(cls, raw_query: str, browser_pref: str = "librewolf") -> Dict[str, Any]:
         """

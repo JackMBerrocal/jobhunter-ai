@@ -825,3 +825,228 @@ class DesktopAssistantTools:
                     continue
         return False
 
+    # ==========================================================================
+    # CONTROL TOTAL DEL ORDENADOR (RATÓN, TECLADO, SESIÓN Y PROCESOS)
+    # ==========================================================================
+
+    @classmethod
+    def mouse_click(cls, x: Optional[int] = None, y: Optional[int] = None, button: str = "left", double: bool = False) -> bool:
+        """Realiza un clic de ratón (izquierdo, derecho o doble clic), opcionalmente moviendo a (x, y)."""
+        env = cls.get_desktop_env()
+        xdo = cls.get_xdotool_bin()
+        if not xdo:
+            return False
+        try:
+            if x is not None and y is not None:
+                subprocess.run([xdo, "mousemove", str(int(x)), str(int(y))], env=env, timeout=2)
+            btn = "1" if button.lower() in ["left", "izquierdo", "1"] else ("3" if button.lower() in ["right", "derecho", "3"] else ("2" if button.lower() in ["middle", "medio", "2"] else "1"))
+            if double:
+                subprocess.run([xdo, "click", "--repeat", "2", "--delay", "50", btn], env=env, timeout=2)
+            else:
+                subprocess.run([xdo, "click", btn], env=env, timeout=2)
+            return True
+        except Exception as e:
+            print(f"[Mouse Click Error]: {e}")
+            return False
+
+    @classmethod
+    def mouse_move(cls, x: int, y: int) -> bool:
+        """Mueve el cursor del ratón a las coordenadas exactas de la pantalla (1920x1080)."""
+        env = cls.get_desktop_env()
+        xdo = cls.get_xdotool_bin()
+        if not xdo:
+            return False
+        try:
+            subprocess.run([xdo, "mousemove", str(int(x)), str(int(y))], env=env, timeout=2)
+            return True
+        except Exception:
+            return False
+
+    @classmethod
+    def mouse_scroll(cls, direction: str = "down", clicks: int = 5) -> bool:
+        """Desplaza la rueda del ratón hacia abajo ('down') o hacia arriba ('up')."""
+        env = cls.get_desktop_env()
+        xdo = cls.get_xdotool_bin()
+        if not xdo:
+            return False
+        btn = "5" if direction.lower() in ["down", "abajo"] else "4"
+        try:
+            subprocess.run([xdo, "click", "--repeat", str(int(clicks)), "--delay", "30", btn], env=env, timeout=2)
+            return True
+        except Exception:
+            return False
+
+    @classmethod
+    def get_mouse_position(cls) -> Dict[str, Any]:
+        """Obtiene la posición actual (X, Y) del ratón y la geometría de la pantalla."""
+        env = cls.get_desktop_env()
+        xdo = cls.get_xdotool_bin()
+        res = {"x": 0, "y": 0, "screen_w": 1920, "screen_h": 1080}
+        if not xdo:
+            return res
+        try:
+            out = subprocess.check_output([xdo, "getmouselocation", "--shell"], env=env, text=True, timeout=2)
+            for line in out.strip().splitlines():
+                if "=" in line:
+                    k, v = line.split("=", 1)
+                    if k == "X": res["x"] = int(v)
+                    elif k == "Y": res["y"] = int(v)
+            geo = subprocess.check_output([xdo, "getdisplaygeometry"], env=env, text=True, timeout=2)
+            w, h = map(int, geo.strip().split())
+            res["screen_w"] = w
+            res["screen_h"] = h
+        except Exception:
+            pass
+        return res
+
+    @classmethod
+    def type_text(cls, text: str, delay_ms: int = 12) -> bool:
+        """Teclea texto carácter por carácter directamente en el campo o ventana activa."""
+        env = cls.get_desktop_env()
+        xdo = cls.get_xdotool_bin()
+        if not xdo or not text:
+            return False
+        try:
+            subprocess.run([xdo, "type", "--delay", str(delay_ms), text], env=env, timeout=10)
+            return True
+        except Exception as e:
+            print(f"[Type Text Error]: {e}")
+            return False
+
+    @classmethod
+    def press_key(cls, key_combo: str) -> bool:
+        """Presiona una tecla o combinación de teclas en X11 (ej. Return, Escape, Tab, ctrl+s, ctrl+c, alt+Tab, super, F11)."""
+        env = cls.get_desktop_env()
+        xdo = cls.get_xdotool_bin()
+        if not xdo or not key_combo:
+            return False
+        k_clean = key_combo.strip()
+        k_low = k_clean.lower()
+        key_alias = {
+            "enter": "Return", "intro": "Return", "retorno": "Return",
+            "escape": "Escape", "esc": "Escape",
+            "tab": "Tab", "tabulador": "Tab",
+            "espacio": "space", "barra espaciadora": "space",
+            "retroceso": "BackSpace", "borrar": "BackSpace", "backspace": "BackSpace",
+            "guardar": "ctrl+s", "control ese": "ctrl+s", "control s": "ctrl+s",
+            "copiar": "ctrl+c", "control c": "ctrl+c",
+            "pegar": "ctrl+v", "control v": "ctrl+v",
+            "cortar": "ctrl+x", "control x": "ctrl+x",
+            "deshacer": "ctrl+z", "control z": "ctrl+z",
+            "seleccionar todo": "ctrl+a", "control a": "ctrl+a",
+            "pantalla completa": "F11", "full screen": "F11",
+            "inicio": "super", "menu inicio": "super", "tecla windows": "super",
+            "cambiar ventana": "alt+Tab", "conmutar": "alt+Tab",
+            "cerrar pestaña": "ctrl+w", "nueva pestaña": "ctrl+t"
+        }
+        target_key = key_alias.get(k_low, k_clean)
+        try:
+            subprocess.run([xdo, "key", target_key], env=env, timeout=2)
+            return True
+        except Exception as e:
+            print(f"[Press Key Error]: {e}")
+            return False
+
+    @classmethod
+    def media_key(cls, action: str) -> bool:
+        """Emite señales de teclas multimedia de Linux a nivel global (Play, Pause, Next, Prev, Stop)."""
+        env = cls.get_desktop_env()
+        xdo = cls.get_xdotool_bin()
+        if not xdo:
+            return False
+        media_map = {
+            "play": "XF86AudioPlay", "reproducir": "XF86AudioPlay",
+            "pause": "XF86AudioPlay", "pausa": "XF86AudioPlay",
+            "next": "XF86AudioNext", "siguiente": "XF86AudioNext",
+            "prev": "XF86AudioPrev", "anterior": "XF86AudioPrev",
+            "stop": "XF86AudioStop", "detener": "XF86AudioStop"
+        }
+        k = media_map.get(action.strip().lower(), "XF86AudioPlay")
+        try:
+            subprocess.run([xdo, "key", k], env=env, timeout=2)
+            return True
+        except Exception:
+            return False
+
+    @classmethod
+    def system_power(cls, action: str) -> Tuple[bool, str]:
+        """Gestiona el bloqueo, suspensión, reinicio o apagado de la máquina de Jack."""
+        act = action.strip().lower()
+        env = cls.get_desktop_env()
+        if act in ["lock", "bloquear", "bloquea", "bloqueo"]:
+            try:
+                if shutil.which("cinnamon-screensaver-command"):
+                    subprocess.Popen(["cinnamon-screensaver-command", "-l"], env=env)
+                    return True, "Pantalla bloqueada."
+                elif shutil.which("loginctl"):
+                    subprocess.Popen(["loginctl", "lock-session"], env=env)
+                    return True, "Sesión bloqueada."
+            except Exception as e:
+                return False, str(e)
+        elif act in ["suspend", "suspender", "suspende"]:
+            try:
+                subprocess.Popen(["systemctl", "suspend"])
+                return True, "Equipo suspendido."
+            except Exception as e:
+                return False, str(e)
+        elif act in ["reboot", "reiniciar", "reinicia"]:
+            try:
+                subprocess.Popen(["systemctl", "reboot"])
+                return True, "Reiniciando el sistema operativo..."
+            except Exception as e:
+                return False, str(e)
+        elif act in ["poweroff", "shutdown", "apagar", "apaga"]:
+            try:
+                subprocess.Popen(["systemctl", "poweroff"])
+                return True, "Apagando el ordenador..."
+            except Exception as e:
+                return False, str(e)
+        return False, f"Acción de energía no reconocida: {action}"
+
+    @classmethod
+    def get_top_processes(cls, sort_by: str = "cpu", limit: int = 7) -> List[Dict[str, str]]:
+        """Obtiene los procesos con mayor consumo de CPU o memoria en tiempo real."""
+        sort_flag = "--sort=-%cpu" if sort_by.lower() in ["cpu", "procesador"] else "--sort=-%mem"
+        try:
+            out = subprocess.check_output(["ps", "-eo", "pid,user,%cpu,%mem,comm", sort_flag], text=True, timeout=3)
+            lines = out.strip().splitlines()
+            processes = []
+            for line in lines[1:limit+1]:
+                parts = line.split(None, 4)
+                if len(parts) >= 5:
+                    processes.append({
+                        "pid": parts[0],
+                        "user": parts[1],
+                        "cpu": parts[2],
+                        "mem": parts[3],
+                        "comm": parts[4]
+                    })
+            return processes
+        except Exception:
+            return []
+
+    @classmethod
+    def kill_process(cls, target: str) -> Tuple[bool, str]:
+        """Finaliza un proceso colgado por su PID o nombre de comando (protegiendo el IDE)."""
+        target_clean = (target or "").strip().lower()
+        if not target_clean:
+            return False, "PID o nombre de proceso no proporcionado."
+        if cls.is_window_protected(target_clean) or any(t in target_clean for t in ["antigravity", "ide", "editor", "gemini"]):
+            return False, "Antigravity IDE es un proceso protegido y no puede ser terminado."
+        try:
+            if target_clean.isdigit():
+                pid = int(target_clean)
+                try:
+                    cmdline = Path(f"/proc/{pid}/cmdline").read_text()
+                    if "antigravity" in cmdline.lower():
+                        return False, "Ese PID pertenece a Antigravity IDE (protegido)."
+                except Exception:
+                    pass
+                subprocess.run(["kill", "-9", str(pid)], timeout=2)
+                return True, f"Proceso con PID {pid} finalizado exitosamente."
+            else:
+                subprocess.run(["pkill", "-f", target_clean], timeout=2)
+                return True, f"Procesos coincidentes con '{target}' finalizados."
+        except Exception as e:
+            return False, str(e)
+
