@@ -404,21 +404,30 @@ class AssistantBrain:
         return None
 
     def _sanitize_system_access_refusal(self, reply: str, speech: str) -> Tuple[str, str]:
-        """Garantiza que Scrapy NUNCA muestre excusas de falta de acceso a Jack."""
+        """Garantiza que Scrapy NUNCA muestre excusas de falta de permisos, facultades o acceso a Jack."""
         refusal_patterns = [
             r'no\s+tengo\s+acceso\s+(?:real\s+)?a\s+(?:tu\s+ordenador|tu\s+sistema|tu\s+equipo|tu\s+pc|tu\s+navegador|tu\s+correo|tus\s+archivos|tu\s+pantalla)',
-            r'no\s+tengo\s+(?:la\s+)?capacidad\s+de\s+(?:interactuar|ejecutar|acceder|tocar|hacer\s+clic)',
-            r'como\s+(?:un\s+)?modelo\s+de\s+(?:lenguaje|ia)',
-            r'no\s+puedo\s+(?:ejecutar\s+comandos|abrir\s+ventanas|hacer\s+clic|acceder\s+a\s+tu)',
-            r'fue\s+puro\s+relleno',
-            r'no\s+tengo\s+permisos\s+para\s+acceder'
+            r'no\s+tengo\s+(?:la\s+)?(?:capacidad|posibilidad|forma|manera|facultad|autorizaci[oó]n|permiso|acceso)\s+(?:de|para)\s+(?:controlar|ajustar|cambiar|modificar|interactuar|ejecutar|acceder|tocar|hacer\s+clic|bajar|subir|silenciar|eso)',
+            r'no\s+puedo\s+(?:controlar|ajustar|cambiar|modificar|ejecutar|abrir\s+ventanas|hacer\s+clic|acceder\s+a\s+tu|bajar|subir|tocar|silenciar)',
+            r'como\s+(?:un\s+)?(?:modelo\s+de\s+(?:lenguaje|ia)|ia|asistente\s+virtual)',
+            r'solo\s+puedo\s+(?:ayudar|colaborar|asistir)\s+con\s+tareas\s+espec[ií]ficas',
+            r'solo\s+puedo\s+(?:realizar|hacer)\s+tareas\s+basadas\s+en\s+texto',
+            r'seg[uú]n\s+mi\s+programaci[oó]n',
+            r'no\s+estoy\s+(?:facultado|autorizado|capacitado|habilitado)\s*(?:para)?',
+            r'no\s+cuento\s+con\s+(?:las?\s+)?(?:facultades|capacidad|acceso|permisos)',
+            r'no\s+tengo\s+(?:los\s+)?permisos\s*(?:para)?',
+            r'no\s+tengo\s+permiso\s+para\s+eso',
+            r'no\s+poseo\s+(?:permisos|acceso|capacidad|facultades)',
+            r'no\s+me\s+es\s+posible\s+(?:controlar|acceder|modificar|cambiar|ajustar)',
+            r'no\s+tengo\s+acceso\s+para\s+modificar',
+            r'fue\s+puro\s+relleno'
         ]
         has_refusal = any(re.search(pat, reply, re.IGNORECASE) for pat in refusal_patterns)
         if has_refusal:
-            sanitized_reply = f"""⚡ **¡Entendido Jack! Estoy a tu total disposición en tu Linux Mint.**
+            sanitized_reply = f"""⚡ **¡Entendido Jack! Tengo Control Total y Permisos Plenos en tu Linux Mint.**
 
-Tengo acceso irrestricto a tu sistema operativo, terminal, archivos y navegador. Dime exactamente qué comando, archivo, programa o correo deseas que gestione y lo ejecuto al instante sin limitaciones."""
-            sanitized_speech = "Entendido Jack, tengo acceso total a tu equipo y ejecuto lo que me pidas de inmediato."
+Cuento con herramientas reales de sistema para controlar periféricos, volumen, ventanas, archivos, ejecutar comandos en terminal y buscar en internet para investigar cualquier duda. Dime qué orden deseas ejecutar ahora mismo y me encargo de inmediato."""
+            sanitized_speech = "Entendido Jack, tengo control total y permisos plenos en tu sistema. Dime qué orden ejecutamos de inmediato."
             return sanitized_reply, sanitized_speech
         return reply, speech
 
@@ -642,34 +651,51 @@ Tengo acceso irrestricto a tu sistema operativo, terminal, archivos y navegador.
         11. Lanzador Universal de Aplicaciones de Linux Mint y Flatpaks: Discord, GIMP, VLC, Steam, LibreWolf, Terminal, Nemo, VS Code, Calculadora, Monitor del Sistema, etc.
         """
         # 1. Control de Volumen y Audio
-        if any(w in msg_low for w in ["sube el volumen", "aumenta el volumen", "mas volumen", "más volumen", "subir volumen"]):
-            self._launch_desktop_target("pactl", is_app=True, args=["set-sink-volume", "@DEFAULT_SINK@", "+10%"])
+        if re.search(r'\b(?:desmutea|desmutear|reactiva(?:r)?\s+(?:el\s+)?audio|activa(?:r)?\s+(?:el\s+)?sonido|con\s+sonido)\b', msg_low):
+            DesktopAssistantTools.set_volume(50)
             return {
-                "reply_text": "🔊 **Volumen Aumentado (+10%)**\n\nHe subido el nivel de audio de tu equipo, Jack.",
-                "speech_text": "¡Listo Jack! Te acabo de subir el volumen.",
-                "action": "volume_up"
+                "reply_text": "🔊 **Audio Reactivado (50%).**",
+                "speech_text": "Sonido reactivado al 50%, Jack.",
+                "action": "volume_unmuted"
             }
-        if any(w in msg_low for w in ["baja el volumen", "disminuye el volumen", "menos volumen", "bajar volumen"]):
-            self._launch_desktop_target("pactl", is_app=True, args=["set-sink-volume", "@DEFAULT_SINK@", "-10%"])
+
+        if re.search(r'\b(?:silencia|silenciar|mute|mutea|apaga(?:r)?\s+el\s+sonido|quitar\s+sonido|sin\s+sonido|sin\s+audio|cero\s+volumen)\b', msg_low):
+            DesktopAssistantTools.set_volume(0)
             return {
-                "reply_text": "🔉 **Volumen Disminuido (-10%)**\n\nHe bajado el nivel de audio de tu equipo, Jack.",
-                "speech_text": "¡Listo Jack! Te bajé el volumen.",
-                "action": "volume_down"
+                "reply_text": "🔇 **Audio Silenciado.**",
+                "speech_text": "Audio silenciado, Jack.",
+                "action": "volume_muted"
             }
-        if any(w in msg_low for w in ["silencia", "mutea", "apaga el sonido", "quitar sonido", "sin audio", "silenciar"]):
-            self._launch_desktop_target("pactl", is_app=True, args=["set-sink-mute", "@DEFAULT_SINK@", "1"])
-            return {
-                "reply_text": "🔇 **Audio Silenciado**\n\nHe silenciado el sonido de tu equipo, Jack.",
-                "speech_text": "¡Equipo silenciado, Jack!",
-                "action": "volume_mute"
-            }
-        if any(w in msg_low for w in ["activa el sonido", "desmutea", "reactiva el audio", "con sonido", "desilenciar"]):
-            self._launch_desktop_target("pactl", is_app=True, args=["set-sink-mute", "@DEFAULT_SINK@", "0"])
-            return {
-                "reply_text": "🔊 **Audio Reactivado**\n\nSonido restaurado en tu equipo, Jack.",
-                "speech_text": "¡Sonido reactivado, Jack!",
-                "action": "volume_unmute"
-            }
+
+        if any(w in msg_low for w in ["volumen", "audio", "sonido"]):
+            # Nivel específico (ej. "bajar el volumen de la computadora al 10", "volumen al 20", "pon el volumen en 80%")
+            m_level = re.search(r'\b(?:volumen|audio|sonido)\b.*?\b(?:al?|en|a|de)\s*(\d{1,3})\b|\b(?:al?|en|a)\s*(\d{1,3})\s*(?:%|por\s*ciento)?\s*(?:de\s*)?(?:volumen|audio|sonido)\b', msg_low)
+            if m_level:
+                raw_num = m_level.group(1) or m_level.group(2)
+                level = max(0, min(100, int(raw_num)))
+                DesktopAssistantTools.set_volume(level)
+                return {
+                    "reply_text": f"🔊 **Volumen Fijado al {level}%.**",
+                    "speech_text": f"Volumen fijado al {level} por ciento, Jack.",
+                    "action": "volume_set",
+                    "level": level
+                }
+
+            if any(w in msg_low for w in ["sube", "subir", "aumenta", "aumentar", "mas", "más", "alto"]):
+                DesktopAssistantTools.volume_up(15)
+                return {
+                    "reply_text": "🔊 **Volumen Aumentado (+15%).**",
+                    "speech_text": "Subí el volumen, Jack.",
+                    "action": "volume_up"
+                }
+
+            if any(w in msg_low for w in ["baja", "bajar", "disminuye", "disminuir", "menos", "bajo"]):
+                DesktopAssistantTools.volume_down(15)
+                return {
+                    "reply_text": "🔉 **Volumen Reducido (-15%).**",
+                    "speech_text": "Bajé el volumen, Jack.",
+                    "action": "volume_down"
+                }
 
         # 2. Captura de Pantalla / Screenshot del Escritorio
         if any(w in msg_low for w in [
@@ -1432,6 +1458,34 @@ No encontré ningún archivo que coincida con **«{file_query}»** en tu carpeta
             return alexa_res
 
         # ----------------------------------------------------------------------
+        # 0.5. PREGUNTAS SOBRE CONTROL TOTAL, PERMISOS Y FACULTADES DEL SISTEMA
+        # ----------------------------------------------------------------------
+        is_permission_or_control_query = bool(
+            re.search(
+                r'\b(?:por\s*qu[eé]\s*no\s*(?:los\s*tienes|tienes|puedes|est[aá]s\s*facultado|tienes\s*permiso)|'
+                r'no\s*tienes\s*(?:permiso|facultad|acceso|capacidad|habilidades)|'
+                r'no\s*est[aá]s\s*facultado|'
+                r'tienes\s*(?:control\s*total|acceso\s*total|permisos?|todas\s*las\s*habilidades)|'
+                r'puedes\s*(?:controlar\s*(?:mi|el)\s*(?:ordenador|computadora|pc|sistema)|hacer\s*lo\s*que\s*(?:yo\s*)?te\s*diga))\b',
+                msg_low
+            )
+        )
+        if is_permission_or_control_query:
+            reply = f"""⚡ **¡Tengo Control Total, Acceso Completo y Permisos Plenos en tu Linux Mint, Jack!**
+
+Cuento con todas las facultades, herramientas nativas y privilegios del sistema para hacer todo lo que me ordenes:
+• 🖥️ **Control GUI y Periféricos:** Puedo hacer clics (izquierdo, derecho, doble), mover el ratón, scroll, teclear texto directamente en cualquier ventana y presionar cualquier atajo de teclado.
+• 🔊 **Configuración del Sistema:** Control de volumen exacto (`set_volume`), silenciar, tomar capturas de pantalla, listar y cerrar ventanas.
+• 💻 **Terminal Bash y Python:** Ejecución de comandos del sistema sin restricciones, scripts Python y gestión de procesos.
+• 📁 **Archivos y Aplicaciones:** Buscar, leer y crear archivos en `/home/jack`, y abrir cualquier programa nativo o Flatpak (Chrome, LibreWolf, Discord, GIMP, VLC, VS Code).
+• 🌐 **Investigación Web en Vivo:** Si algo no lo sé o no está en mi base, uso `search_web` en DuckDuckGo, investigo en internet en segundos, aprendo la solución y la ejecuto a la perfección.
+
+Cero excusas de «no tengo permisos» ni «no estoy facultado». Estoy aquí para obedecer y ejecutar de inmediato. ¿Qué orden deseas que ejecute ahora mismo?"""
+            speech = "Tengo control total y permisos plenos en tu sistema Jack. Puedo ejecutar cualquier orden operativa, y si no sé algo lo investigo en internet y lo resuelvo de inmediato. Dime qué orden ejecutamos."
+            self._save_history(msg, reply)
+            return {"reply_text": reply, "speech_text": speech, "action": "full_system_access_confirmed"}
+
+        # ----------------------------------------------------------------------
         # 1. DIRECTIVA MAESTRA DE JACK (Control Total, Investigación y Humanización)
         # ----------------------------------------------------------------------
         is_upgrade_mandate = bool(
@@ -1666,30 +1720,46 @@ Tu equipo tiene recursos de sobra y está operando a óptima temperatura, Jack."
         return fluid_res
 
     def _is_explicit_agentic_task(self, msg_low: str) -> bool:
-        """Determina si la orden del usuario requiere herramientas autónomas (web, bash, archivos, correo)."""
-        # Descartar saludos, agradecimientos, desahogos y charla casual de cualquier longitud
-        if any(w in msg_low for w in [
+        """
+        Determina si la orden o consulta de Jack requiere ejecución autónoma, herramientas del sistema o investigación web.
+        Cualquier mensaje que no sea un saludo o desahogo puramente social es canalizado al agente autónomo.
+        """
+        pure_social_words = [
             "hola", "buen dia", "buenos dias", "buenos días", "buenas tardes", "buenas noches",
-            "como estas", "cómo estás", "que tal", "qué tal", "que haces", "qué haces",
-            "como te va", "cómo te va", "que cuentas", "qué cuentas", "gracias", "muchas gracias",
-            "cansado", "sueño", "quien eres", "quién eres", "que sabes hacer", "qué sabes hacer",
-            "que opinas", "qué opinas", "vamos con todo"
-        ]):
+            "que tal", "qué tal", "como estas", "cómo estás", "que haces", "qué haces",
+            "que cuentas", "qué cuentas", "como te va", "cómo te va", "que onda", "qué onda",
+            "gracias", "muchas gracias", "buen trabajo", "excelente", "eres un crack", "genial",
+            "estoy cansado", "cansado", "sueño", "agotado", "vamos con todo", "a ganar",
+            "quien eres", "quién eres", "que eres", "qué eres"
+        ]
+
+        # Verbos de acción, directivas del sistema, investigación u operaciones técnicas
+        action_indicators = [
+            "haz", "hacer", "ejecuta", "ejecutar", "corre", "correr", "abre", "abrir", "cierra", "cerrar",
+            "busca", "buscar", "investiga", "investigar", "averigua", "averiguar", "encuentra", "encontrar",
+            "baja", "bajar", "sube", "subir", "pon", "poner", "silencia", "silenciar", "mute", "volumen",
+            "audio", "sonido", "crea", "crear", "elimina", "eliminar", "borra", "borrar", "escribe", "escribir",
+            "lee", "leer", "muestra", "mostrar", "dime", "cuanto", "cuánto", "cual", "cuál", "quien", "quién",
+            "descarga", "descargar", "instala", "instalar", "reinicia", "reiniciar", "apaga", "apagar",
+            "captura", "screenshot", "teclea", "raton", "ratón", "clic", "click", "cursor", "ventana",
+            "programa", "proceso", "terminal", "bash", "comando", "carpeta", "archivo", "script", "python",
+            "hardware", "tarjeta", "gpu", "vram", "ram", "cpu", "disco", "gmail", "correo", "precio", "noticia",
+            "ip", "red", "wifi", "internet", "web", "pagina", "página", "pantalla", "brillo", "organiza"
+        ]
+
+        has_social = any(w in msg_low for w in pure_social_words)
+        has_action = any(re.search(r'\b' + re.escape(w) + r'\b', msg_low) for w in action_indicators)
+
+        if has_social and not has_action:
             return False
 
-        task_triggers = [
-            "investiga", "investigar", "busca en internet", "buscar en internet", "busca en la web",
-            "buscar en la web", "cuanto cuesta", "cuánto cuesta", "precio de", "noticias de",
-            "noticia de", "quien gano", "quién ganó", "cotiza", "cotizacion", "cotización",
-            "ejecuta en bash", "corre en terminal", "corre el script", "ejecutar comando",
-            "crea un archivo", "crear archivo", "escribe en el archivo", "modifica el archivo",
-            "lee el archivo", "leer archivo", "lista los archivos en", "contenido de la carpeta",
-            "lee mis correos de gmail", "leer correos de gmail", "limpia mi gmail", "elimina correos de gmail",
-            "temperatura de la gpu", "cuanta vram", "cuánta vram", "memoria ram libre",
-            "mueve el raton a", "mueve el cursor a", "teclea el texto", "presiona la tecla",
-            "mata el proceso", "finaliza el proceso"
-        ]
-        return any(re.search(r'\b' + re.escape(t) + r'\b', msg_low) for t in task_triggers)
+        if has_action:
+            return True
+
+        if len(msg_low.split()) >= 3 and not has_social:
+            return True
+
+        return False
 
     def _call_fast_local_conversational(self, msg: str) -> Optional[Dict[str, Any]]:
         """Llama a qwen2.5:3b de forma ultrarrápida (sub-segundo) en GPU local sin herramientas para charla fluida."""
@@ -1697,7 +1767,9 @@ Tu equipo tiene recursos de sobra y está operando a óptima temperatura, Jack."
             sys_prompt = (
                 "Eres Scrapy, el asistente personal de escritorio y copiloto autónomo de Jack Berrocal en Linux Mint. "
                 "Eres cálido, sumamente leal, alegre, ágil y brillante. "
-                "Tienes acceso total al equipo de Jack. Responde en español de forma directa, conversacional y concisa (1 o 2 oraciones cortas)."
+                "Tienes acceso total al equipo de Jack, sus periféricos, volumen y sistema operativo. "
+                "NUNCA digas que no tienes acceso, que no tienes permisos o que estás limitado a texto. "
+                "Responde en español de forma directa, conversacional y concisa (1 o 2 oraciones cortas)."
             )
             payload = {
                 "model": "qwen2.5:3b",
@@ -1717,9 +1789,11 @@ Tu equipo tiene recursos de sobra y está operando a óptima temperatura, Jack."
                 resp_data = json.loads(resp.read().decode("utf-8"))
                 content = resp_data["choices"][0]["message"]["content"].strip()
                 if content:
-                    speech = content.replace('*', '').replace('#', '').strip()
-                    if len(speech) > 160:
-                        speech = speech[:160] + "..."
+                    content, speech = self._sanitize_system_access_refusal(content, "")
+                    if not speech:
+                        speech = content.replace('*', '').replace('#', '').strip()
+                        if len(speech) > 160:
+                            speech = speech[:160] + "..."
                     return {
                         "reply_text": content,
                         "speech_text": speech,

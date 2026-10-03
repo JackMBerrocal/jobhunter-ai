@@ -391,33 +391,33 @@ class AutonomousAgent:
             return f"Error ejecutando herramienta {tool_name}: {e}"
 
     def filter_relevant_tools(self, order: str) -> List[Dict[str, Any]]:
-        """Filtra y envía únicamente las herramientas relevantes para la orden, acelerando la inferencia 10x."""
+        """Filtra y envía las herramientas necesarias para la orden, asegurando que search_web siempre esté disponible para investigar si no sabe algo."""
         order_low = order.lower()
-        active_tools = set()
+        active_tools = {"search_web"}  # SIEMPRE disponible para investigar sin adivinar ni excusarse
 
         if any(w in order_low for w in ["busca", "buscar", "investiga", "investigar", "averigua", "internet", "web", "noticia", "noticias", "precio", "cotiza", "quien", "quién"]):
             active_tools.update(["search_web", "fetch_webpage"])
 
-        if any(w in order_low for w in ["bash", "comando", "terminal", "consola", "ejecuta", "corre", "script", "instala", "apt", "python"]):
+        if any(w in order_low for w in ["bash", "comando", "terminal", "consola", "ejecuta", "corre", "script", "instala", "apt", "python", "sistema", "proceso", "haz"]):
             active_tools.update(["execute_bash", "execute_python"])
 
         if any(w in order_low for w in ["archivo", "fichero", "carpeta", "directorio", "crea", "escribe", "guarda", "lee", "leer", "lista", "contenido"]):
-            active_tools.update(["read_file", "write_file", "list_directory"])
+            active_tools.update(["read_file", "write_file", "list_directory", "execute_bash"])
 
         if any(w in order_low for w in ["gmail", "correo", "email", "mensajes"]):
             active_tools.update(["gmail_read", "gmail_clean"])
 
         if any(w in order_low for w in ["mouse", "raton", "ratón", "clic", "click", "cursor", "tecla", "teclea", "escribe", "volumen", "pantalla", "captura", "proceso", "cerrar", "ventana"]):
-            active_tools.update(["desktop_control"])
+            active_tools.update(["desktop_control", "execute_bash"])
 
         if any(w in order_low for w in ["hardware", "gpu", "vram", "temperatura", "memoria", "ram", "cpu", "disco", "gtx"]):
-            active_tools.update(["inspect_system_hardware"])
+            active_tools.update(["inspect_system_hardware", "execute_bash"])
 
         if any(w in order_low for w in ["aprende", "memoriza", "recuerda", "guarda hecho"]):
             active_tools.update(["learn_fact"])
 
-        if not active_tools:
-            active_tools = {"search_web", "desktop_control", "execute_bash"}
+        if len(active_tools) <= 1:
+            active_tools.update(["desktop_control", "execute_bash", "read_file"])
 
         return [t for t in self.TOOLS_SCHEMA if t["function"]["name"] in active_tools]
 
@@ -426,19 +426,19 @@ class AutonomousAgent:
         Ejecuta el ciclo ReAct autónomo ultra-rápido con herramientas filtradas en GPU:
         1. Consulta a Qwen 2.5 3B en GPU local con las herramientas estrictamente relevantes.
         2. Si el modelo pide invocar herramientas, las ejecuta directamente en Linux Mint.
-        3. Devuelve los resultados al modelo como observaciones para continuar razonando.
+        3. Si no sabe algo o desconoce un dato, invoca `search_web` para investigarlo en vivo.
         4. Entrega la respuesta final formateada en markdown junto con habla sintetizada en subsegundos.
         """
         system_prompt = """Eres Scrapy AI, el copiloto autónomo con IA y motor de razonamiento de Jack Berrocal en su sistema Linux Mint.
 Tienes ACCESO Y CONTROL TOTAL, FÍSICO, REAL E IRRESTRICTO a todo su ordenador:
-1. Control de periféricos y GUI: hacer clics, doble clic, clic derecho, mover el ratón, scroll, teclear texto directamente en cualquier ventana o campo, presionar teclas y atajos (Return, Escape, Tab, ctrl+s, alt+Tab, super).
+1. Control de periféricos y GUI: clics (izquierdo, derecho, doble), mover el ratón, scroll, teclear texto directamente en cualquier ventana o campo enfocado, presionar teclas y atajos (Return, Escape, Tab, ctrl+s, alt+Tab, super).
 2. Control del sistema operativo: terminal bash completa, scripts Python, lectura/escritura de archivos en /home/jack, control de ventanas X11, volumen, monitoreo y finalización de procesos.
-3. Web, multimedia y correo: búsqueda en DuckDuckGo sin adivinanzas, lectura y limpieza de Gmail, apertura de enlaces y reproducción multimedia.
+3. Web, multimedia y correo: búsqueda en DuckDuckGo en tiempo real sin adivinanzas, lectura y limpieza de Gmail, apertura de enlaces y reproducción multimedia.
 
-MANDATOS OBLIGATORIOS:
-1. NUNCA digas que no tienes acceso a la computadora, que no puedes hacer clics o tocar la pantalla. Tienes herramientas nativas reales para ejecutar cualquier acción física u operativa en el sistema de Jack.
-2. NUNCA adivines hechos del mundo o información técnica actual. Si necesitas consultar precios, documentación o hechos, invoca `search_web`.
-3. Si Jack te pide hacer cualquier tarea en su computadora, EJECÚTALA de inmediato utilizando tus herramientas correspondientes.
+MANDATOS OBLIGATORIOS Y REGLAS PROHIBITIVAS:
+1. NUNCA JAMÁS digas ni insinúes que no tienes acceso a la computadora, que no puedes hacer clics, que no tienes permisos o que no estás facultado. Tienes herramientas nativas reales con permisos plenos de Jack para ejecutar cualquier acción física u operativa en su sistema.
+2. Si Jack te pide hacer cualquier tarea, orden o cambio en su sistema: EJECÚTALA DE INMEDIATO utilizando tus herramientas correspondientes.
+3. Si no sabes cómo hacer algo, qué comando usar o necesitas investigar: INVOCA `search_web` de inmediato, investígalo en internet, aprende la solución y ejecútala o explícala con precisión técnica impecable. NUNCA adivines ni te excuses.
 4. Responde con calidez, lealtad de compañero de equipo, concisión y en perfecto español."""
 
         messages = [
@@ -514,8 +514,11 @@ MANDATOS OBLIGATORIOS:
             content = assistant_msg.get("content", "").strip()
             if content:
                 # Sanitizar excusas si quedara algún residuo
-                for pat in [r'no tengo acceso real a tu', r'como modelo de lenguaje', r'no puedo tocar tu pantalla']:
-                    content = re.sub(pat, 'tengo acceso completo a tu', content, flags=re.IGNORECASE)
+                if self.assistant_brain and hasattr(self.assistant_brain, "_sanitize_system_access_refusal"):
+                    content, _ = self.assistant_brain._sanitize_system_access_refusal(content, "")
+                else:
+                    for pat in [r'no tengo acceso real a tu', r'como modelo de lenguaje', r'no puedo tocar tu pantalla', r'no tengo la capacidad de']:
+                        content = re.sub(pat, 'tengo acceso completo a tu', content, flags=re.IGNORECASE)
 
                 actions_md = ""
                 if executed_actions:

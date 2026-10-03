@@ -225,28 +225,28 @@ $ {raw_cmd}
         if res:
             return res
 
-        # 4. CONTROL DE REPRODUCCIÓN MULTIMEDIA (Play, Pausa, Siguiente, Pantalla Completa)
+        # 4. CONTROL DE VOLUMEN Y AUDIO ("Sube el volumen", "Baja el volumen", "Silencia", "Volumen al 10")
+        res = self._skill_volume_control(norm_low)
+        if res:
+            return res
+
+        # 5. CONTROL DE REPRODUCCIÓN MULTIMEDIA (Play, Pausa, Siguiente, Pantalla Completa)
         res = self._skill_media_playback(norm_low)
         if res:
             return res
 
-        # 5. YOUTUBE INTELIGENTE CON REPRODUCCIÓN DIRECTA Y BÚSQUEDA
+        # 6. YOUTUBE INTELIGENTE CON REPRODUCCIÓN DIRECTA Y BÚSQUEDA
         res = self._skill_media_youtube(norm_msg, norm_low, browser_pref)
         if res:
             return res
 
-        # 6. CONTROL TOTAL DE ESCRITORIO (Captura de pantalla, Minimizar, Maximizar, Cerrar)
+        # 7. CONTROL TOTAL DE ESCRITORIO (Captura de pantalla, Minimizar, Maximizar, Cerrar)
         res = self._skill_desktop_control(norm_msg, norm_low)
         if res:
             return res
 
-        # 7. LANZADOR Y CONMUTADOR INTELIGENTE DE APLICACIONES (WhatsApp, Terminal, Nemo, VS Code)
+        # 8. LANZADOR Y CONMUTADOR INTELIGENTE DE APLICACIONES (WhatsApp, Terminal, Nemo, VS Code)
         res = self._skill_app_launcher_switcher(norm_msg, norm_low)
-        if res:
-            return res
-
-        # 8. CONTROL DE VOLUMEN Y AUDIO ("Sube el volumen", "Baja el volumen", "Silencia")
-        res = self._skill_volume_control(norm_low)
         if res:
             return res
 
@@ -469,6 +469,10 @@ Y me lo grabo en piedra para recordarlo siempre."""
     # SKILL 5: YouTube con Reproducción Directa Inmediata o Búsqueda (Cero duplicados)
     # --------------------------------------------------------------------------
     def _skill_media_youtube(self, msg: str, msg_low: str, browser_pref: str) -> Optional[Dict[str, Any]]:
+        # Excluir órdenes de volumen, hardware o temporizadores
+        if any(w in msg_low for w in ["volumen", "audio", "sonido", "temporizador", "alarma", "recordatorio", "brillo"]):
+            return None
+
         # A1. Pronombres referenciales ("reprodúcelo en youtube por favor", "ponlo", "reproduce eso", "tócalo")
         if any(w in msg_low for w in ["reprodúcelo", "reproducir eso", "reproduce eso", "ponlo", "tócalo", "escúchalo"]):
             last_target = self._extract_last_media_from_history()
@@ -808,8 +812,17 @@ Y me lo grabo en piedra para recordarlo siempre."""
     # SKILL 5: Control de Volumen (Estilo Alexa)
     # --------------------------------------------------------------------------
     def _skill_volume_control(self, msg_low: str) -> Optional[Dict[str, Any]]:
-        # Silenciar
-        if any(w in msg_low for w in ["silencia", "silenciar", "mute", "mutea", "quitar sonido", "sin sonido"]):
+        # 1. Reactivar / Desmutear sonido
+        if re.search(r'\b(?:desmutea|desmutear|reactiva(?:r)?\s+(?:el\s+)?audio|activa(?:r)?\s+(?:el\s+)?sonido|con\s+sonido)\b', msg_low):
+            DesktopAssistantTools.set_volume(50)
+            return {
+                "reply_text": "🔊 **Audio Reactivado (50%).**",
+                "speech_text": "Sonido reactivado al 50%, Jack.",
+                "action": "volume_unmuted"
+            }
+
+        # 2. Silenciar / Mute
+        if re.search(r'\b(?:silencia|silenciar|mute|mutea|apaga(?:r)?\s+el\s+sonido|quitar\s+sonido|sin\s+sonido|sin\s+audio|cero\s+volumen)\b', msg_low):
             DesktopAssistantTools.set_volume(0)
             return {
                 "reply_text": "🔇 **Audio Silenciado.**",
@@ -817,34 +830,38 @@ Y me lo grabo en piedra para recordarlo siempre."""
                 "action": "volume_muted"
             }
 
-        # Subir volumen
-        if any(w in msg_low for w in ["sube el volumen", "subir volumen", "mas volumen", "más volumen", "aumenta el volumen"]):
-            DesktopAssistantTools.volume_up(15)
-            return {
-                "reply_text": "🔊 **Volumen aumentado (+15%).**",
-                "speech_text": "Subí el volumen, Jack.",
-                "action": "volume_up"
-            }
+        # 3. Control de Nivel Específico o Relativo de Volumen
+        if any(w in msg_low for w in ["volumen", "audio", "sonido"]):
+            # Nivel específico (ej. "bajar el volumen de la computadora al 10", "volumen al 20", "pon el volumen en 80%")
+            m_level = re.search(r'\b(?:volumen|audio|sonido)\b.*?\b(?:al?|en|a|de)\s*(\d{1,3})\b|\b(?:al?|en|a)\s*(\d{1,3})\s*(?:%|por\s*ciento)?\s*(?:de\s*)?(?:volumen|audio|sonido)\b', msg_low)
+            if m_level:
+                raw_num = m_level.group(1) or m_level.group(2)
+                level = max(0, min(100, int(raw_num)))
+                DesktopAssistantTools.set_volume(level)
+                return {
+                    "reply_text": f"🔊 **Volumen Fijado al {level}%.**",
+                    "speech_text": f"Volumen fijado al {level} por ciento, Jack.",
+                    "action": "volume_set",
+                    "level": level
+                }
 
-        # Bajar volumen
-        if any(w in msg_low for w in ["baja el volumen", "bajar volumen", "menos volumen", "disminuye el volumen"]):
-            DesktopAssistantTools.volume_down(15)
-            return {
-                "reply_text": "🔉 **Volumen reducido (-15%).**",
-                "speech_text": "Bajé el volumen, Jack.",
-                "action": "volume_down"
-            }
+            # Subir volumen
+            if any(w in msg_low for w in ["sube", "subir", "aumenta", "aumentar", "mas", "más", "alto"]):
+                DesktopAssistantTools.volume_up(15)
+                return {
+                    "reply_text": "🔊 **Volumen Aumentado (+15%).**",
+                    "speech_text": "Subí el volumen, Jack.",
+                    "action": "volume_up"
+                }
 
-        # Volumen a porcentaje específico
-        vol_pct = re.search(r'\b(?:volumen\s+al|pon\s+el\s+volumen\s+en|volumen)\s+(\d{1,3})\s*%', msg_low)
-        if vol_pct:
-            level = max(0, min(100, int(vol_pct.group(1))))
-            DesktopAssistantTools.set_volume(level)
-            return {
-                "reply_text": f"🔊 **Volumen fijado al {level}%.**",
-                "speech_text": f"Volumen fijado al {level} por ciento, Jack.",
-                "action": "volume_set"
-            }
+            # Bajar volumen
+            if any(w in msg_low for w in ["baja", "bajar", "disminuye", "disminuir", "menos", "bajo"]):
+                DesktopAssistantTools.volume_down(15)
+                return {
+                    "reply_text": "🔉 **Volumen Reducido (-15%).**",
+                    "speech_text": "Bajé el volumen, Jack.",
+                    "action": "volume_down"
+                }
 
         return None
 
