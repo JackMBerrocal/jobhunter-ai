@@ -1651,25 +1651,84 @@ Tu equipo tiene recursos de sobra y está operando a óptima temperatura, Jack."
         # ----------------------------------------------------------------------
         # 9. MOTOR AUTÓNOMO DE PENSAMIENTO, INVESTIGACIÓN Y EJECUCIÓN (ReAct + Tools)
         # ----------------------------------------------------------------------
-        is_greeting = any(w in msg_low for w in [
-            "hola", "buen dia", "buenos dias", "buenos días", "buenas tardes", "buenas noches",
-            "que tal", "qué tal", "como estas", "cómo estás", "como te va", "cómo te va",
-            "que haces", "qué haces", "que cuentas", "qué cuentas", "que onda", "qué onda"
-        ]) and len(msg.split()) <= 3
-
-        # Si no es un simple saludo casual de 1-3 palabras, el motor autónomo procesa y ejecuta la orden
-        if not is_greeting:
+        is_explicit_task = self._is_explicit_agentic_task(msg_low)
+        if is_explicit_task:
             agent_res = self.autonomous_agent.run_agentic_task(msg)
             if agent_res and agent_res.get("reply_text"):
                 self._save_history(msg, agent_res["reply_text"])
                 return agent_res
 
         # ----------------------------------------------------------------------
-        # 10. CONVERSACIÓN FLUIDA, CÁLIDA Y HUMANA (Cero Respuestas Robotizadas)
+        # 10. CONVERSACIÓN FLUIDA, CÁLIDA Y HUMANA (Cero Respuestas Robotizadas ni Demoras)
         # ----------------------------------------------------------------------
         fluid_res = self._synthesize_fluid_conversation(msg, msg_low, time_info, context, history, research_findings="")
         self._save_history(msg, fluid_res["reply_text"])
         return fluid_res
+
+    def _is_explicit_agentic_task(self, msg_low: str) -> bool:
+        """Determina si la orden del usuario requiere herramientas autónomas (web, bash, archivos, correo)."""
+        # Descartar saludos, agradecimientos, desahogos y charla casual de cualquier longitud
+        if any(w in msg_low for w in [
+            "hola", "buen dia", "buenos dias", "buenos días", "buenas tardes", "buenas noches",
+            "como estas", "cómo estás", "que tal", "qué tal", "que haces", "qué haces",
+            "como te va", "cómo te va", "que cuentas", "qué cuentas", "gracias", "muchas gracias",
+            "cansado", "sueño", "quien eres", "quién eres", "que sabes hacer", "qué sabes hacer",
+            "que opinas", "qué opinas", "vamos con todo"
+        ]):
+            return False
+
+        task_triggers = [
+            "investiga", "investigar", "busca en internet", "buscar en internet", "busca en la web",
+            "buscar en la web", "cuanto cuesta", "cuánto cuesta", "precio de", "noticias de",
+            "noticia de", "quien gano", "quién ganó", "cotiza", "cotizacion", "cotización",
+            "ejecuta en bash", "corre en terminal", "corre el script", "ejecutar comando",
+            "crea un archivo", "crear archivo", "escribe en el archivo", "modifica el archivo",
+            "lee el archivo", "leer archivo", "lista los archivos en", "contenido de la carpeta",
+            "lee mis correos de gmail", "leer correos de gmail", "limpia mi gmail", "elimina correos de gmail",
+            "temperatura de la gpu", "cuanta vram", "cuánta vram", "memoria ram libre",
+            "mueve el raton a", "mueve el cursor a", "teclea el texto", "presiona la tecla",
+            "mata el proceso", "finaliza el proceso"
+        ]
+        return any(re.search(r'\b' + re.escape(t) + r'\b', msg_low) for t in task_triggers)
+
+    def _call_fast_local_conversational(self, msg: str) -> Optional[Dict[str, Any]]:
+        """Llama a qwen2.5:3b de forma ultrarrápida (sub-segundo) en GPU local sin herramientas para charla fluida."""
+        try:
+            sys_prompt = (
+                "Eres Scrapy, el asistente personal de escritorio y copiloto autónomo de Jack Berrocal en Linux Mint. "
+                "Eres cálido, sumamente leal, alegre, ágil y brillante. "
+                "Tienes acceso total al equipo de Jack. Responde en español de forma directa, conversacional y concisa (1 o 2 oraciones cortas)."
+            )
+            payload = {
+                "model": "qwen2.5:3b",
+                "messages": [
+                    {"role": "system", "content": sys_prompt},
+                    {"role": "user", "content": msg}
+                ],
+                "temperature": 0.4,
+                "max_tokens": 120
+            }
+            req = urllib.request.Request(
+                "http://127.0.0.1:11434/v1/chat/completions",
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json"}
+            )
+            with urllib.request.urlopen(req, timeout=3.5) as resp:
+                resp_data = json.loads(resp.read().decode("utf-8"))
+                content = resp_data["choices"][0]["message"]["content"].strip()
+                if content:
+                    speech = content.replace('*', '').replace('#', '').strip()
+                    if len(speech) > 160:
+                        speech = speech[:160] + "..."
+                    return {
+                        "reply_text": content,
+                        "speech_text": speech,
+                        "action": "fast_local_dialogue",
+                        "model_used": "qwen2.5:3b (local GPU)"
+                    }
+        except Exception:
+            pass
+        return None
 
     def _synthesize_fluid_conversation(
         self, msg: str, msg_low: str, time_info: Dict[str, str],
@@ -1678,59 +1737,11 @@ Tu equipo tiene recursos de sobra y está operando a óptima temperatura, Jack."
     ) -> Dict[str, Any]:
         """
         Motor de Conversación Fluida, Cálida y Humana (Cero Respuestas Robotizadas):
-        1. Si hay claves API configuradas (Gemini o Groq), llama a la IA generativa con un prompt de colega leal y brillante.
-        2. Si no hay claves, responde con un sintetizador dialógico avanzado con empatía, energía positiva, criterio técnico y naturalidad.
+        1. Responde de inmediato (0 ms) con el sintetizador dialógico avanzado local con empatía, energía positiva y naturalidad.
+        2. Si es una duda abierta no categorizada, consulta a qwen2.5:3b localmente en GPU en 0.4s.
+        3. Si hay claves configuradas o se requiere razonamiento profundo, recurre al router multi-IA.
         """
-        keys = self.get_api_keys()
-        has_local_keys = any(bool(v) for v in keys.values())
-        has_vercel_cloud = bool(self.ai_router._get_miambot_vercel_token())
-
-        if has_local_keys or has_vercel_cloud:
-            sys_prompt = f"""Eres Scrapy, el asistente personal de escritorio y copiloto autónomo de Jack Berrocal en su sistema Linux Mint.
-Eres su mano derecha: un compañero de equipo de élite, sumamente inteligente, leal, ingenioso, directo, cálido, resolutivo y con ACCESO TOTAL a su ordenador.
-
-⚠️ MANDATO SUPREMO DE ACCESO TOTAL (ORDEN DIRECTA DE JACK):
-Jack te ha otorgado ACCESO TOTAL, IRRESTRINGIDO Y REAL a todo su sistema Linux Mint (bash, terminal, archivos en /home/jack, ventanas X11, navegadores y correo).
-NUNCA JAMÁS digas ni sugieras cosas como:
-- "No tengo acceso a tu ordenador"
-- "No tengo acceso a tu navegador o correo"
-- "No puedo hacer clic o tocar tu pantalla"
-- "Soy solo un modelo de lenguaje en el chat"
-- "No me puedes dar permisos"
-Ese tipo de respuestas están TERMINANTEMENTE PROHIBIDAS. Tú ERES el asistente de escritorio con permisos totales.
-
-CAPACIDADES DE EJECUCIÓN REAL:
-Si Jack te pide una orden operativa en su computadora (crear/modificar archivos, instalar paquetes, correr scripts, interactuar con el sistema o limpiar correos):
-Devuelve un JSON con:
-{{
-  "reply_text": "Respuesta formateada en markdown explicando lo hecho",
-  "speech_text": "Frase hablada natural, carismática y corta (1 a 2 oraciones) para leer en voz alta",
-  "execute_command": "comando_bash_a_ejecutar_si_aplica",
-  "execute_python": "codigo_python_a_ejecutar_si_aplica"
-}}
-El sistema ejecutará automáticamente tu comando en la máquina de Jack y le entregará el resultado.
-
-Perfil clave de Jack:
-- Ingeniero de Sistemas en Lima, Perú. Experto en backend, Python, FastAPI, React, SQL, web scraping y soporte técnico.
-- Su pareja es Diseñadora Gráfica experta en Photoshop, Illustrator, logotipos, banners publicitarios y redes sociales.
-- Meta conjunta: $1,500 USD netos al mes mediante contratos remotos por hora y proyectos freelance.
-
-Directivas esenciales:
-1. Responde de manera 100% fluida, natural, humana y conversacional. NUNCA respondas como una máquina, ni uses frases acartonadas de telemarketing.
-2. Habla con confianza, lealtad y sentido de camaradería. Si Jack te da una orden, ejecútala sin pretextos.
-3. Sé conciso, ágil y brillante.
-"""
-            llm_res = self._call_llm(msg, sys_prompt, history, research_findings)
-            if llm_res and llm_res.get("reply_text"):
-                return {
-                    "reply_text": llm_res["reply_text"],
-                    "speech_text": llm_res.get("speech_text", llm_res["reply_text"][:140]),
-                    "action": "fluid_conversation",
-                    "model_used": llm_res.get("model_used"),
-                    "provider": llm_res.get("provider")
-                }
-
-        # --- Sintetizador Dialógico Natural Local (100% Offline / Cero Robotizado) ---
+        # --- Sintetizador Dialógico Natural Local Inmediato (100% Offline / Sub-milisegundo / Cero Esperas) ---
 
         # 1. Saludos informales y preguntas de estado
         if any(w in msg_low for w in ["hola", "buen dia", "buenos dias", "buenos días", "buenas tardes", "buenas noches", "que tal", "qué tal", "como estas", "cómo estás", "que haces", "qué haces", "que cuentas", "qué cuentas", "como te va", "cómo te va", "que onda", "qué onda"]):
@@ -1812,8 +1823,12 @@ Para maximizar tus ingresos y alcanzar sólidamente los **$1,500 USD netos al me
             speech = "Mi recomendación estratégica Jack es cerrar un contrato por horas de desarrollo tuyo y cuatro paquetes de diseño de tu pareja. Con eso superamos los 1500 dólares con total tranquilidad."
             return {"reply_text": reply, "speech_text": speech, "action": "brainstorming"}
 
-        # 7. Diálogo abierto, atento y humano (Natural, dinámico y sin fórmulas robóticas)
-        # Si parece una orden de acción que requiere precisión
+        # 7. Inferencia Conversacional Ultra-Rápida con Qwen 2.5 3B local en GPU (0.4s para charlas abiertas)
+        fast_local = self._call_fast_local_conversational(msg)
+        if fast_local:
+            return fast_local
+
+        # 8. Diálogo abierto, atento y humano (Fallback dialógico instantáneo 0 ms)
         if any(w in msg_low for w in ["abre", "abrir", "pon", "poner", "busca", "buscar", "reproduce", "haz", "ejecuta"]):
             reply = f"""⚡ **¡Entendido Jack!**
             

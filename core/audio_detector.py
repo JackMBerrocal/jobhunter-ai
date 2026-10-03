@@ -47,12 +47,12 @@ class LocalAudioDetector:
         "Linux Mint, volumen, canciones, música, archivos, memoria, procesador, tarjeta gráfica."
     )
 
-    def __init__(self, model_size: str = "small"):
+    def __init__(self, model_size: str = "base"):
         self.model_size = model_size
         self._initialize_model()
 
     @classmethod
-    def get_instance(cls, model_size: str = "small") -> 'LocalAudioDetector':
+    def get_instance(cls, model_size: str = "base") -> 'LocalAudioDetector':
         if cls._instance is None:
             cls._instance = LocalAudioDetector(model_size=model_size)
         return cls._instance
@@ -115,9 +115,9 @@ class LocalAudioDetector:
                 temp_path,
                 language="es",
                 initial_prompt=self.INITIAL_PROMPT,
-                vad_filter=True,
-                vad_parameters=dict(min_silence_duration_ms=400),
-                beam_size=5,
+                vad_filter=False,
+                beam_size=1,
+                best_of=1,
                 temperature=0.0
             )
 

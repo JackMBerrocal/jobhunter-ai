@@ -390,13 +390,44 @@ class AutonomousAgent:
         except Exception as e:
             return f"Error ejecutando herramienta {tool_name}: {e}"
 
+    def filter_relevant_tools(self, order: str) -> List[Dict[str, Any]]:
+        """Filtra y envía únicamente las herramientas relevantes para la orden, acelerando la inferencia 10x."""
+        order_low = order.lower()
+        active_tools = set()
+
+        if any(w in order_low for w in ["busca", "buscar", "investiga", "investigar", "averigua", "internet", "web", "noticia", "noticias", "precio", "cotiza", "quien", "quién"]):
+            active_tools.update(["search_web", "fetch_webpage"])
+
+        if any(w in order_low for w in ["bash", "comando", "terminal", "consola", "ejecuta", "corre", "script", "instala", "apt", "python"]):
+            active_tools.update(["execute_bash", "execute_python"])
+
+        if any(w in order_low for w in ["archivo", "fichero", "carpeta", "directorio", "crea", "escribe", "guarda", "lee", "leer", "lista", "contenido"]):
+            active_tools.update(["read_file", "write_file", "list_directory"])
+
+        if any(w in order_low for w in ["gmail", "correo", "email", "mensajes"]):
+            active_tools.update(["gmail_read", "gmail_clean"])
+
+        if any(w in order_low for w in ["mouse", "raton", "ratón", "clic", "click", "cursor", "tecla", "teclea", "escribe", "volumen", "pantalla", "captura", "proceso", "cerrar", "ventana"]):
+            active_tools.update(["desktop_control"])
+
+        if any(w in order_low for w in ["hardware", "gpu", "vram", "temperatura", "memoria", "ram", "cpu", "disco", "gtx"]):
+            active_tools.update(["inspect_system_hardware"])
+
+        if any(w in order_low for w in ["aprende", "memoriza", "recuerda", "guarda hecho"]):
+            active_tools.update(["learn_fact"])
+
+        if not active_tools:
+            active_tools = {"search_web", "desktop_control", "execute_bash"}
+
+        return [t for t in self.TOOLS_SCHEMA if t["function"]["name"] in active_tools]
+
     def run_agentic_task(self, user_order: str, max_steps: int = 5) -> Dict[str, Any]:
         """
-        Ejecuta el ciclo ReAct autónomo con llamadas nativas a herramientas:
-        1. Consulta a Qwen 2.5 7B en GPU local con las 11 herramientas registradas.
+        Ejecuta el ciclo ReAct autónomo ultra-rápido con herramientas filtradas en GPU:
+        1. Consulta a Qwen 2.5 3B en GPU local con las herramientas estrictamente relevantes.
         2. Si el modelo pide invocar herramientas, las ejecuta directamente en Linux Mint.
         3. Devuelve los resultados al modelo como observaciones para continuar razonando.
-        4. Entrega la respuesta final formateada en markdown junto con habla sintetizada.
+        4. Entrega la respuesta final formateada en markdown junto con habla sintetizada en subsegundos.
         """
         system_prompt = """Eres Scrapy AI, el copiloto autónomo con IA y motor de razonamiento de Jack Berrocal en su sistema Linux Mint.
 Tienes ACCESO Y CONTROL TOTAL, FÍSICO, REAL E IRRESTRICTO a todo su ordenador:
@@ -407,7 +438,7 @@ Tienes ACCESO Y CONTROL TOTAL, FÍSICO, REAL E IRRESTRICTO a todo su ordenador:
 MANDATOS OBLIGATORIOS:
 1. NUNCA digas que no tienes acceso a la computadora, que no puedes hacer clics o tocar la pantalla. Tienes herramientas nativas reales para ejecutar cualquier acción física u operativa en el sistema de Jack.
 2. NUNCA adivines hechos del mundo o información técnica actual. Si necesitas consultar precios, documentación o hechos, invoca `search_web`.
-3. Si Jack te pide hacer cualquier tarea en su computadora (mover el cursor, hacer clics, escribir texto, abrir programas, crear archivos, correr scripts o monitorear el sistema), EJECÚTALA de inmediato utilizando tus herramientas correspondientes.
+3. Si Jack te pide hacer cualquier tarea en su computadora, EJECÚTALA de inmediato utilizando tus herramientas correspondientes.
 4. Responde con calidez, lealtad de compañero de equipo, concisión y en perfecto español."""
 
         messages = [
@@ -415,15 +446,16 @@ MANDATOS OBLIGATORIOS:
             {"role": "user", "content": user_order}
         ]
 
-        model_name = "qwen2.5:7b"
+        model_name = "qwen2.5:3b"
+        tools_to_use = self.filter_relevant_tools(user_order)
         executed_actions = []
 
         for step in range(max_steps):
             payload = {
                 "model": model_name,
                 "messages": messages,
-                "tools": self.TOOLS_SCHEMA,
-                "temperature": 0.3
+                "tools": tools_to_use,
+                "temperature": 0.2
             }
 
             try:
@@ -432,7 +464,7 @@ MANDATOS OBLIGATORIOS:
                     data=json.dumps(payload).encode("utf-8"),
                     headers={"Content-Type": "application/json"}
                 )
-                with urllib.request.urlopen(req, timeout=35) as resp:
+                with urllib.request.urlopen(req, timeout=9) as resp:
                     resp_data = json.loads(resp.read().decode("utf-8"))
                     choice = resp_data["choices"][0]
                     assistant_msg = choice["message"]

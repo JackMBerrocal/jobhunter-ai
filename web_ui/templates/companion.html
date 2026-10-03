@@ -640,13 +640,13 @@
             for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
             let avg = sum / dataArray.length;
 
-            if (avg > 11) {
+            if (avg > 3.2) {
               hasSpoken = true;
               silenceStart = null;
             } else if (hasSpoken) {
               if (!silenceStart) silenceStart = Date.now();
-              else if (Date.now() - silenceStart > 750) {
-                // Silencio prolongado tras hablar: detener y enviar
+              else if (Date.now() - silenceStart > 420) {
+                // Silencio tras hablar: detener y enviar de forma ágil (420ms)
                 if (companionMediaRecorder && companionMediaRecorder.state === 'recording') {
                   companionMediaRecorder.stop();
                 }
