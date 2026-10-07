@@ -82,18 +82,20 @@ class MiamBotSalesCopilot:
 
         # Identificación del tipo de duda del cliente si no se especificó un goal
         detected_intent = goal
-        if any(w in c_low for w in ["descuento", "muy caro", "rebaja", "menos", "caro", "presupuesto bajo", "expensive", "discount", "cheaper", "lower price"]):
+        if any(w in c_low for w in ["drive.google", "dropbox", "wetransfer", "mega.nz", "attached", "attach", "here is the", "here are the", "uploaded", "te paso", "adjunto", "aqui está", "aquí está", "mira este", "te envio", "te envío"]):
+            detected_intent = "files_received"
+        elif any(w in c_low for w in ["descuento", "muy caro", "rebaja", "menos", "caro", "presupuesto bajo", "expensive", "discount", "cheaper", "lower price"]):
             detected_intent = "negotiate_price"
         elif any(w in c_low for w in ["cuándo", "cuando", "tiempo", "plazo", "urgente", "días", "dias", "hours", "how long", "urgent", "deadline", "fast"]):
             detected_intent = "timeline_urgency"
-        elif any(w in c_low for w in ["ejemplo", "muestra", "portafolio", "portfolio", "trabajos anteriores", "samples", "previous work", "logos anteriores"]):
+        elif any(w in c_low for w in ["ejemplo", "muestra", "portafolio", "portfolio", "trabajos anteriores", "samples", "sample", "prueba", "test", "demo", "free sample", "previous work", "logos anteriores"]):
             detected_intent = "portfolio_proof"
         elif any(w in c_low for w in ["llamada", "zoom", "meet", "whatsapp", "call", "phone", "celular", "número", "telefono", "skype"]):
             detected_intent = "prevent_external_call"
-        elif any(w in c_low for w in ["empezar", "arrancar", "comenzamos", "start", "hacerlo", "dale", "de acuerdo", "perfecto", "me parece", "ok"]):
+        elif any(w in c_low for w in ["empezar", "arrancar", "comenzamos", "start", "hacerlo", "dale", "de acuerdo", "perfecto", "me parece", "ok", "great", "sounds good", "deal", "let's do it", "lets do it"]):
             detected_intent = "close_milestone"
 
-        is_design = category == "graphic_design_creative" or any(w in (project_title + " " + client_message).lower() for w in ["logo", "diseño", "photoshop", "illustrator", "banner", "flyer", "vector"])
+        is_design = category == "graphic_design_creative" or any(w in (project_title + " " + client_message).lower() for w in ["logo", "diseño", "photoshop", "illustrator", "banner", "flyer", "vector", "photo", "retouch"])
 
         # Intentar síntesis LLM personalizada con MiamBot Prompt si hay mensaje del cliente
         if client_message and len(client_message.strip()) > 8:
@@ -143,6 +145,31 @@ I am online right now—could you please share the details or files here so we c
 Por aquí podemos resolver cualquier duda técnica, revisar archivos, enviar capturas de avance y coordinar entregas con total agilidad y transparencia, sin necesidad de llamadas externas.
 
 Estoy en línea en este momento. ¿Me comparte los detalles o el documento por aquí para revisarlo de inmediato y ponernos en marcha? 🚀"""
+
+        # ---------------- CASO: CLIENTE ENVÍA FOTOS O ENLACES ----------------
+        elif detected_intent == "files_received":
+            if is_design:
+                if is_english:
+                    reply = f"""Thank you for sharing the photo and details! I have received them and am starting work on the sample right away in Photoshop. 
+
+I will focus on exposure balancing, natural skin-tone correction, and professional color grading while preserving 100% of the authentic facial features and details. 
+
+I will upload the edited sample preview right here in the chat as soon as it is ready for your review! 🎨🤝"""
+                else:
+                    reply = f"""¡Muchas gracias por compartir los archivos y referencias! Ya los tengo y me pongo a trabajar de inmediato en la muestra de prueba en Photoshop.
+
+Me enfocaré en la corrección de iluminación, balance natural de tonos de piel y color grading profesional, manteniendo intacta la autenticidad de cada fotografía.
+
+En cuanto tenga lista la muestra se la compartiré por este mismo chat para su visto bueno antes de continuar. 🎨🤝"""
+            else:
+                if is_english:
+                    reply = f"""Thank you for sharing the files and links! I have received everything and am reviewing the requirements right now. 
+
+I will make sure everything is aligned with the specifications and keep you updated here on our immediate next steps."""
+                else:
+                    reply = f"""¡Muchas gracias por compartir los archivos y accesos! Ya tengo todo el material y lo estoy revisando minuciosamente.
+
+Me aseguraré de que cada punto quede alineado a lo que necesita y le reportaré por aquí el siguiente avance técnico."""
 
         # ---------------- CASO 2: CLIENTE PIDE DESCUENTO / REBAJA DE PRECIO ----------------
         elif detected_intent == "negotiate_price":
@@ -197,10 +224,19 @@ Si tiene una fecha límite o urgencia especial, hágamelo saber y con gusto prio
 
 ¿Le parece si creamos el hito de pago (Milestone) en Freelancer para comenzar de inmediato con la primera fase? ⏱️🚀"""
 
-        # ---------------- CASO 4: CLIENTE PIDE PORTAFOLIO / PRUEBAS DE EXPERIENCIA ----------------
+        # ---------------- CASO 4: CLIENTE PIDE PORTAFOLIO / PRUEBAS / MUESTRA ----------------
         elif detected_intent == "portfolio_proof":
             if is_design:
-                if is_english:
+                if any(w in c_low for w in ["sample", "muestra", "prueba", "demo", "free"]):
+                    if is_english:
+                        reply = f"""Yes, absolutely! I can edit 1 sample photograph for you right now completely free of charge. 
+
+Please feel free to attach or link 1 photo right here in the chat, and I will edit it right away so you can review the quality, exposure, skin tones, and overall style before awarding the project! 🎨🤝"""
+                    else:
+                        reply = f"""¡Sí, por supuesto! Puedo editarle 1 fotografía de muestra ahora mismo de forma totalmente gratuita.
+
+Por favor compártame 1 foto por este chat y la editaré de inmediato para que pueda evaluar la calidad, iluminación, tonos de piel y estilo antes de adjudicar el proyecto. 🎨🤝"""
+                elif is_english:
                     reply = f"""Absolutely! We specialize in professional graphic design, brand identity, Photoshop image composition, and vector art in Adobe Illustrator.
 
 We deliver layered master files (.AI, .PSD), vector formats (.SVG, .EPS), and print-ready high-resolution files (300 DPI CMYK PDF and transparent PNGs) with unlimited refinements until you are 100% satisfied.

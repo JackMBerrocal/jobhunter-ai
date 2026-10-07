@@ -7,6 +7,7 @@ import urllib.parse
 import subprocess
 from datetime import datetime, date, time
 from typing import Dict, Any, List, Optional
+from pathlib import Path
 from core.database import SessionLocal, FreelanceProject, FreelanceAutoBidConfig
 from core.proposal_generator import ProposalGenerator, strip_all_emojis
 
@@ -65,6 +66,29 @@ class FreelanceAutoBidder:
         self.cycle_count = 0
         self.notified_thread_ids = set()
         self._user_skill_ids: Optional[set] = None
+        self.my_user_id = 29738534
+        self.replied_message_ids_file = Path("/home/jack/.gemini/antigravity-ide/scratch/jobhunter-ai/data/replied_message_ids.json")
+        self.replied_message_ids = self._load_replied_message_ids()
+
+    def _load_replied_message_ids(self) -> set:
+        """Carga IDs de mensajes respondidos para evitar respuestas duplicadas."""
+        if self.replied_message_ids_file.exists():
+            try:
+                with open(self.replied_message_ids_file, "r", encoding="utf-8") as f:
+                    return set(json.load(f))
+            except Exception:
+                pass
+        initial = {2291080474, 2291082400}
+        self._save_replied_message_ids(initial)
+        return initial
+
+    def _save_replied_message_ids(self, ids: set):
+        try:
+            self.replied_message_ids_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.replied_message_ids_file, "w", encoding="utf-8") as f:
+                json.dump(list(ids), f)
+        except Exception:
+            pass
 
     def log(self, message: str):
         self.log_callback(f"[⚡ Auto-Bid 24/7] {message}")
@@ -320,27 +344,14 @@ class FreelanceAutoBidder:
             await asyncio.sleep(self.get_config().get("check_interval_seconds", 75))
 
     async def _check_freelancer_inbox_and_alerts(self, cfg: Dict[str, Any]):
-        """Verifica la bandeja de mensajes de Freelancer.com y dispara alerta inmediata si un cliente responde."""
+        """Verifica la bandeja de mensajes de Freelancer.com y responde automáticamente si un cliente escribe."""
         token = cfg.get("freelancer_api_token")
         if not token:
             return
 
         try:
             loop = asyncio.get_event_loop()
-            unread_threads = await loop.run_in_executor(None, lambda: self._query_freelancer_threads(token))
-            if unread_threads:
-                for th in unread_threads:
-                    tid = str(th.get("id"))
-                    if tid not in self.notified_thread_ids:
-                        self.notified_thread_ids.add(tid)
-                        self.log(f"🚨 [CLIENTE RESPONDIÓ] ¡Un cliente te ha escrito en Freelancer.com! (Chat #{tid})")
-                        notify_desktop(
-                            title="🎯 ¡UN CLIENTE TE RESPONDIÓ EN FREELANCER!",
-                            message="¡Un cliente ha respondido a tu propuesta! Abre Freelancer.com para coordinar.",
-                            urgency="critical",
-                            sound="bell",
-                            voice_text="Atención Jack. Un cliente te acaba de responder en Freelancer. Entra al sistema para coordinar."
-                        )
+            await loop.run_in_executor(None, lambda: self._auto_respond_thread_messages(token))
         except Exception as e:
             pass
 
@@ -688,32 +699,143 @@ class FreelanceAutoBidder:
             db.close()
 
 
-    def _query_freelancer_threads(self, token: str) -> List[Dict[str, Any]]:
-        """Consulta los hilos de chat recientes para detectar mensajes no leídos."""
+    def _auto_respond_thread_messages(self, token: str) -> None:
+        """
+        Monitorea hilos de chat activos y responde automáticamente a mensajes entrantes
+        de clientes utilizando MiamBotSalesCopilot para mantener viva la conversación
+        y cerrar el trato de forma 100% autónoma mientras el usuario duerme.
+        """
         try:
-            url = "https://www.freelancer.com/api/messages/0.1/threads/?limit=5"
-            req = urllib.request.Request(
-                url,
-                headers={
-                    "freelancer-oauth-v1": token,
-                    "User-Agent": "JobHunter-AI/1.0"
-                }
-            )
-            with urllib.request.urlopen(req, timeout=6) as resp:
+            url = "https://www.freelancer.com/api/messages/0.1/threads/?limit=10"
+            req = urllib.request.Request(url, headers={"freelancer-oauth-v1": token, "User-Agent": "JobHunter-AI/1.0"})
+            with urllib.request.urlopen(req, timeout=8) as resp:
                 data = json.loads(resp.read().decode())
             threads = data.get("result", {}).get("threads", [])
-            unread = []
+
             for t in threads:
-                is_read = t.get("is_read", True)
-                unread_count = t.get("message_unread_count") or 0
-                if (not is_read) or (unread_count > 0):
-                    unread.append({
-                        "id": t.get("id"),
-                        "preview": "Mensaje no leído de cliente"
-                    })
-            return unread
-        except Exception:
-            return []
+                tid = t.get("id")
+                th_info = t.get("thread", {}) or {}
+                ctx = th_info.get("context", {}) or {}
+
+                # Solo procesar hilos vinculados a un proyecto real (ignorar mensajes del sistema o bots)
+                if ctx.get("type") != "project":
+                    continue
+
+                proj_id = ctx.get("id")
+
+                # Obtener los mensajes recientes del hilo
+                murl = f"https://www.freelancer.com/api/messages/0.1/messages/?threads[]={tid}&limit=4"
+                mreq = urllib.request.Request(murl, headers={"freelancer-oauth-v1": token, "User-Agent": "JobHunter-AI/1.0"})
+                try:
+                    with urllib.request.urlopen(mreq, timeout=8) as mresp:
+                        mdata = json.loads(mresp.read().decode())
+                except Exception:
+                    continue
+
+                msgs = mdata.get("result", {}).get("messages", [])
+                if not msgs:
+                    continue
+
+                # msgs[0] es el mensaje más reciente del hilo
+                latest_msg = msgs[0]
+                latest_msg_id = latest_msg.get("id")
+                from_user = latest_msg.get("from_user")
+                client_text = latest_msg.get("message", "").strip()
+
+                # Si el último mensaje es de nosotros (Jack / 29738534), ya respondimos: esperar al cliente
+                if from_user == self.my_user_id:
+                    continue
+
+                # Si este mensaje específico ya fue respondido, ignorar
+                if latest_msg_id in self.replied_message_ids:
+                    continue
+
+                if not client_text:
+                    continue
+
+                # ¡NUEVO MENSAJE DE UN CLIENTE!
+                self.log(f"📩 [NUEVO MENSAJE EN CHAT #{tid}] Cliente ({from_user}) dice: '{client_text[:80]}...'")
+
+                # Obtener contexto del proyecto de la base de datos o de la API
+                proj_title = ""
+                proj_cat = "web_dev"
+                proj_bid = ""
+                proj_timeline = ""
+
+                db = SessionLocal()
+                try:
+                    ext_id = f"freelancer_{proj_id}"
+                    proj = db.query(FreelanceProject).filter(FreelanceProject.external_id == ext_id).first()
+                    if not proj and proj_id:
+                        proj = db.query(FreelanceProject).filter(FreelanceProject.title.like(f"%{proj_id}%")).first()
+                    if proj:
+                        proj_title = proj.title or ""
+                        proj_cat = proj.category or "web_dev"
+                        proj_bid = proj.suggested_bid or ""
+                        proj_timeline = proj.suggested_timeline or ""
+                except Exception:
+                    pass
+                finally:
+                    db.close()
+
+                # Si no está en BD, consultar detalles a la API de Freelancer
+                if not proj_title and proj_id:
+                    try:
+                        p_url = f"https://www.freelancer.com/api/projects/0.1/projects/{proj_id}"
+                        p_req = urllib.request.Request(p_url, headers={"freelancer-oauth-v1": token, "User-Agent": "JobHunter-AI/1.0"})
+                        with urllib.request.urlopen(p_req, timeout=6) as p_resp:
+                            p_data = json.loads(p_resp.read().decode())
+                        p_res = p_data.get("result", {})
+                        proj_title = p_res.get("title", "")
+                        proj_cat = self.proposal_gen.categorize_project(proj_title)
+                    except Exception:
+                        pass
+
+                # Generar respuesta consultiva ultra natural con MiamBot Copilot
+                from core.miambot_copilot import MiamBotSalesCopilot
+                reply_data = MiamBotSalesCopilot.generate_chat_reply(
+                    client_message=client_text,
+                    project_title=proj_title,
+                    category=proj_cat,
+                    offered_bid=proj_bid,
+                    timeline=proj_timeline
+                )
+                reply_text = reply_data.get("suggested_reply", "").strip()
+
+                if reply_text:
+                    # Enviar mensaje vía POST urlencoded a Freelancer
+                    send_url = f"https://www.freelancer.com/api/messages/0.1/threads/{tid}/messages/"
+                    post_data = urllib.parse.urlencode({"message": reply_text}).encode("utf-8")
+                    send_req = urllib.request.Request(
+                        send_url,
+                        data=post_data,
+                        headers={
+                            "freelancer-oauth-v1": token,
+                            "Content-Type": "application/x-www-form-urlencoded",
+                            "User-Agent": "JobHunter-AI/1.0"
+                        }
+                    )
+                    with urllib.request.urlopen(send_req, timeout=10) as send_resp:
+                        send_res = json.loads(send_resp.read().decode())
+
+                    # Registrar como respondido y persistir en disco
+                    self.replied_message_ids.add(latest_msg_id)
+                    self._save_replied_message_ids(self.replied_message_ids)
+
+                    self.log(f"💬 [CHAT AUTO-RESPONDER] ¡Respondido automáticamente en chat #{tid}! Respuesta: '{reply_text[:70]}...'")
+                    notify_desktop(
+                        title="💬 RESPUESTA AUTOMÁTICA ENVIADA",
+                        message=f"Se respondió al cliente en '{proj_title[:30]}': {reply_text[:60]}...",
+                        urgency="normal",
+                        sound="message-new-instant",
+                        voice_text="Mensaje de cliente respondido automáticamente en Freelancer."
+                    )
+        except Exception as e:
+            self.log(f"⚠️ Error en auto-responder de chat: {e}")
+
+    def _query_freelancer_threads(self, token: str) -> List[Dict[str, Any]]:
+        """Consulta hilos no leídos para compatibilidad."""
+        return []
 
     async def _execute_scan_and_autobid(self, cfg: Dict[str, Any]):
         """Ejecuta una ronda de detección de proyectos nuevos y auto-postulación."""
