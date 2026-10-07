@@ -36,8 +36,12 @@ def strip_all_emojis(text: str) -> str:
     cleaned = re.sub(r"^\s*estimad[oa]\s+cliente[,:.]*\s*\n*", "Hola, qué tal.\n\n", cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r"\*+", "", cleaned)
     cleaned = re.sub(r"^[ \t]*#+[ \t]*", "", cleaned, flags=re.MULTILINE)
-    cleaned = re.sub(r"^[ \t]*[-•][ \t]*", "- ", cleaned, flags=re.MULTILINE)
-    cleaned = re.sub(r"^(\d+\.)\s+", r"\1 ", cleaned, flags=re.MULTILINE)
+    unpaid_patterns = [
+        r"(?i)[^\n\.]*\b(?:sample\s+edit\s+first|free\s+sample|sample\s+preview\s+at\s+no\s+cost|at\s+no\s+cost|free\s+of\s+charge|edit\s+a\s+sample\s+first|provide\s+a\s+sample\s+first|muestra\s+gratis|muestra\s+gratuita|de\s+forma\s+gratuita|sin\s+costo\s+alguno|muestra\s+sin\s+costo)[^\n\.]*[\.\n]*"
+    ]
+    for up in unpaid_patterns:
+        cleaned = re.sub(up, "", cleaned)
+
     cleaned = re.sub(r"[ \t]+", " ", cleaned)
     cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
     return cleaned.strip()
@@ -741,7 +745,8 @@ class ProposalGenerator:
                     "2. FORMAT: Freelancer.com DOES NOT support Markdown. STRICTLY FORBIDDEN to use asterisks (** or *). Use clean plain text with clear paragraphs and simple dashes (-) for lists.\n"
                     "3. GREETING: Natural, direct and warm ('Hi there', 'Hello!'). NEVER use robotic AI clichés like 'I hope this finds you well' or 'I am thrilled to apply'.\n"
                     "4. MANDATORY CONSULTATIVE QUESTIONS: Include at least 2 creative/design questions before closing to start the chat discussion.\n"
-                    "5. STRICT PLATFORM CLOSE: Invite the client to share details and references through the Freelancer.com chat. All project coordination is 100% via chat without external calls."
+                    "5. STRICT PLATFORM CLOSE: Invite the client to share details and references through the Freelancer.com chat. All project coordination is 100% via chat without external calls.\n"
+                    "6. MANDATORY NO FREE WORK RULE: NEVER offer free samples, unpaid drafts, test tasks, or work for free. All work requires formal project award and funded milestone. Strictly forbidden to write 'I can provide a sample first', 'free trial', 'at no cost', or similar."
                 )
             else:
                 sys_inst = (
@@ -753,7 +758,8 @@ class ProposalGenerator:
                     "3. GREETING: Natural, direct and professional ('Hi [Name]', 'Hello there', or straight to the technical solution). NEVER use robotic AI clichés like 'I hope this proposal finds you well', 'I am thrilled to apply', or 'Dear client'.\n"
                     "4. MANDATORY CONSULTATIVE QUESTIONS: ALWAYS include a dedicated section before closing with at least 2 sharp, direct technical questions to invite the client to reply in the chat.\n"
                     "5. BUDGET & VALUE: Justify the reference quote ({suggested_bid}) by demonstrating solid technical competence and clear deliverables.\n"
-                    "6. STRICT PLATFORM CLOSE: Invite the client to coordinate all technical details directly through the Freelancer.com chat. 100% chat-based delivery with no external meetings required."
+                    "6. STRICT PLATFORM CLOSE: Invite the client to coordinate all technical details directly through the Freelancer.com chat. 100% chat-based delivery with no external meetings required.\n"
+                    "7. MANDATORY NO FREE WORK RULE: NEVER offer free samples, unpaid previews, test tasks, or work for free. All work is paid under formal project award and milestone funding. Strictly forbidden to write 'I can do a sample first', 'free test', 'at no cost', or similar."
                 )
 
             ai_prompt = f"""FREELANCER.COM PROJECT:
@@ -771,6 +777,7 @@ Write a winning technical proposal for this project in ENGLISH.
 - Include at least 2 sharp consultative technical questions at the end to prompt a chat response.
 - Plain text only, NO markdown asterisks (**).
 - Concise (3-4 short paragraphs), human, technically sharp, focused on solving the client requirement.
+- STRICTLY FORBIDDEN to offer free samples, unpaid work, or previews without payment.
 """
         else:
             if is_design:
@@ -783,7 +790,8 @@ Write a winning technical proposal for this project in ENGLISH.
                     "3. SALUDO: Saluda de forma natural y cercana ('Hola, qué tal', 'Hola [Nombre]' o entra directo al grano). NUNCA uses clichés robóticos como 'Gracias por tu interés en mi perfil', 'Entiendo completamente tu requerimiento', 'Me complace escuchar...' ni 'Estimado cliente'.\n"
                     "4. PREGUNTAS CONSULTIVAS OBLIGATORIAS: Incluye SIEMPRE antes del cierre un apartado con al menos 2 preguntas técnicas o creativas directas para invitar al cliente a responder por el chat.\n"
                     "5. NUNCA inventes 'Escenario 1' ni 'Escenario 2' salvo que el cliente haya pedido explícitamente cotizar escenarios en su anuncio.\n"
-                    "6. Cierre profesional invitando a coordinar por el chat de la plataforma Freelancer.com."
+                    "6. Cierre profesional invitando a coordinar por el chat de la plataforma Freelancer.com.\n"
+                    "7. PROHIBICIÓN TOTAL DE TRABAJO GRATIS: NUNCA ofrezcas muestras gratuitas, pruebas sin costo ni adelantos gratis. Todo trabajo se ejecuta con pago de por medio bajo adjudicación formal del proyecto e hito de pago (Milestone). ESTÁ ESTRICTAMENTE PROHIBIDO escribir 'puedo hacer una muestra primero', 'prueba gratis' o 'sin costo'."
                 )
             else:
                 sys_inst = (
@@ -796,7 +804,8 @@ Write a winning technical proposal for this project in ENGLISH.
                     "4. PREGUNTAS CONSULTIVAS OBLIGATORIAS: Incluye SIEMPRE antes del cierre un apartado con al menos 2 preguntas técnicas o consultivas directas basadas en el proyecto para invitar al cliente a responder en el chat.\n"
                     "5. PRESUPUESTO Y VALOR: Justifica la cotización de referencia planteada ({suggested_bid}) demostrando alta competencia técnica y entregables concretos.\n"
                     "6. NUNCA inventes 'Escenario 1' ni 'Escenario 2' salvo que el cliente haya pedido explícitamente cotizar escenarios en su anuncio.\n"
-                    "7. Cierre directo invitando a coordinar los detalles técnicos por el chat de Freelancer.com."
+                    "7. Cierre directo invitando a coordinar los detalles técnicos por el chat de Freelancer.com.\n"
+                    "8. PROHIBICIÓN TOTAL DE TRABAJO GRATIS: NUNCA ofrezcas muestras gratuitas, pruebas sin costo ni trabajo no remunerado. Todo trabajo se ejecuta con pago de por medio bajo adjudicación formal del proyecto e hito de pago (Milestone). ESTÁ ESTRICTAMENTE PROHIBIDO decir 'puedo hacer una muestra primero' o similar."
                 )
 
             scenario_note = ""
@@ -818,6 +827,7 @@ Redacta la propuesta para postular a este proyecto.
 - OBLIGATORIO: Incluye al final MÍNIMO 2 preguntas consultivas específicas para iniciar la conversación por el chat.
 - NO uses asteriscos (** ni *) porque en Freelancer.com se muestran como caracteres rotos.
 - NO uses clichés robóticos ('Gracias por tu interés en mi perfil', 'Entiendo completamente tu requerimiento', 'Me complace escuchar...', 'Estimado cliente', etc.).
+- TOTALMENTE PROHIBIDO ofrecer muestras gratis, pruebas sin costo o trabajo no remunerado.
 - Mensaje conciso (3 a 5 párrafos breves), humano, técnico y enfocado en resolver exactamente lo que el cliente pide.{scenario_note}
 """
 

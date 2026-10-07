@@ -148,28 +148,18 @@ Estoy en línea en este momento. ¿Me comparte los detalles o el documento por a
 
         # ---------------- CASO: CLIENTE ENVÍA FOTOS O ENLACES ----------------
         elif detected_intent == "files_received":
-            if is_design:
-                if is_english:
-                    reply = f"""Thank you for sharing the photo and details! I have received them and am starting work on the sample right away in Photoshop. 
+            if is_english:
+                reply = f"""Thank you for sharing the files and specifications! I have received everything and reviewed the scope.
 
-I will focus on exposure balancing, natural skin-tone correction, and professional color grading while preserving 100% of the authentic facial features and details. 
-
-I will upload the edited sample preview right here in the chat as soon as it is ready for your review! 🎨🤝"""
-                else:
-                    reply = f"""¡Muchas gracias por compartir los archivos y referencias! Ya los tengo y me pongo a trabajar de inmediato en la muestra de prueba en Photoshop.
-
-Me enfocaré en la corrección de iluminación, balance natural de tonos de piel y color grading profesional, manteniendo intacta la autenticidad de cada fotografía.
-
-En cuanto tenga lista la muestra se la compartiré por este mismo chat para su visto bueno antes de continuar. 🎨🤝"""
+To initiate the project under Freelancer.com warranty and begin execution immediately:
+1. Please proceed to award the project and fund the initial milestone deposit.
+2. Once the milestone is created in escrow, I will begin work right away and keep you updated every step of the way directly in this chat!"""
             else:
-                if is_english:
-                    reply = f"""Thank you for sharing the files and links! I have received everything and am reviewing the requirements right now. 
+                reply = f"""¡Muchas gracias por compartir los archivos y especificaciones! Ya tengo todo el material y he revisado los requerimientos.
 
-I will make sure everything is aligned with the specifications and keep you updated here on our immediate next steps."""
-                else:
-                    reply = f"""¡Muchas gracias por compartir los archivos y accesos! Ya tengo todo el material y lo estoy revisando minuciosamente.
-
-Me aseguraré de que cada punto quede alineado a lo que necesita y le reportaré por aquí el siguiente avance técnico."""
+Para iniciar formalmente bajo la garantía de Freelancer.com y comenzar con la ejecución de inmediato:
+1. Puede proceder a adjudicar el proyecto y habilitar el hito de pago (Milestone).
+2. En cuanto el hito quede creado en la plataforma, inicio los trabajos de inmediato y le iré reportando los avances por este chat."""
 
         # ---------------- CASO 2: CLIENTE PIDE DESCUENTO / REBAJA DE PRECIO ----------------
         elif detected_intent == "negotiate_price":
@@ -227,15 +217,15 @@ Si tiene una fecha límite o urgencia especial, hágamelo saber y con gusto prio
         # ---------------- CASO 4: CLIENTE PIDE PORTAFOLIO / PRUEBAS / MUESTRA ----------------
         elif detected_intent == "portfolio_proof":
             if is_design:
-                if any(w in c_low for w in ["sample", "muestra", "prueba", "demo", "free"]):
+                if any(w in c_low for w in ["sample", "muestra", "prueba", "demo", "free", "gratis"]):
                     if is_english:
-                        reply = f"""Yes, absolutely! I can edit 1 sample photograph for you right now completely free of charge. 
+                        reply = f"""I do not provide unpaid samples or free work. To guarantee dedicated attention, top quality, and full compliance with Freelancer.com protection, all work is executed with formal milestone funding in place.
 
-Please feel free to attach or link 1 photo right here in the chat, and I will edit it right away so you can review the quality, exposure, skin tones, and overall style before awarding the project! 🎨🤝"""
+Once the project is awarded and the milestone deposit is created in escrow (which remains protected until your full approval), I will immediately begin execution and provide revisions until you are 100% satisfied! 🤝🎨"""
                     else:
-                        reply = f"""¡Sí, por supuesto! Puedo editarle 1 fotografía de muestra ahora mismo de forma totalmente gratuita.
+                        reply = f"""No realizo muestras gratuitas ni trabajos sin pago de por medio. Para garantizar total dedicación, seriedad y un acabado profesional bajo las garantías de Freelancer.com, el trabajo inicia formalmente una vez que se adjudica el proyecto y se crea el hito de pago (Milestone).
 
-Por favor compártame 1 foto por este chat y la editaré de inmediato para que pueda evaluar la calidad, iluminación, tonos de piel y estilo antes de adjudicar el proyecto. 🎨🤝"""
+Una vez creado el hito (el cual queda protegido en la plataforma hasta su conformidad), con mucho gusto avanzamos con la primera propuesta y realizamos todas las revisiones necesarias hasta su total satisfacción. 🤝🎨"""
                 elif is_english:
                     reply = f"""Absolutely! We specialize in professional graphic design, brand identity, Photoshop image composition, and vector art in Adobe Illustrator.
 
