@@ -236,6 +236,15 @@ class ProposalGenerator:
             if re.search(arpat, text):
                 return "excluded_account_recovery"
 
+        # EXCLUSIÓN TOTAL: MICRO-TAREAS DE RETOQUE FOTOGRÁFICO O FOTOS PERSONALES (Precios indignos e incompatibles con perfil)
+        photo_microtask_patterns = [
+            r"\b(?:photo\s+retouch(?:ing)?|photograph\s+retouch(?:ing)?|engagement\s+photo(?:s|graphs)?|wedding\s+photo(?:s)?|retouch(?:ing)?\s+\d+\s+photo|background\s+remov(?:al|e)|cutout\s+images?|passport\s+photo|headshot\s+retouch|skin\s+retouch(?:ing)?|photo\s+edit(?:ing)?)\b",
+            r"\b(?:retoque\s+fotogr[aá]fico|retocar\s+\d+\s+fotos|quitar\s+fondo|fotos\s+de\s+boda|fotos\s+de\s+compromiso|edici[oó]n\s+de\s+fotos\s+personales)\b"
+        ]
+        for pmpat in photo_microtask_patterns:
+            if re.search(pmpat, text):
+                return "excluded_photo_microtask"
+
         # Verificación estricta de tags o habilidades del proyecto
         if skills:
             excluded_skills_terms = {
@@ -243,7 +252,8 @@ class ProposalGenerator:
                 "landscape design", "home design", "structural engineering", "civil engineering",
                 "architectural rendering", "3d rendering", "3d design", "3d modelling",
                 "autocad", "sketchup", "revit", "solidworks", "fashion design",
-                "video editing", "videography", "video production", "voice talent", "audio production"
+                "video editing", "videography", "video production", "voice talent", "audio production",
+                "photo retouching", "photo editing", "photography", "photos"
             }
             for s in skills:
                 s_str = str(s).lower().strip()

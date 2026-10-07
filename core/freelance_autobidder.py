@@ -958,9 +958,13 @@ class FreelanceAutoBidder:
                     if bid_count > 22:
                         continue
 
-                    # Conversión aproximada a USD para estandarizar guardarraíles
-                    usd_min = (min_b / rate) if rate > 0 and min_b else 0
-                    usd_max = (max_b / rate) if rate > 0 and max_b else 0
+                    # Conversión precisa a USD y Soles (PEN):
+                    # En Freelancer API: exchange_rate es cuánto vale 1 unidad local en USD (ej: INR = 0.010337 USD).
+                    # Por tanto, para obtener USD se MULTIPLICA por exchange_rate.
+                    usd_min = (min_b * rate) if rate > 0 and min_b else 0
+                    usd_max = (max_b * rate) if rate > 0 and max_b else 0
+                    pen_min = usd_min * 3.75
+                    pen_max = usd_max * 3.75
 
                     if min_b and max_b:
                         budget_str = f"{cur} {int(min_b)} - {int(max_b)}{hourly_suffix}"
@@ -982,6 +986,8 @@ class FreelanceAutoBidder:
                         "max_budget": float(max_b or 0),
                         "usd_min": float(usd_min),
                         "usd_max": float(usd_max),
+                        "pen_min": float(pen_min),
+                        "pen_max": float(pen_max),
                         "bid_count": bid_count,
                         "is_hourly": (p_type == "hourly"),
                         "job_ids": [j.get("id") for j in p.get("jobs", []) if j.get("id") is not None],
@@ -1199,19 +1205,30 @@ class FreelanceAutoBidder:
 
         self.log(f"⚡ [Oportunidad Temprana] '{title[:32]}...' tiene apenas {bid_count} ofertas. ¡Postulando de inmediato para posicionar a Jack en el TOP {bid_count + 1}!")
 
-        # 3. Guardarraíl Salarial Flexible - Trabajos Pequeños y Grandes
-        min_hourly = cfg.get("min_hourly_rate", 8.0)
-        min_fixed = cfg.get("min_fixed_budget", 20.0)
+        # 3. Guardarraíl Salarial Senior (Dignidad Profesional y Criterio)
+        # Jack es Ingeniero de Sistemas Senior y su esposa es Diseñadora Gráfica Senior (promedio 4,500 Soles/mes).
+        # NUNCA postular a proyectos con pagos indignos que desvalorizan su experiencia y reputación.
+        min_hourly = max(float(cfg.get("min_hourly_rate", 15.0) or 15.0), 15.0)
+        min_fixed = max(float(cfg.get("min_fixed_budget", 60.0) or 60.0), 60.0)
+
+        category = proj_data.get("category", "")
+        # Para desarrollo web, software, python, scraping o sistemas: mínimo $80 USD (~300 Soles)
+        if category in ("web_dev", "python_automation_scraping", "ai_llm_agents", "mobile_apps", "systems_database"):
+            min_fixed = max(min_fixed, 80.0)
+        else:
+            # Para diseño gráfico y afines: mínimo $60 USD (~225 Soles)
+            min_fixed = max(min_fixed, 60.0)
+
+        effective_usd = float(proj_data.get("usd_max") or proj_data.get("usd_min") or 0)
+        effective_pen = effective_usd * 3.75
 
         if proj_data["is_hourly"]:
-            effective_usd_rate = proj_data["usd_max"] or proj_data["usd_min"] or proj_data["max_budget"]
-            if effective_usd_rate > 0 and effective_usd_rate < min_hourly:
-                self.log(f"🛡️ [Guardarraíl Tarifa] Tarifa horaria de '{title[:32]}...' (${effective_usd_rate:.0f}/hr) menor al mínimo requerido (${min_hourly}/hr).")
+            if effective_usd > 0 and effective_usd < min_hourly:
+                self.log(f"🛡️ [Guardarraíl Salarial Senior] Tarifa horaria de '{title[:32]}...' (${effective_usd:.1f}/hr ~ S/ {effective_pen:.1f}/hr) menor al mínimo requerido (${min_hourly}/hr).")
                 return False
         else:
-            effective_usd_fixed = proj_data["usd_max"] or proj_data["usd_min"] or proj_data["max_budget"]
-            if effective_usd_fixed > 0 and effective_usd_fixed < min_fixed:
-                self.log(f"🛡️ [Guardarraíl Presupuesto] Presupuesto de '{title[:32]}...' (${effective_usd_fixed:.0f} USD) inferior a la meta mínima (${min_fixed} USD).")
+            if effective_usd > 0 and effective_usd < min_fixed:
+                self.log(f"🛡️ [Guardarraíl Salarial Senior] Presupuesto de '{title[:32]}...' (${effective_usd:.1f} USD ~ S/ {effective_pen:.1f} Soles) es indigno e inferior al estándar profesional ($ {min_fixed:.0f} USD ~ S/ {min_fixed*3.75:.0f} Soles). Descartado.")
                 return False
 
         # 4. Verificar en BD si ya existe y si ya fue postulado
