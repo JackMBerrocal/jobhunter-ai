@@ -132,10 +132,16 @@ class FreelanceProject(Base):
     generated_proposal = Column(Text, nullable=True)
     suggested_bid = Column(String(100), nullable=True)
     suggested_timeline = Column(String(100), nullable=True)
-    status = Column(String(50), default="open", index=True)  # open, proposal_generated, applied, dismissed
+    status = Column(String(50), default="open", index=True)  # open, proposal_generated, applied, client_replied, accepted, completed, dismissed
     auto_applied = Column(Boolean, default=False, index=True)
     applied_at = Column(DateTime, nullable=True)
     bid_response_log = Column(Text, nullable=True)
+    client_replied = Column(Boolean, default=False, index=True)
+    client_reply_text = Column(Text, nullable=True)
+    client_reply_at = Column(DateTime, nullable=True)
+    is_awarded = Column(Boolean, default=False, index=True)
+    agreed_amount = Column(String(100), nullable=True)
+    step_by_step_plan = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.now)
 
     __table_args__ = (
@@ -158,6 +164,9 @@ class FreelanceAutoBidConfig(Base):
         default='["customer_support_whatsapp", "sales_setter_crm", "ai_chatbot_system", "social_media_growth", "ecommerce_stores", "virtual_assistant_admin", "power_bi_data", "qa_testing", "sql_database", "web_dev", "python_automation_scraping"]'
     )
     freelancer_api_token = Column(String(300), nullable=True)
+    max_competition_bids = Column(Integer, default=12)  # Descartar si el proyecto supera 12 ofertas
+    goal_monthly_usd = Column(Float, default=1500.0)    # Meta financiera mensual
+    membership_bids_total = Column(Integer, default=100) # Límite mensual de la membresía
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
 
@@ -186,11 +195,28 @@ def init_db():
         new_cols_fl = [
             ("auto_applied", "BOOLEAN DEFAULT 0"),
             ("applied_at", "DATETIME"),
-            ("bid_response_log", "TEXT")
+            ("bid_response_log", "TEXT"),
+            ("client_replied", "BOOLEAN DEFAULT 0"),
+            ("client_reply_text", "TEXT"),
+            ("client_reply_at", "DATETIME"),
+            ("is_awarded", "BOOLEAN DEFAULT 0"),
+            ("agreed_amount", "TEXT"),
+            ("step_by_step_plan", "TEXT")
         ]
         for col_name, col_type in new_cols_fl:
             if col_name not in cols_fl:
                 cur.execute(f"ALTER TABLE freelance_projects ADD COLUMN {col_name} {col_type}")
+
+        # Migración tabla freelance_autobid_config
+        cols_cfg = [r[1] for r in cur.execute("PRAGMA table_info(freelance_autobid_config)").fetchall()]
+        new_cols_cfg = [
+            ("max_competition_bids", "INTEGER DEFAULT 12"),
+            ("goal_monthly_usd", "FLOAT DEFAULT 1500.0"),
+            ("membership_bids_total", "INTEGER DEFAULT 100")
+        ]
+        for col_name, col_type in new_cols_cfg:
+            if col_name not in cols_cfg:
+                cur.execute(f"ALTER TABLE freelance_autobid_config ADD COLUMN {col_name} {col_type}")
 
         conn.commit()
         conn.close()
@@ -205,9 +231,12 @@ def init_db():
             cfg = FreelanceAutoBidConfig(
                 id=1,
                 is_enabled=False,
-                min_hourly_rate=15.0,
-                min_fixed_budget=50.0,
+                min_hourly_rate=20.0,
+                min_fixed_budget=150.0,
                 max_daily_bids=4,
+                max_competition_bids=12,
+                goal_monthly_usd=1500.0,
+                membership_bids_total=100,
                 check_interval_seconds=75
             )
             db.add(cfg)

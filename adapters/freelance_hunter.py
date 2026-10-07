@@ -20,18 +20,21 @@ class FreelanceHunter:
     def fetch_freelancer_projects(self, max_per_query: int = 4) -> List[Dict[str, Any]]:
         """Obtiene proyectos activos en español desde Freelancer.com API."""
         queries = [
-            "whatsapp", "atencion al cliente", "asistente virtual", "tiktok", "instagram",
-            "redes sociales", "community manager", "setter", "chatbot", "power bi",
-            "python", "sql", "qa testing", "desarrollo web", "wordpress", "shopify", "automatizacion",
-            "diseno grafico", "photoshop", "illustrator", "logotipo", "banner", "logo design"
+            "",  # Stream de proyectos más recientes en español (tiempo real)
+            "desarrollo web", "pagina web", "wordpress", "landing page", "frontend", "shopify",
+            "python", "automatizacion", "scraping", "bot", "software", "api", "sql",
+            "diseno grafico", "logotipo", "branding", "banner", "photoshop", "illustrator", "identidad visual"
         ]
         projects = []
         seen_ids = set()
 
         for q in queries:
             try:
-                enc = urllib.parse.quote_plus(q)
-                url = f"https://www.freelancer.com/api/projects/0.1/projects/active?query={enc}&languages[]=es&full_description=true&job_details=true&limit={max_per_query}"
+                if q:
+                    enc = urllib.parse.quote_plus(q)
+                    url = f"https://www.freelancer.com/api/projects/0.1/projects/active?query={enc}&languages[]=es&full_description=true&job_details=true&limit={max_per_query}"
+                else:
+                    url = "https://www.freelancer.com/api/projects/0.1/projects/active?languages[]=es&full_description=true&job_details=true&limit=15"
                 req = urllib.request.Request(url, headers={
                     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
                 })
@@ -63,8 +66,23 @@ class FreelanceHunter:
                     else:
                         budget_str = f"A convenir{hourly_suffix}"
 
-                    proj_url = f"https://www.freelancer.com/projects/{pid}"
+                    # Filtro Estricto Jack: 100% Remoto, cero viajes, solo Web, Sistemas y Diseño
+                    text_check = f"{title} {desc}".lower()
+                    presencial_triggers = [
+                        "presencial", "visita presencial", "visitas presenciales", "en terreno", "puerta fría", "puerta fria",
+                        "visitar negocios", "visitar clientes", "visitar empresas", "viajar", "viajes",
+                        "disponibilidad para viajar", "presencialmente", "trabajo de campo",
+                        "en paraguay", "en asunción", "en asuncion", "en bogotá", "en bogota", "en medellín", "en medellin",
+                        "en santiago", "en buenos aires", "en cdmx", "en guadalajara", "oficina física", "oficina fisica"
+                    ]
+                    if any(t in text_check for t in presencial_triggers):
+                        continue
+
                     category = self.proposal_gen.categorize_project(title, desc)
+                    if category not in {"web_dev", "python_automation_scraping", "graphic_design_creative", "ai_chatbot_system", "sql_database"}:
+                        continue
+
+                    proj_url = f"https://www.freelancer.com/projects/{pid}"
                     job_objs = p.get("jobs") or []
                     job_names = [j.get("name") for j in job_objs if isinstance(j, dict) and j.get("name")]
                     skills = job_names[:5] if job_names else [q]
@@ -145,30 +163,31 @@ class FreelanceHunter:
                     FreelanceProject.external_id == p["external_id"]
                 ).first()
 
+                category = self.proposal_gen.categorize_project(p["title"], p["description"])
+                estimates = self.proposal_gen.estimate_bid_and_time(p["budget"], category, f"{p['title']} {p['description']}")
+                suggested_bid = estimates["suggested_bid"]
+                suggested_time = estimates["suggested_timeline"]
+                is_hourly = estimates.get("is_hourly", False)
+                prop_text = self.proposal_gen._generate_cognitive_proposal(
+                    title=p["title"],
+                    description=p["description"],
+                    category=category,
+                    suggested_bid=suggested_bid,
+                    timeline=suggested_time,
+                    is_hourly=is_hourly,
+                    budget=p["budget"]
+                )
+
                 if existing:
                     # Actualizar si la nueva descripción es más completa o si tenía propuesta genérica
                     if len(p["description"]) > len(existing.description or "") or "Playwright / Requests / BeautifulSoup" in (existing.generated_proposal or ""):
-                        prop_data = self.proposal_gen.generate_proposal(
-                            title=p["title"],
-                            description=p["description"],
-                            client_name=p["client_name"],
-                            budget=p["budget"]
-                        )
                         existing.budget = p["budget"]
                         existing.description = p["description"]
-                        existing.category = prop_data["category"]
-                        existing.generated_proposal = prop_data["proposal_text"]
-                        existing.suggested_bid = prop_data["suggested_bid"]
-                        existing.suggested_timeline = prop_data["suggested_timeline"]
+                        existing.category = category
+                        existing.generated_proposal = prop_text
+                        existing.suggested_bid = suggested_bid
+                        existing.suggested_timeline = suggested_time
                 else:
-                    # Pre-generar propuesta y estimación
-                    prop_data = self.proposal_gen.generate_proposal(
-                        title=p["title"],
-                        description=p["description"],
-                        client_name=p["client_name"],
-                        budget=p["budget"]
-                    )
-
                     new_proj = FreelanceProject(
                         platform=p["platform"],
                         external_id=p["external_id"],
@@ -176,13 +195,13 @@ class FreelanceHunter:
                         client_name=p["client_name"],
                         budget=p["budget"],
                         currency=p.get("currency", "USD"),
-                        category=prop_data["category"],
+                        category=category,
                         skills_json=json.dumps(p.get("skills", [])),
                         url=p["url"],
                         description=p["description"],
-                        generated_proposal=prop_data["proposal_text"],
-                        suggested_bid=prop_data["suggested_bid"],
-                        suggested_timeline=prop_data["suggested_timeline"],
+                        generated_proposal=prop_text,
+                        suggested_bid=suggested_bid,
+                        suggested_timeline=suggested_time,
                         status="open"
                     )
                     db.add(new_proj)

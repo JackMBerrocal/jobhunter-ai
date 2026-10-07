@@ -11,6 +11,7 @@ async def run_login_session():
     print()
     print("INSTRUCCIONES:")
     print(" 1. Inicia sesión con tus cuentas en las plataformas:")
+    print("    - ⚡ Freelancer.com: https://www.freelancer.com/login")
     print("    - 💼 LinkedIn: https://www.linkedin.com/login")
     print("    - 🏢 Computrabajo: https://pe.computrabajo.com/candidate/login")
     print("    - 🌐 Bumeran: https://www.bumeran.com.pe/postulantes")
@@ -26,6 +27,7 @@ async def run_login_session():
     print("=" * 65)
     
     portals = [
+        ("Freelancer.com", "https://www.freelancer.com/login"),
         ("LinkedIn", "https://www.linkedin.com/login"),
         ("Computrabajo", "https://pe.computrabajo.com/candidate/login"),
         ("Bumeran", "https://www.bumeran.com.pe/postulantes"),

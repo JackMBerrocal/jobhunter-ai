@@ -6,7 +6,7 @@
 SERVICE_NAME="jobhunter.service"
 
 show_help() {
-    echo "Uso: ./service_ctl.sh {status|start|stop|restart|logs|enable|disable}"
+    echo "Uso: ./service_ctl.sh {status|start|stop|restart|logs|enable|disable|login}"
     echo ""
     echo "Comandos disponibles:"
     echo "  status   - Muestra si el agente está corriendo o detenido"
@@ -14,11 +14,16 @@ show_help() {
     echo "  stop     - Detiene el agente"
     echo "  restart  - Reinicia el agente"
     echo "  logs     - Muestra los logs en tiempo real (Ctrl + C para salir)"
+    echo "  login    - Abre el navegador para iniciar sesión en Freelancer y portales"
     echo "  enable   - Activa el auto-arranque al encender la PC"
     echo "  disable  - Desactiva el auto-arranque al encender la PC"
 }
 
 case "$1" in
+    login)
+        echo "🌐 Abriendo navegador Chromium persistente para inicio de sesión..."
+        ./venv/bin/python login_setup.py
+        ;;
     status)
         systemctl --user status "$SERVICE_NAME"
         ;;

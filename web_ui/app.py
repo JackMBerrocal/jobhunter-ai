@@ -41,6 +41,13 @@ logger = logging.getLogger("JobHunterWeb")
 
 app = FastAPI(title="JobHunter AI - Dashboard de Búsqueda Laboral")
 
+@app.middleware("http")
+async def add_no_cache_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 
 # Inicializar Base de Datos
 init_db()
@@ -81,14 +88,14 @@ browser_bidder = BrowserBidder()
 
 @app.on_event("startup")
 async def startup_event():
-    """Inicia con prioridad el motor freelance (por horas y entregables) y en segundo plano el empleo corporativo."""
-    # 1. Prioridad Principal: Motor Freelance & Oportunidades por Horas
+    """Inicia con prioridad el motor freelance (por horas y entregables). Empleo corporativo desactivado (100% Freelancer)."""
+    # 1. Prioridad Exclusiva: Motor Freelance & Oportunidades 100% Remotas
     freelance_autobidder.start()
-    log_event("⚡ FREELANCE AUTO-BIDDER 24/7 EN MODO PRIORITARIO: Monitoreo activo de contratos por hora y precio fijo.")
+    log_event("⚡ FREELANCE AUTO-BIDDER 24/7 ACTIVO: Monitoreo exclusivo de contratos en Freelancer.com.")
 
-    # 2. Segundo Plano: Rastreador de Empleo Corporativo
-    autonomous_hunter.start(interval_minutes=90)
-    log_event("💼 Rastreador Corporativo Remoto configurado en SEGUNDO PLANO (Ciclos espaciados en background cada 90 min).")
+    # 2. Motor de Empleo Remoto Continuo (Computrabajo, Laborum, Bumeran, GetOnBrd, RemoteTech, LinkedIn)
+    autonomous_hunter.start(interval_minutes=45)
+    log_event("🚀 AUTONOMOUS HUNTER ACTIVO: Rastreo continuo y postulación automática en portales laborales cada 45 min.")
 
 
 @app.on_event("shutdown")
@@ -116,8 +123,12 @@ async def execute_job_hunting_cycle(platform_filter: Optional[str] = None):
         # Consultas de alta afinidad para Ingeniero de Sistemas sin experiencia laboral previa
         search_queries = [
             "desarrollador junior",
+            "qa junior",
+            "soporte ti junior",
             "practicante sistemas",
-            "programador junior"
+            "programador junior",
+            "analista datos junior",
+            "python junior"
         ]
         
         adapters = []
@@ -999,27 +1010,44 @@ async def auto_apply_all_recommended(db: Session = Depends(get_db)):
 @app.post("/api/freelance/auto_bid_all_pending")
 async def auto_bid_all_pending(db: Session = Depends(get_db)):
     """
-    Postula / oferta automáticamente a todos los proyectos freelance pendientes.
+    Evalúa y envía ofertas REALES a Freelancer.com únicamente para proyectos
+    que cumplan los filtros de la Meta $1,500 (anti-saturación, presupuesto digno).
     """
+    cfg = freelance_autobidder.get_config()
     pending = db.query(FreelanceProject).filter(
-        FreelanceProject.status.in_(["pending", "discovered", "requires_review", "open"])
-    ).all()
+        FreelanceProject.platform == "freelancer",
+        FreelanceProject.status.in_(["pending", "discovered", "open"])
+    ).limit(5).all()
 
-    count = 0
-    now = datetime.now()
+    real_bid_count = 0
+    skipped_count = 0
     for p in pending:
-        p.status = "applied"
-        p.auto_applied = True
-        p.applied_at = now
-        if not p.bid_response_log:
-            p.bid_response_log = "Oferta enviada automáticamente con propuesta adaptada al requerimiento."
-        count += 1
-    db.commit()
-    log_event(f"⚡ Se auto-postuló a {count} proyectos freelance pendientes.")
+        proj_dict = {
+            "title": p.title,
+            "description": p.description,
+            "budget": p.budget,
+            "external_id": p.external_id,
+            "bid_count": 0,
+            "is_hourly": "/ hora" in (p.budget or ""),
+            "usd_min": 0,
+            "usd_max": 0,
+            "max_budget": 0,
+            "url": p.url or f"https://www.freelancer.com/projects/{p.external_id}",
+            "client_name": p.client_name or "Cliente Freelance",
+            "currency": p.currency or "USD"
+        }
+        success = await freelance_autobidder._evaluate_and_place_bid(proj_dict, cfg)
+        if success:
+            real_bid_count += 1
+        else:
+            skipped_count += 1
+
+    log_event(f"⚡ Proceso de ofertas reales completado: {real_bid_count} ofertas reales enviadas a Freelancer.com, {skipped_count} filtradas/protegidas.")
     return {
         "status": "success",
-        "count": count,
-        "message": f"¡{count} proyectos freelance postulados automáticamente!"
+        "count": real_bid_count,
+        "skipped": skipped_count,
+        "message": f"{real_bid_count} ofertas enviadas directamente a Freelancer.com. {skipped_count} proyectos filtrados por seguridad."
     }
 
 
@@ -1529,26 +1557,73 @@ async def get_freelance_projects(
     platform: Optional[str] = None,
     status: Optional[str] = None,
     modality: Optional[str] = None,
+    stage: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
-    """Lista proyectos freelance descubiertos con filtrado por categoría, plataforma y modalidad."""
-    q = db.query(FreelanceProject)
-    if category and category != "all":
-        q = q.filter(FreelanceProject.category == category)
-    if platform and platform != "all":
-        q = q.filter(FreelanceProject.platform == platform)
-    if status and status != "all":
-        q = q.filter(FreelanceProject.status == status)
-    else:
-        q = q.filter(FreelanceProject.status != "dismissed")
+    """Lista proyectos freelance descubiertos con filtrado por categoría, plataforma, modalidad y etapa del pipeline."""
+    # Obtenemos todos los proyectos activos para calcular métricas globales del pipeline
+    all_active_projects = db.query(FreelanceProject).filter(FreelanceProject.status != "dismissed").order_by(FreelanceProject.id.desc()).all()
 
-    projects = q.order_by(FreelanceProject.id.desc()).all()
-    
+    count_applied = 0
+    count_replied = 0
+    count_accepted = 0
+    count_completed = 0
+    count_radar = 0
+    count_unselected = 0
+    total_earned = 0.0
+
+    for p in all_active_projects:
+        if p.status == "completed":
+            count_completed += 1
+            amt_match = re.search(r'(\d+(?:\.\d+)?)', str(p.agreed_amount or p.suggested_bid or '0'))
+            if amt_match:
+                total_earned += float(amt_match.group(1))
+        elif p.status == "accepted" or p.is_awarded:
+            count_accepted += 1
+            amt_match = re.search(r'(\d+(?:\.\d+)?)', str(p.agreed_amount or p.suggested_bid or '0'))
+            if amt_match:
+                total_earned += float(amt_match.group(1))
+        elif p.status == "client_replied" or p.client_replied:
+            count_replied += 1
+        elif p.status in ("not_selected", "unselected", "closed_unselected"):
+            count_unselected += 1
+        elif p.status in ("applied", "auto_applied") or p.auto_applied:
+            count_applied += 1
+        else:
+            count_radar += 1
+
     results = []
     total_hourly = 0
     total_fixed = 0
 
-    for p in projects:
+    for p in all_active_projects:
+        # Clasificación de etapa del proyecto
+        if p.status == "completed":
+            p_stage = "completed"
+        elif p.status == "accepted" or p.is_awarded:
+            p_stage = "accepted"
+        elif p.status == "client_replied" or p.client_replied:
+            p_stage = "replied"
+        elif p.status in ("not_selected", "unselected", "closed_unselected"):
+            p_stage = "unselected"
+        elif p.status in ("applied", "auto_applied") or p.auto_applied:
+            p_stage = "applied"
+        else:
+            p_stage = "radar"
+
+        # Filtro de etapa (pipeline tab)
+        if stage and stage != "all" and stage != p_stage:
+            continue
+        if category and category != "all" and p.category != category:
+            continue
+        if platform and platform != "all" and p.platform != platform:
+            continue
+        if status and status != "all":
+            if status == "active" and p.status in ("dismissed", "closed"):
+                continue
+            elif status != "active" and p.status != status:
+                continue
+
         skills = []
         try:
             skills = json.loads(p.skills_json) if p.skills_json else []
@@ -1591,16 +1666,38 @@ async def get_freelance_projects(
             "modality": modality_type,
             "modality_label": "⏱️ Por Horas (Hourly)" if is_hourly else "📦 Por Trabajo Realizado (Precio Fijo)",
             "status": p.status,
+            "pipeline_stage": p_stage,
             "auto_applied": bool(p.auto_applied),
             "applied_at": p.applied_at.strftime("%d/%m %H:%M") if p.applied_at else "",
             "bid_response_log": p.bid_response_log or "",
+            "client_replied": bool(p.client_replied),
+            "client_reply_text": p.client_reply_text or "",
+            "client_reply_at": p.client_reply_at.strftime("%d/%m %H:%M") if p.client_reply_at else "",
+            "is_awarded": bool(p.is_awarded),
+            "agreed_amount": p.agreed_amount or p.suggested_bid or "",
+            "step_by_step_plan": p.step_by_step_plan or "",
             "created_at": p.created_at.strftime("%d/%m %H:%M") if p.created_at else ""
         })
+
     return {
         "total": len(results),
-        "total_unfiltered": len(projects),
+        "total_unfiltered": len(all_active_projects),
         "hourly_count": total_hourly,
         "fixed_count": total_fixed,
+        "pipeline_counts": {
+            "applied": count_applied,
+            "replied": count_replied,
+            "accepted": count_accepted,
+            "completed": count_completed,
+            "radar": count_radar,
+            "unselected": count_unselected,
+            "total_active": count_applied + count_replied + count_accepted
+        },
+        "financials": {
+            "monthly_goal_usd": 1500.0,
+            "quarterly_goal_usd": 5000.0,
+            "earned_usd": total_earned
+        },
         "projects": results
     }
 
@@ -1982,7 +2079,7 @@ async def assistant_browser_session(background_tasks: BackgroundTasks):
 
 @app.post("/api/freelance/update_status")
 async def update_freelance_status(request: Request, db: Session = Depends(get_db)):
-    """Actualiza el estado de un proyecto freelance (applied, dismissed, open)."""
+    """Actualiza el estado de un proyecto freelance a través de las etapas del pipeline (applied, client_replied, accepted, completed, open, dismissed)."""
     data = await request.json()
     project_id = data.get("project_id")
     new_status = data.get("status", "applied")
@@ -1992,8 +2089,121 @@ async def update_freelance_status(request: Request, db: Session = Depends(get_db
         return JSONResponse(status_code=404, content={"error": "Proyecto no encontrado"})
     
     proj.status = new_status
+    if new_status == "client_replied":
+        proj.client_replied = True
+        proj.client_reply_at = datetime.now()
+        if data.get("client_reply_text"):
+            proj.client_reply_text = data.get("client_reply_text")
+        log_event(f"💬 [CLIENTE RESPONDIÓ] Jack registró respuesta del cliente para '{proj.title}'")
+    elif new_status == "accepted":
+        proj.is_awarded = True
+        if data.get("agreed_amount"):
+            proj.agreed_amount = str(data.get("agreed_amount"))
+        log_event(f"🎉 [PROYECTO ACEPTADO] ¡'{proj.title}' adjudicado! Entrando a fase activa de desarrollo junto a Antigravity.")
+    elif new_status == "completed":
+        proj.status = "completed"
+        log_event(f"💰 [PROYECTO COBRADO] '{proj.title}' completado con éxito. ¡Sumando a la meta de $5,000 USD!")
+    elif new_status == "applied":
+        proj.auto_applied = True
+        if not proj.applied_at:
+            proj.applied_at = datetime.now()
+        log_event(f"📤 Proyecto '{proj.title}' registrado como oferta enviada (en espera de respuesta).")
+    elif new_status == "dismissed":
+        proj.status = "dismissed"
+        log_event(f"🗑️ Proyecto '{proj.title}' descartado.")
+
+    if data.get("step_by_step_plan"):
+        proj.step_by_step_plan = data.get("step_by_step_plan")
+
     db.commit()
-    return {"status": "success", "project_id": project_id, "new_status": new_status}
+    return {
+        "status": "success",
+        "project_id": project_id,
+        "new_status": new_status,
+        "is_awarded": bool(proj.is_awarded),
+        "client_replied": bool(proj.client_replied),
+        "agreed_amount": proj.agreed_amount
+    }
+
+
+@app.post("/api/freelance/generate_execution_plan")
+async def generate_freelance_execution_plan(request: Request, db: Session = Depends(get_db)):
+    """Genera la hoja de ruta técnica paso a paso para que Jack y Antigravity construyan el proyecto juntos."""
+    data = await request.json()
+    project_id = data.get("project_id")
+    force = data.get("force", False)
+    
+    proj = db.query(FreelanceProject).filter(FreelanceProject.id == project_id).first()
+    if not proj:
+        return JSONResponse(status_code=404, content={"error": "Proyecto no encontrado"})
+
+    if proj.step_by_step_plan and not force:
+        return {
+            "status": "success",
+            "project_id": project_id,
+            "plan": proj.step_by_step_plan,
+            "step_by_step_plan": proj.step_by_step_plan
+        }
+
+    plan = proposal_generator.generate_execution_plan(
+        title=proj.title,
+        description=proj.description or "",
+        client_name=proj.client_name or "Estimado Cliente",
+        budget=proj.agreed_amount or proj.suggested_bid or proj.budget or "$150 USD"
+    )
+
+    proj.step_by_step_plan = plan
+    db.commit()
+    log_event(f"🛠️ Plan de ejecución técnico paso a paso generado para '{proj.title}'.")
+    return {
+        "status": "success",
+        "project_id": project_id,
+        "plan": plan,
+        "step_by_step_plan": plan
+    }
+
+
+@app.post("/api/freelance/sync_freelancer_api")
+async def sync_freelancer_api():
+    """Sincroniza directamente con Freelancer.com API ofertas, estados de adjudicación y chats."""
+    log_event("🔄 Sincronizando ofertas, mensajes y adjudicaciones desde Freelancer.com...")
+    result = freelance_autobidder.sync_freelancer_api_now()
+    log_event(f"📊 {result.get('message', 'Sincronización finalizada.')}")
+    return result
+
+
+@app.post("/api/freelance/clean_closed")
+async def clean_closed_freelance():
+    """Descarta automáticamente ofertas a proyectos que ya fueron tomados por otro o que expiraron/cerraron."""
+    log_event("🧹 Auditando ofertas para depurar proyectos cerrados o adjudicados a otro postulante...")
+    result = freelance_autobidder.clean_closed_or_taken_bids()
+    log_event(f"📊 {result.get('message', 'Depuración finalizada.')}")
+    return result
+
+
+
+@app.post("/api/freelance/visual-demo")
+async def freelance_visual_demo(background_tasks: BackgroundTasks, request: Request):
+    """Lanza la demostración visual en vivo en la pantalla del usuario (Playwright en DISPLAY=:0)."""
+    data = {}
+    try:
+        data = await request.json()
+    except Exception:
+        pass
+    query = data.get("query", "desarrollo web")
+    
+    def run_demo():
+        log_event(f"🎬 Iniciando demostración visual en pantalla: Abriendo Freelancer.com ('{query}')...")
+        try:
+            from core.visual_browser_agent import VisualBrowserAgent
+            agent = VisualBrowserAgent(log_callback=log_event)
+            agent.run_live_demonstration(search_query=query, auto_close=False)
+            log_event("✅ Demostración visual completada en pantalla con éxito.")
+        except Exception as e:
+            log_event(f"❌ Error en demostración visual: {e}")
+
+    background_tasks.add_task(run_demo)
+    return {"status": "started", "message": "Navegador visible abriéndose en tu pantalla en este instante..."}
 
 
 # --- Endpoints de Auto-Bid Autónomo 24/7 (Modo 2) ---

@@ -10,6 +10,38 @@ try:
 except ImportError:
     HAS_GENAI = False
 
+def strip_all_emojis(text: str) -> str:
+    """
+    Elimina de forma exhaustiva todos los emojis, asteriscos markdown (**), almohadillas (###),
+    cliches de apertura de IA y simbolos incompatibles con el formulario de Freelancer.com.
+    """
+    if not text:
+        return ""
+    emoji_pattern = re.compile(
+        r"[\U00010000-\U0010ffff\u2600-\u27bf\u2300-\u23ff\u2b00-\u2bff\ufe00-\ufe0f\u200d\u20e3\u3030]+",
+        flags=re.UNICODE
+    )
+    cleaned = emoji_pattern.sub("", text)
+    cliches = [
+        r"^\s*gracias\s+por\s+tu\s+inter[eé]s\s+en\s+mi\s+perfil[^\n\.]*[\.\n]*",
+        r"^\s*gracias\s+por\s+confiar\s+en\s+m[ií][^\n\.]*[\.\n]*",
+        r"^\s*entiendo\s+completamente\s+tu\s+requerimiento[^\n\.]*[\.\n]*",
+        r"^\s*me\s+complace\s+escuchar\s+sobre\s+tu\s+inter[eé]s[^\n\.]*[\.\n]*",
+        r"^\s*me\s+complazco\s+en[^\n\.]*[\.\n]*",
+        r"^\s*espero\s+que\s+te\s+encuentres\s+muy\s+bien[^\n\.]*[\.\n]*",
+        r"^\s*espero\s+que\s+est[eé]s\s+bien[^\n\.]*[\.\n]*"
+    ]
+    for c in cliches:
+        cleaned = re.sub(c, "", cleaned, flags=re.IGNORECASE | re.MULTILINE)
+    cleaned = re.sub(r"^\s*estimad[oa]\s+cliente[,:.]*\s*\n*", "Hola, qué tal.\n\n", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\*+", "", cleaned)
+    cleaned = re.sub(r"^[ \t]*#+[ \t]*", "", cleaned, flags=re.MULTILINE)
+    cleaned = re.sub(r"^[ \t]*[-•][ \t]*", "- ", cleaned, flags=re.MULTILINE)
+    cleaned = re.sub(r"^(\d+\.)\s+", r"\1 ", cleaned, flags=re.MULTILINE)
+    cleaned = re.sub(r"[ \t]+", " ", cleaned)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip()
+
 
 class BriefDetailExtractor:
     """
@@ -156,57 +188,221 @@ class ProposalGenerator:
         text = f"{title} {description} {' '.join(skills or [])}".lower()
         t_low = title.lower()
 
+        # 0. EXCLUSIÓN TOTAL: DISEÑO DE INTERIORES, ARQUITECTURA, CONSTRUCCIÓN, 3D, MODELADO, RENDER, INGENIERÍA, DISEÑO INDUSTRIAL O MECÁNICO, PATRONAJE
+        # La esposa de Jack hace estrictamente DISEÑO GRÁFICO 2D (Photoshop, Illustrator, logos, marcas, banners, flyers, trípticos, identidad visual)
+        # 0. EXCLUSIÓN TOTAL: DISEÑO DE INTERIORES, ARQUITECTURA FÍSICA/CONSTRUCCIÓN, 3D, MODELADO, RENDER, INGENIERÍA, DISEÑO INDUSTRIAL O MECÁNICO, PATRONAJE
+        # La esposa de Jack hace estrictamente DISEÑO GRÁFICO 2D (Photoshop, Illustrator, logos, marcas, banners, flyers, trípticos, identidad visual)
+        interior_arch_3d_patterns = [
+            r"\b(?:diseñ[oó]\s+de\s+interiores?|diseñador[a]?\s+de\s+interiores?|interior\s+design(?:er)?|interiorismo)\b",
+            r"\b(?:diseñ[oó]\s+(?:de\s+)?(?:cocinas?|baños?|banos?|sal[oó]n(?:es)?|habitaci[oó]n|dormitorio|casas?|fachadas?|viviendas?|espacios\s+(?:interiores|f[ií]sicos|habitables)))\b",
+            r"\b(?:cocina[s]?\s+y\s+sal[oó]n|cocina/sal[oó]n|isla\s+de\s+cocina|cocina\s+moderna)\b",
+            r"\b(?:arquitectura\s+(?:de\s+interiores?|civil|residencial|habitacional|comercial)|estudio\s+de\s+arquitectura|planos?\s+arquitect[oó]nicos?|diseño\s+arquitect[oó]nico|proyecto\s+arquitect[oó]nico|levantamiento\s+arquitect[oó]nico)\b",
+            r"\b(?:arquitecto|arquitecta)\s+(?:colegiado|de\s+interiores|de\s+obras?|de\s+edificaciones?|para\s+(?:casa|edificio|remodelaci[oó]n|obra))\b",
+            r"\b(?:remodelaci[oó]n\s+(?:de\s+casas?|de\s+viviendas?|de\s+espacios|de\s+cocinas?|de\s+baños?)|decoraci[oó]n\s+de\s+interiores?|decorador[a]?\s+de\s+interiores?)\b",
+            r"\b(?:muebles?|carpinter[ií]a|mobiliario|paisajismo|planos?\s+(?:de\s+casas?|arquitect[oó]nicos?|de\s+distribuci[oó]n\s+f[ií]sica))\b",
+            r"\b(?:3d|3ds|modelado(?:\s*3d)?|render(?:s|ing|izado|izar)?(?:\s*3d)?|blender|autocad|sketchup|clo\s*3d|optitex|solidworks|revit|3ds\s*max|maya\s*3d|cinema\s*4d|zbrush)\b",
+            r"\b(?:diseñ(?:o|ador|adora)\s+industrial|disen(?:o|ador|adora)\s+industrial|diseñ(?:o|ador|adora)\s+mec[aá]nic[ao]|patronaje|planos?\s+t[eé]cnicos?|despiece)\b"
+        ]
+        for pat in interior_arch_3d_patterns:
+            if re.search(pat, text):
+                return "excluded_interior_or_3d"
+
+        # EXCLUSIÓN TOTAL: RECUPERACIÓN DE CUENTAS / CONTRASEÑAS / CUENTAS BANEADAS
+        account_recovery_patterns = [
+            r"\b(?:recover(?:y|ed)?|unfreeze|unban|restore|reactivat(?:e|ion))\s+(?:disabled\s+)?(?:gmail|google|facebook|instagram|tiktok|epfo|rockstar|email|account|password)\b",
+            r"\b(?:recuperar|desbloquear|reactivar)\s+(?:cuenta|contrase[ñn]a|correo)\s+(?:de\s+)?(?:gmail|google|facebook|instagram|tiktok|redes|hackeada|bloqueada|suspendida)\b",
+            r"\b(?:account\s+recovery|password\s+recovery|hacked\s+account|disabled\s+account|banned\s+account)\b",
+            r"\b(?:recuperaci[oó]n\s+de\s+cuenta|cuenta\s+hackeada|cuenta\s+bloqueada|cuenta\s+inhabilitada)\b"
+        ]
+        for arpat in account_recovery_patterns:
+            if re.search(arpat, text):
+                return "excluded_account_recovery"
+
+        # Verificación estricta de tags o habilidades del proyecto
+        if skills:
+            excluded_skills_terms = {
+                "interior design", "architecture", "building architecture", "civil architecture",
+                "landscape design", "home design", "structural engineering", "civil engineering",
+                "architectural rendering", "3d rendering", "3d design", "3d modelling",
+                "autocad", "sketchup", "revit", "solidworks", "fashion design",
+                "video editing", "videography", "video production", "voice talent", "audio production"
+            }
+            for s in skills:
+                s_str = str(s).lower().strip()
+                # NUNCA excluir arquitectura de software, nube, web o sistemas
+                if any(tech in s_str for tech in ["software", "system", "cloud", "solution", "enterprise", "data", "network", "web", "information"]):
+                    continue
+                if s_str in excluded_skills_terms or any(term in s_str for term in ["interior design", "building architect", "civil architect", "3d render", "3d design", "autocad", "sketchup"]):
+                    return "excluded_interior_or_3d"
+
+        # 0.5. PRIORIDAD ABSOLUTA AL TÍTULO PARA DISEÑO GRÁFICO 2D (Esposa de Jack)
+        # Asegura que un tríptico, folleto, logo o flyer que mencione "página web" dentro de su contenido
+        # NUNCA sea clasificado erróneamente como desarrollo web.
+        graphic_title_pattern = (
+            r"\b(?:tr[ií]ptico[s]?|folleto[s]?|diseñ[oó]\s+gr[aá]fic[ao]|logotipo[s]?|logos?|"
+            r"banners?|flyers?|branding|identidad\s+visual|vectorizar|logo\s+design|graphic\s+design|"
+            r"tarjetas?\s+de\s+presentaci[oó]n|maquetaci[oó]n\s+editorial|invitaci[oó]n(?:es)?|"
+            r"piezas?\s+gr[aá]ficas?|photoshop|illustrator|manual\s+de\s+(?:marca|identidad)|"
+            r"diseñador[a]?\s+gr[aá]fic[ao])\b"
+        )
+        if re.search(graphic_title_pattern, t_low) and not any(w in t_low for w in ["sitio web", "pagina web", "página web", "desarrollo web", "programador", "wordpress", "landing page"]):
+            return "graphic_design_creative"
+
+        # 0.1. EXCLUSIÓN TOTAL: GESTIÓN DE PROPIEDADES, ALOJAMIENTOS, AIRBNB, HOSPITABLE, VRBO, BOOKING, LISTINGS
+        property_rental_patterns = [
+            r"\b(?:airbnb|hospitable|vrbo|booking\.com|superhost|alquiler\s+vacacional|propiedades\s+activas|listings?\s+(?:de\s+)?airbnb)\b",
+            r"\b(?:gesti[oó]n\s+de\s+propiedades|sincronizaci[oó]n\s+de\s+calendario\s+e\s+inventario|anuncios?\s+(?:en|de)\s+airbnb)\b",
+            r"\b(?:propiedades\s+en\s+airbnb|listings\s+airbnb|app\s+hospitable)\b"
+        ]
+        for pat in property_rental_patterns:
+            if re.search(pat, text):
+                return "excluded_property_management"
+
+        # 0.2. EXCLUSIÓN TOTAL: ASISTENCIA VIRTUAL ADMINISTRATIVA, SECRETARIADO, DIGITACIÓN, AGENDA
+        va_patterns = [
+            r"\b(?:asistente\s+virtual|virtual\s+assistant|secretaria|secretario|data\s+entry|transcripci[oó]n|transcripcion|llenar\s+(?:excel|formularios))\b",
+            r"\b(?:gesti[oó]n\s+de\s+agenda|gestion\s+de\s+agenda|agendar\s+citas|recepcionista|recepcionista\s+virtual)\b"
+        ]
+        for pat in va_patterns:
+            if re.search(pat, text) and not any(w in t_low for w in ["sitio web", "pagina web", "software", "python", "scraping", "api"]):
+                return "virtual_assistant_admin"
+
+        # 0.3. EXCLUSIÓN TOTAL: VENTAS, TELEMARKETING, CAPTACIÓN DE CLIENTES, LEAD GEN, ADS / PUBLICIDAD, CLOSER, SETTER
+        # Jack es Ingeniero de Sistemas (Desarrollo, QA, Datos, Soporte TI, Bots y Scraping) y su esposa Diseñadora Gráfica 2D.
+        # NUNCA clasificar ni postular a proyectos de captación comercial, telemarketing, ventas o campañas de anuncios pagos.
+        sales_marketing_exclusion_patterns = [
+            r"\b(?:telemarketing|cold\s*calling|llamadas?\s+(?:en\s+fr[ií]o|telef[oó]nicas?|de\s+ventas?))\b",
+            r"\b(?:captaci[oó]n\s+(?:de\s+)?(?:clientes|leads|prospectos)|captar\s+(?:clientes|leads|prospectos)|conseguir\s+(?:clientes|leads))\b",
+            r"\b(?:lead\s+generation|generaci[oó]n\s+de\s+leads|generar\s+leads|prospecci[oó]n\s+(?:comercial|b2b)?)\b",
+            r"\b(?:appointment\s+setter|setter\s+de\s+ventas|closer\s+de\s+ventas|cerrador\s+de\s+ventas|cold\s+caller)\b",
+            r"\b(?:b2b\s+marketing|marketing\s+b2b|campa[ñn]as?\s+(?:de\s+)?(?:google\s+ads|meta\s+ads|facebook\s+ads))\b",
+            r"\b(?:google\s+ads|meta\s+ads|facebook\s+ads|tr[aá]fico\s+pago|media\s+buyer|gesti[oó]n\s+de\s+anuncios)\b",
+            r"\b(?:anuncios\s+y\s+contenido|campa[ñn]a\s+publicitaria|pauta\s+digital|anuncios\s+digitales)\b",
+            r"\b(?:vender\s+(?:servicios|productos|software|saas)|comercial\s+para\s+saas|socio\s+comercial|ejecutivo\s+de\s+ventas)\b",
+            r"\b(?:lead\s+magnet|sistema\s+de\s+captaci[oó]n|embudo\s+de\s+ventas|funnel\s+de\s+ventas)\b",
+            r"\b(?:conseguir\s+esos\s+primeros\s+clientes|clientes\s+de\s+pago|contratos\s+firmados|demostraciones\s+agendadas)\b"
+        ]
+        is_dev_code = any(tech in text for tech in [
+            "script python", "script en python", "desarrollo web", "programador", "backend",
+            "api rest", "fastapi", "react", "wordpress", "php", "base de datos", "sql", "qa", "software"
+        ]) and any(action in text for action in [
+            "programar", "desarrollar", "crear código", "codificar", "construir api", "integrar api", "implementar webhook", "corregir bug"
+        ])
+        if not is_dev_code:
+            for pat in sales_marketing_exclusion_patterns:
+                if re.search(pat, text):
+                    return "excluded_sales_and_marketing"
+
+        if skills and not is_dev_code:
+            excluded_sales_skills = {
+                "telemarketing", "sales", "sales management", "lead generation", "b2b marketing",
+                "cold calling", "appointment setting", "google ads", "facebook ads", "meta ads",
+                "advertising", "market research", "email marketing", "social media marketing"
+            }
+            matching_sales_skills = [str(s).lower().strip() for s in skills if str(s).lower().strip() in excluded_sales_skills]
+            if len(matching_sales_skills) >= 1 and not any(dev_s in [str(s).lower().strip() for s in skills] for dev_s in ["php", "python", "javascript", "react", "html", "css", "sql", "c#", "java"]):
+                return "excluded_sales_and_marketing"
+
         # 1. Web Scraping & Extracción con Python (Prioridad sobre 'web' genérico)
-        if any(w in t_low for w in ["extraer lista", "scraping", "scraper", "crawling", "extraer datos", "scrapear"]) or any(w in text for w in [
+        if any(w in t_low for w in ["extraer lista", "scraping", "scraper", "crawling", "extraer datos", "scrapear", "script python"]) or any(w in text for w in [
             "scraping", "scraper", "crawling", "extraer datos", "extracción de datos", "extraccion de datos",
             "extraer lista", "extraer contactos", "extraer correos", "script python", "script en python",
-            "playwright", "selenium", "beautifulsoup", "scrapear"
+            "playwright", "selenium", "beautifulsoup", "scrapear", "automatización con python"
         ]):
             return "python_automation_scraping"
 
-        # 2. Desarrollo Web & Frontend (PHP, MySQL, WordPress, Landing pages, React)
-        if any(w in t_low for w in [
-            "landing page", "wordpress", "hostinger", "sitio web", "pagina web", "página web", "desarrollo web",
-            "react", "frontend", "maquetación web", "maquetacion web", "php y mysql"
-        ]) or any(w in text for w in [
-            "wordpress", "hostinger", "landing page", "elementor", "gutenberg",
-            "desarrollo web", "página web", "pagina web", "frontend", "sitio web"
-        ]):
-            return "web_dev"
+        # 2. Desarrollo Web & Frontend (PHP, MySQL, WordPress, Landing pages, React, Angular, Vue)
+        # NUNCA clasificar proyectos de ventas comerciales, marketing o anuncios como desarrollo web
+        sales_triggers_dev_check = [
+            "ventas", "vendedor", "comercial", "closer", "setter", "prospección", "prospeccion",
+            "telemarketing", "llamadas en frío", "llamadas en frio", "captación de clientes",
+            "captacion de clientes", "lead generation", "google ads", "meta ads", "anuncios y contenido"
+        ]
+        if not any(sw in text for sw in sales_triggers_dev_check):
+            if any(w in t_low for w in [
+                "landing page", "wordpress", "hostinger", "sitio web", "pagina web", "página web", "desarrollo web",
+                "react", "frontend", "front end", "angular", "vue", "maquetación web", "maquetacion web", "php y mysql",
+                "plataforma web", "sistema web", "cotizador web", "desarrollo saas", "desarrollar saas", "plataforma saas",
+                "rediseño web", "actualizacion web", "actualización web"
+            ]) or any(w in text for w in [
+                "wordpress", "hostinger", "landing page", "elementor", "gutenberg",
+                "desarrollo web", "página web", "pagina web", "frontend", "front end", "sitio web",
+                "angular", "react", "vue.js", "desarrollador web", "programador web", "creacion de pagina web",
+                "creación de página web", "crear pagina web", "rediseño de pagina", "rediseno de pagina"
+            ]):
+                return "web_dev"
 
-        # 3. Asistencia Virtual, Gestión de Agenda & Operaciones
-        if any(w in t_low for w in ["asistente virtual", "virtual assistant", "asistente administrativo", "secretaria", "recepcionista virtual"]) or any(w in text for w in [
-            "asistente virtual", "virtual assistant", "asistente administrativo", "gestión de agenda", "gestion de agenda",
-            "agendar citas", "gestión de citas", "gestion de citas", "gestion de correos", "data entry", "transcripción", "agenda digital"
-        ]):
-            return "virtual_assistant_admin"
+        # 2.5. Chatbots, Bots de WhatsApp & Sistemas de Automatización con APIs (Jack)
+        # NUNCA clasificar trabajos de atención humana / operador de chat / call center como desarrollo de bots
+        human_chat_triggers = [
+            "atienda mis conversaciones", "atender conversaciones", "call center", "call centers",
+            "operador de chat", "operadora de chat", "moderar chat", "atención de llamadas", "atencion de llamadas",
+            "atender whatsapp web", "acceso a la línea de whatsapp web", "acceso a la linea de whatsapp web",
+            "responder mensajes de uso personal", "mensajes de uso personal", "consultas de clientes y mensajes personales"
+        ]
+        if any(w in text for w in human_chat_triggers):
+            return "customer_support_whatsapp"
 
-        # 4. Diseño Gráfico, Logotipos, Photoshop, Illustrator & Branding
+        # Solo clasificar como ai_chatbot_system si hay contexto real de software, programación o APIs de bots
+        chatbot_tech_terms = [
+            "bot whatsapp", "chatbot", "bot de whatsapp", "bot de telegram", "bot telegram",
+            "whatsapp cloud api", "whatsapp business api", "twilio", "flujo manychat", "manychat",
+            "typebot", "voiceflow", "botpress", "crear bot", "desarrollo de bot", "desarrollar chatbot",
+            "bot con ia", "chatbot con ia", "agente ia", "asistente con ia", "bot faq", "chatbot gpt"
+        ]
+        if any(w in t_low for w in chatbot_tech_terms) or any(w in text for w in chatbot_tech_terms):
+            return "ai_chatbot_system"
+
+        # 3. Asistencia Virtual, Gestión de Agenda & Operaciones (Manual / Humano)
+        if not any(bw in text for bw in ["bot", "chatbot", "typebot", "manychat", "script", "api", "automatiz", "python"]):
+            if any(w in t_low for w in ["asistente virtual", "virtual assistant", "asistente administrativo", "secretaria", "recepcionista virtual"]) or any(w in text for w in [
+                "asistente virtual", "virtual assistant", "asistente administrativo", "gestión de agenda", "gestion de agenda",
+                "agendar citas", "gestión de citas", "gestion de citas", "gestion de correos", "data entry", "transcripción", "agenda digital"
+            ]):
+                return "virtual_assistant_admin"
+
+        # 3.5. Video, Reels, Motion Graphics y Edición Audiovisual (Excluido de Diseño Gráfico)
+        # Nota: Usamos límites regex o frases compuestas para no colisionar con 'freelancer'
         if any(w in t_low for w in [
-            "diseño gráfico", "diseno grafico", "photoshop", "illustrator", "logotipo", "logo",
-            "banner", "banners", "flyer", "flyers", "branding", "identidad visual", "vector", "vectorizar",
-            "graphic design", "logo design", "tarjeta de presentación"
+            "video", "videos", "tiktok video", "editor de video", "edicion de video",
+            "edición de video", "creación de videos", "creacion de videos", "after effects", "premiere",
+            "premiere pro", "mogrt", "motion graphics", "capcut", "animacion de video", "intro animado", "intro animada"
         ]) or any(w in text for w in [
-            "diseño gráfico", "diseno grafico", "photoshop", "illustrator", "logotipo", "logo design",
-            "banner", "banners", "flyer", "flyers", "branding", "identidad visual", "vector", "vectorizar",
-            "retoque fotográfico", "retoque fotografico", "edición de fotos", "edicion de fotos", "folleto",
-            "mockup", "diseño de logo", "diseno de logo", "tarjeta de presentación", "tarjetas de presentacion",
-            "piezas gráficas", "piezas graficas", "arte digital", "diseño creativo", "graphic design"
-        ]):
-            return "graphic_design_creative"
+            "edición de video", "edicion de video", "editor de video", "editora de video", "cortar videos",
+            "after effects", "premiere pro", "capcut", "motion graphics", "mogrt", "crear videos"
+        ]) or bool(re.search(r'\b(?:reels?|tiktok)\b', t_low)):
+            return "video_production_editing"
+
+        # 4. Diseño Gráfico, Logotipos, Photoshop, Illustrator, Branding & Editorial (Esposa de Jack)
+        # ESTRICTAMENTE DISEÑO GRÁFICO 2D: Límites de palabra exactos sobre título y descripción
+        graphic_strict_patterns = [
+            r"\b(?:diseñ[oó]\s+gr[aá]fico|diseñador[a]?\s+gr[aá]fic[ao])\b",
+            r"\b(?:logotipo[s]?|logos?|isotipo[s]?|imagotipo[s]?|diseñ[oó]\s+de\s+logos?|creaci[oó]n\s+de\s+logos?)\b",
+            r"\b(?:banners?|flyers?|branding|identidad\s+visual|identidad\s+de\s+marca|manual\s+de\s+marca|manual\s+de\s+identidad)\b",
+            r"\b(?:vectorizar|vectorizaci[oó]n|vectores|logo\s+design|graphic\s+design)\b",
+            r"\b(?:tarjetas?\s+de\s+presentaci[oó]n|tr[ií]ptico[s]?|d[ií]ptico[s]?|folletos?|brochure[s]?)\b",
+            r"\b(?:photoshop|illustrator|retoque\s+fotogr[aá]fico|edici[oó]n\s+en\s+photoshop)\b",
+            r"\b(?:piezas?\s+gr[aá]ficas?|artes?\s+para\s+redes?|diseñ[oó]\s+de\s+afiche[s]?|diseñ[oó]\s+de\s+cartel(?:es)?)\b",
+            r"\b(?:etiquetas?\s+de\s+producto|diseñ[oó]\s+de\s+empaque[s]?|packaging\s+design|invitaci[oó]n(?:es)?|maquetaci[oó]n\s+para\s+kdp)\b"
+        ]
+        title_and_desc = f"{title} {description}".lower()
+        if not any(sw in t_low for sw in ["bot", "scraping", "python", "software", "api", "sistema", "desarrollo web", "wordpress", "prestashop", "shopify", "convertidor", "frecuencia", "aeronáutico", "aeronautico", "minecraft", "electrónica", "electronica", "circuito"]):
+            for gpat in graphic_strict_patterns:
+                if re.search(gpat, title_and_desc):
+                    return "graphic_design_creative"
 
         # 5. Redes Sociales, Instagram, TikTok, Reels & Marketing Digital
-        if any(w in t_low for w in ["instagram", "tiktok", "reels", "redes sociales", "community manager", "crecimiento ig", "crecimiento tiktok"]) or any(w in text for w in [
-            "tiktok", "instagram", "reels", "community manager", "redes sociales", "crecimiento ig", "crecimiento tiktok",
+        if any(w in t_low for w in ["instagram", "tiktok", "redes sociales", "community manager", "crecimiento ig", "crecimiento tiktok"]) or any(w in text for w in [
+            "tiktok", "instagram", "community manager", "redes sociales", "crecimiento ig", "crecimiento tiktok",
             "parrilla de contenido", "estrategia de contenido", "seguidores reales", "engagement", "creador de contenido",
-            "videos de tiktok", "posts para instagram", "growth marketing", "social media", "crecer en instagram"
-        ]):
+            "posts para instagram", "growth marketing", "social media", "crecer en instagram"
+        ]) or bool(re.search(r'\breels?\b', t_low)):
             return "social_media_growth"
 
-        # 6. E-Commerce & Tiendas Virtuales (Shopify, WooCommerce, Catálogo)
+        # 6. E-Commerce & Tiendas Virtuales (Shopify, WooCommerce, Prestashop, Catálogo)
         if any(w in text for w in [
-            "shopify", "woocommerce", "tienda online", "tienda virtual", "subir productos", "catalogo de productos",
-            "mercado libre", "amazon fba", "dropshipping", "e-commerce", "ecommerce", "tiendanube"
+            "shopify", "woocommerce", "prestashop", "tienda online", "tienda virtual", "subir productos", "catalogo de productos",
+            "mercado libre", "amazon fba", "dropshipping", "e-commerce", "ecommerce", "tiendanube", "magento", "opencart"
         ]):
             return "ecommerce_stores"
 
@@ -217,16 +413,6 @@ class ProposalGenerator:
             "cold caller", "closer", "cerrador", "lead qualification", "cerrar ventas"
         ]):
             return "sales_setter_crm"
-
-        # 8. Chatbots con Inteligencia Artificial & Sistemas de Software
-        if any(w in text for w in [
-            "bot faq", "asistente automático", "asistente automatico", "crear chatbot",
-            "desarrollo de bot", "desarrollar chatbot", "bot con ia", "chatbot con inteligencia",
-            "sistema automatizado con ia", "bot de whatsapp", "bot whatsapp", "flujo manychat",
-            "agente con ia", "agente ia", "bot inteligente", "automatizar respuestas con ia",
-            "chatbot gpt", "chatbot", "typebot", "voicebot"
-        ]):
-            return "ai_chatbot_system"
 
         # 9. Soporte & Atención Humana por Chat / WhatsApp
         if any(w in t_low for w in ["whatsapp", "responder mensajes", "atención al cliente", "atencion al cliente", "chat"]) or any(w in text for w in [
@@ -241,11 +427,15 @@ class ProposalGenerator:
         if bool(re.search(r'\b(?:power\s*bi|powerbi|dax|power\s*query|pbix|business\s*intelligence)\b', text)):
             return "power_bi_data"
 
-        # 11. QA Testing & Pruebas de Software
+        # 11. QA Testing & Pruebas de Software / Usabilidad (Jack)
         if any(w in text for w in [
             "qa", "testing", "tester", "pruebas funcionales", "postman", "casos de prueba",
-            "test cases", "reporte de bugs", "control de calidad", "smoke testing", "pruebas de regresion"
-        ]):
+            "test cases", "reporte de bugs", "control de calidad", "smoke testing", "pruebas de regresion",
+            "usabilidad", "usability", "ui/ux", "experiencia de uso", "interaction design",
+            "user research", "pruebas de usuario", "auditoría de software", "auditoria funcional",
+            "refinar usabilidad", "usabilidad de app", "revisar app", "probar app", "pruebas de software",
+            "calidad de software", "bugs y errores", "depuración funcional"
+        ]) or any(w in t_low for w in ["usabilidad", "testing", "qa", "pruebas de app", "refinar app"]):
             return "qa_testing"
 
         # 12. SQL & Bases de Datos
@@ -312,21 +502,20 @@ class ProposalGenerator:
                 if min_v == max_v:
                     suggested_rate = int(min_v)
                 else:
-                    suggested_rate = int(round(min_v + (max_v - min_v) * 0.55))
+                    # Cotizar en el percentil superior del rango del cliente (valorizar el conocimiento técnico)
+                    suggested_rate = int(round(min_v + (max_v - min_v) * 0.85))
             else:
                 defaults_hourly = {
-                    "customer_support_whatsapp": 16,
-                    "sales_setter_crm": 18,
-                    "social_media_growth": 18,
-                    "virtual_assistant_admin": 15,
-                    "qa_testing": 20,
-                    "power_bi_data": 25,
-                    "python_automation_scraping": 25,
-                    "web_dev": 22,
-                    "ecommerce_stores": 18,
-                    "graphic_design_creative": 20
+                    "python_automation_scraping": 28,
+                    "web_dev": 25,
+                    "ecommerce_stores": 25,
+                    "sql_database": 25,
+                    "ai_chatbot_system": 28,
+                    "graphic_design_creative": 22,
+                    "qa_testing": 22,
+                    "power_bi_data": 28
                 }
-                suggested_rate = defaults_hourly.get(category, 18)
+                suggested_rate = defaults_hourly.get(category, 25)
 
             suggested_bid = f"{curr_symbol}{suggested_rate} {currency} / hora"
             suggested_timeline = "Disponibilidad inmediata: 4 a 6 horas diarias (o turno asignado)"
@@ -344,23 +533,22 @@ class ProposalGenerator:
             if min_v == max_v:
                 target = int(min_v)
             else:
-                # Cotización competitiva llave en mano dentro del rango del cliente
-                if max_v <= 80:
-                    target = int(max_v)
-                elif max_v <= 250:
-                    # Para presupuestos de 50 - 250 -> 50 + 200 * 0.45 = 140
-                    target = int(round(min_v + (max_v - min_v) * 0.45))
-                elif max_v <= 600:
-                    target = int(round(min_v + (max_v - min_v) * 0.45))
+                # Cotización inteligente de alto valor: maximizar ganancias sin quedar fuera del rango
+                if max_v <= 100:
+                    target = int(round(min_v + (max_v - min_v) * 0.85))
+                elif max_v <= 300:
+                    target = int(round(min_v + (max_v - min_v) * 0.70))
+                elif max_v <= 800:
+                    target = int(round(min_v + (max_v - min_v) * 0.70))
                 else:
-                    target = int(round(min_v + (max_v - min_v) * 0.40))
+                    target = int(round(min_v + (max_v - min_v) * 0.65))
 
             # Plazo de entrega según envergadura
-            if max_v <= 80:
+            if max_v <= 100:
                 timeline = "24 a 48 horas"
-            elif max_v <= 250:
+            elif max_v <= 300:
                 timeline = "3 a 4 días hábiles"
-            elif max_v <= 600:
+            elif max_v <= 800:
                 timeline = "4 a 6 días hábiles"
             else:
                 timeline = "1 a 2 semanas"
@@ -369,20 +557,16 @@ class ProposalGenerator:
             suggested_timeline = timeline
         else:
             defaults_fixed = {
-                "web_dev": (f"{curr_symbol}140 {currency}", "3 a 4 días hábiles"),
-                "ecommerce_stores": (f"{curr_symbol}160 {currency}", "3 a 5 días hábiles"),
-                "social_media_growth": (f"{curr_symbol}140 {currency}", "Entregables semanales"),
-                "python_automation_scraping": (f"{curr_symbol}95 {currency}", "48 horas"),
-                "power_bi_data": (f"{curr_symbol}130 {currency}", "3 días hábiles"),
-                "qa_testing": (f"{curr_symbol}90 {currency}", "48 horas"),
-                "sql_database": (f"{curr_symbol}80 {currency}", "48 horas"),
-                "ai_chatbot_system": (f"{curr_symbol}280 {currency}", "5 a 7 días"),
-                "sales_setter_crm": (f"{curr_symbol}180 {currency}", "Por ciclo de prospección"),
-                "customer_support_whatsapp": (f"{curr_symbol}180 {currency}", "Por turno acordado"),
-                "virtual_assistant_admin": (f"{curr_symbol}160 {currency}", "Por paquete de tareas"),
-                "graphic_design_creative": (f"{curr_symbol}85 {currency}", "24 a 48 horas")
+                "web_dev": (f"{curr_symbol}220 {currency}", "3 a 5 días hábiles"),
+                "ecommerce_stores": (f"{curr_symbol}240 {currency}", "4 a 6 días hábiles"),
+                "python_automation_scraping": (f"{curr_symbol}140 {currency}", "48 horas"),
+                "sql_database": (f"{curr_symbol}120 {currency}", "48 horas"),
+                "ai_chatbot_system": (f"{curr_symbol}320 {currency}", "5 a 7 días"),
+                "graphic_design_creative": (f"{curr_symbol}120 {currency}", "24 a 48 horas"),
+                "power_bi_data": (f"{curr_symbol}160 {currency}", "3 días hábiles"),
+                "qa_testing": (f"{curr_symbol}110 {currency}", "48 horas")
             }
-            suggested_bid, suggested_timeline = defaults_fixed.get(category, (f"{curr_symbol}120 {currency}", "3 a 4 días"))
+            suggested_bid, suggested_timeline = defaults_fixed.get(category, (f"{curr_symbol}180 {currency}", "3 a 4 días"))
 
         return {
             "suggested_bid": suggested_bid,
@@ -391,13 +575,47 @@ class ProposalGenerator:
             "currency": currency
         }
 
-    def _call_external_llm(self, prompt: str) -> Optional[str]:
-        """Intenta invocar Gemini o Groq si están configurados en el entorno."""
+    def _call_external_llm(self, prompt: str, system_instructions: str = None) -> Optional[str]:
+        """
+        Invoca la cascada de IAs avanzadas:
+        1. Motor Neuronal Local Ollama (Qwen 2.5 7B acelerado por GPU NVIDIA GTX 1660 SUPER).
+        2. Google Gemini si está configurado en entorno.
+        3. Groq si está configurado en entorno.
+        """
+        # 1. Intentar con AiRouter / Ollama Local en GPU (Ultra rápido, 100% privado y sin límites)
+        try:
+            from core.ai_router import AiRouter
+            router = AiRouter()
+            if router.is_ollama_online():
+                res = router.generate_ai_response(
+                    user_message=prompt,
+                    system_instructions=system_instructions or (
+                        "Eres Jack M. Berrocal, Ingeniero de Sistemas Senior (UTEL / Oracle Next Education). "
+                        "Tu objetivo es redactar propuestas comerciales excepcionales para clientes en Freelancer.com. "
+                        "El cliente NO debe sentir jamás que le responde un bot o un texto genérico de ChatGPT. "
+                        "Debes sonar como un verdadero Ingeniero Senior: sumamente educado, cálido, empático, "
+                        "que leyó todo su requerimiento con atención minuciosa, propone una arquitectura limpia "
+                        "y plantea 1 o 2 preguntas consultivas brillantes que le provoquen responderte de inmediato en el chat."
+                    ),
+                    history=[]
+                )
+                if res and res.get("content"):
+                    text = res["content"].strip()
+                    # Limpiar delimitadores markdown si los hubiese
+                    text = re.sub(r'^```(?:markdown)?\s*', '', text)
+                    text = re.sub(r'\s*```$', '', text)
+                    if len(text) > 80:
+                        return text
+        except Exception as e:
+            print(f"[ProposalGenerator] AiRouter / Ollama notice: {e}")
+
+        # 2. Intentar con Gemini
         if self.gemini_client:
             try:
+                full_contents = f"{system_instructions}\n\n{prompt}" if system_instructions else prompt
                 resp = self.gemini_client.models.generate_content(
                     model="gemini-2.5-flash",
-                    contents=prompt
+                    contents=full_contents
                 )
                 text = (resp.text or "").strip()
                 if len(text) > 80:
@@ -405,11 +623,17 @@ class ProposalGenerator:
             except Exception as e:
                 print(f"[ProposalGenerator] Gemini API error: {e}")
 
+        # 3. Intentar con Groq
         if self.groq_key:
             try:
+                messages = []
+                if system_instructions:
+                    messages.append({"role": "system", "content": system_instructions})
+                messages.append({"role": "user", "content": prompt})
+
                 req_data = json.dumps({
                     "model": "llama-3.3-70b-versatile",
-                    "messages": [{"role": "user", "content": prompt}],
+                    "messages": messages,
                     "temperature": 0.4
                 }).encode("utf-8")
                 req = urllib.request.Request(
@@ -431,14 +655,15 @@ class ProposalGenerator:
 
         return None
 
-    def generate_proposal(self, title: str, description: str, client_name: str = "Estimado cliente", budget: str = "") -> Dict[str, Any]:
+    def generate_proposal(self, title: str, description: str, client_name: str = "Estimado cliente", budget: str = "", language: str = "auto") -> Dict[str, Any]:
         """
-        Genera una propuesta comercial personalizada, detallada y de alto impacto.
-        Cumple estrictamente las Reglas de Oro de Agencia:
-        1. Lee el brief detalle a detalle reconociendo lo que el cliente ya entregó y lo que descartó.
-        2. Plantea 2 a 3 preguntas estratégicas pertinentes para provocar respuesta en el chat.
-        3. Nunca deriva a llamadas o contactos externos: cierre 100% dentro del chat de la plataforma.
-        4. Cotización coherente con el tipo de contrato (Horas vs Precio Fijo).
+        Genera una propuesta comercial personalizada, detallada y de alto impacto en ESPAÑOL o INGLÉS.
+        Cumple estrictamente las Reglas de Oro:
+        1. Lee el brief detalle a detalle reconociendo requerimientos específicos y preguntas obligatorias.
+        2. Si el cliente pide cotizar escenarios específicos (Escenario 1, Escenario 2), los responde directamente.
+        3. Nunca pregunta por cosas que el cliente ya aclaró en el brief.
+        4. No usa clichés de IA ni textos genéricos.
+        5. Cierre 100% dentro del chat de la plataforma.
         """
         category = self.categorize_project(title, description)
         estimates = self.estimate_bid_and_time(budget, category, f"{title} {description}")
@@ -448,73 +673,394 @@ class ProposalGenerator:
         is_hourly = estimates.get("is_hourly", False)
         github_url = "https://github.com/JackMBerrocal"
 
-        # Detección de palabra clave obligatoria (ej: "escribe al inicio FIT")
+        # Detección de idioma
+        is_english = False
+        if language == "en":
+            is_english = True
+        elif language == "es":
+            is_english = False
+        else:
+            detect_text = f" {title} {description} ".lower()
+            en_words = [" the ", " to ", " and ", " is ", " for ", " in ", " with ", " looking for ", " need ", " we have ", " app ", " website ", " project ", " build ", " create "]
+            es_words = [" el ", " la ", " de ", " en ", " y ", " que ", " para ", " con ", " busco ", " necesito ", " proyecto ", " desarrollo ", " página "]
+            en_c = sum(1 for w in en_words if w in detect_text)
+            es_c = sum(1 for w in es_words if w in detect_text)
+            is_english = en_c > es_c
+
+        # Detección de palabra clave obligatoria (ej: "escribe al inicio FIT" / "write FIT at the start")
         codeword_prefix = ""
-        cw_match = re.search(r'(?:escribe|incluye|pon|palabra)\s+(?:al inicio|al principio|en tu propuesta|la palabra)?\s*[\“\"\'\‘]([a-zA-Z0-9_\-]+)[\”\"\'\’]', description, re.IGNORECASE)
+        cw_match = re.search(r'(?:escribe|incluye|pon|palabra|write|include|start with|keyword)\s+(?:al inicio|al principio|en tu propuesta|the word)?\s*[\“\"\'\‘]([a-zA-Z0-9_\-]+)[\”\"\'\’]', description, re.IGNORECASE)
         if cw_match:
             codeword_prefix = f"[{cw_match.group(1).upper()}]\n\n"
 
-        # Si hay LLM externo disponible, se ejecuta con prompt maestro ultra-específico
-        modality_instruction = (
-            "MODALIDAD: POR HORAS (HOURLY). Especifica disponibilidad de horas diarias, compromiso de turnos y reporte diario de actividades."
-            if is_hourly else
-            "MODALIDAD: POR TRABAJO REALIZADO (PRECIO FIJO). Especifica entregables cerrados, cronograma y ronda de ajustes incluida."
-        )
+        # 1. Definir Persona y Prompt Específico para la IA
+        is_design = (category == "graphic_design_creative")
+        if is_english:
+            if is_design:
+                sys_inst = (
+                    "You are a Senior Creative Graphic Designer (Adobe Illustrator, Photoshop, Branding, Visual Identity, Vector Art, Print & Digital). "
+                    "Your objective is to write compelling, human, and professional proposals for design clients on Freelancer.com.\n\n"
+                    "CRITICAL WRITING RULES:\n"
+                    "1. MANDATORY GRAMMAR: Always write in FIRST PERSON SINGULAR ('I will design...', 'I will create...', 'I have extensive experience in...'). NEVER write in second person ('You will...').\n"
+                    "2. FORMAT: Freelancer.com DOES NOT support Markdown. STRICTLY FORBIDDEN to use asterisks (** or *). Use clean plain text with clear paragraphs and simple dashes (-) for lists.\n"
+                    "3. GREETING: Natural, direct and warm ('Hi there', 'Hello!'). NEVER use robotic AI clichés like 'I hope this finds you well' or 'I am thrilled to apply'.\n"
+                    "4. MANDATORY CONSULTATIVE QUESTIONS: Include at least 2 creative/design questions before closing to start the chat discussion.\n"
+                    "5. STRICT PLATFORM CLOSE: Invite the client to share details and references through the Freelancer.com chat. All project coordination is 100% via chat without external calls."
+                )
+            else:
+                sys_inst = (
+                    "You are Jack Michael Berrocal (@jmberrocale), a Systems Engineer and Senior Full-Stack Developer (Python, JavaScript, React, Node.js, FastAPI, APIs, SQL, QA Testing, Automation). "
+                    "Your objective is to write compelling, technically rigorous, natural, and human proposals for clients on Freelancer.com.\n\n"
+                    "CRITICAL WRITING RULES:\n"
+                    "1. MANDATORY GRAMMAR: Always write in FIRST PERSON SINGULAR ('I will...', 'I have built...', 'I specialize in...', 'I can implement...'). NEVER write in second person ('You will create...', 'You should...').\n"
+                    "2. FORMAT: Freelancer.com DOES NOT support Markdown. STRICTLY FORBIDDEN to use asterisks (** or *). DO NOT use hashtags (#). Use clean plain text with clear, readable paragraphs and simple dashes (-) for bullet points.\n"
+                    "3. GREETING: Natural, direct and professional ('Hi [Name]', 'Hello there', or straight to the technical solution). NEVER use robotic AI clichés like 'I hope this proposal finds you well', 'I am thrilled to apply', or 'Dear client'.\n"
+                    "4. MANDATORY CONSULTATIVE QUESTIONS: ALWAYS include a dedicated section before closing with at least 2 sharp, direct technical questions to invite the client to reply in the chat.\n"
+                    "5. BUDGET & VALUE: Justify the reference quote ({suggested_bid}) by demonstrating solid technical competence and clear deliverables.\n"
+                    "6. STRICT PLATFORM CLOSE: Invite the client to coordinate all technical details directly through the Freelancer.com chat. 100% chat-based delivery with no external meetings required."
+                )
 
-        prompt = f"""
-Eres un estratega senior de propuestas freelance redactando en nombre de Jack Michael Berrocal.
-Perfil profesional de Jack:
-- Egresado de Ingeniería de Sistemas (UTEL 2025). Especializado en Software, IA y Ciencia de Datos (Oracle Next Education - ONE / Alura).
-- Habilidades: Desarrollo Web (WordPress, Hostinger, Elementor, Gutenberg, React, PHP), Gestión de Redes Sociales (IG/TikTok), Atención al Cliente WhatsApp/Chat (velocidad < 2 min, trato formal de "usted"), Chatbots con IA, Power BI, Python (Scraping, Playwright), QA Testing, SQL.
-- Portafolio comprobable: {github_url}
+            ai_prompt = f"""FREELANCER.COM PROJECT:
+Title: {title}
+Client Budget: {budget or "To be discussed"}
+Reference Estimate: {suggested_bid}
+Delivery Timeline: {timeline}
 
-Datos del proyecto del cliente:
-- Título: "{title}"
-- Descripción completa: "{description}"
-- Presupuesto cliente: "{budget}"
-- Cotización sugerida: "{suggested_bid}" ({modality_instruction})
-- Tiempo estimado / Disponibilidad: "{timeline}"
-- Categoría detectada: "{category}"
+CLIENT BRIEF:
+{description}
 
-REGLAS DE ORO DE REDACCIÓN (¡ESTRICTAS!):
-1. LEE DETALLE A DETALLE: Responde específicamente a los puntos y materiales mencionados. Si el cliente dice que ya tiene dominio, hosting o diseño en PDF, RECONÓCELO explícitamente y NUNCA le preguntes si ya tiene hosting o si necesita diseño.
-2. PREGUNTAS ESTRATÉGICAS (OBLIGATORIAS): Incluye exactamente 2 a 3 preguntas técnicas y de negocio inteligentes que no hayan sido respondidas en el brief, para demostrar dominio y provocar respuesta en el chat.
-3. MODALIDAD DIFERENCIADA: Si es por horas, resalta disponibilidad horaria y método de control; si es por proyecto, resalta entrega llave en mano y garantía de ajustes.
-4. PROHIBIDO DERIVAR A LLAMADAS O CONTACTOS EXTERNOS: Está terminantemente prohibido sugerir "llamadas", "Zoom", "videollamadas" o "WhatsApp". Todo debe ofrecerse y resolverse DIRECTAMENTE por el chat de la plataforma.
-5. LONGITUD ÓPTIMA: Entre 3 y 4 párrafos concisos y persuasivos con formato limpio y viñetas con emojis profesionales.
+INSTRUCTIONS:
+Write a winning technical proposal for this project in ENGLISH.
+- Write STRICTLY in FIRST PERSON singular ('I will handle...', 'I will build...').
+- Include at least 2 sharp consultative technical questions at the end to prompt a chat response.
+- Plain text only, NO markdown asterisks (**).
+- Concise (3-4 short paragraphs), human, technically sharp, focused on solving the client requirement.
+"""
+        else:
+            if is_design:
+                sys_inst = (
+                    "Eres una Diseñadora Gráfica Profesional y Creativa Senior (Adobe Illustrator, Photoshop, Branding, Identidad Visual y Editorial). "
+                    "Tu objetivo es redactar propuestas comerciales impecables, directas, criteriosas y humanas para clientes en Freelancer.com.\n\n"
+                    "REGLAS CRÍTICAS DE REDACCIÓN:\n"
+                    "1. GRAMÁTICA OBLIGATORIA: Escribe SIEMPRE en PRIMERA PERSONA DEL SINGULAR ('Me encargaré de...', 'Desarrollaré...', 'Diseñaré...', 'Puedo crear...', 'Cuento con experiencia en...'). NUNCA escribas en segunda persona ('Crearás...', 'Diseñarás...') ni le des órdenes al cliente.\n"
+                    "2. FORMATO: Freelancer.com NO soporta Markdown. TOTALMENTE PROHIBIDO usar asteriscos (** ni *). NO uses almohadillas (#). Escribe en texto plano limpio con párrafos legibles y viñetas simples con guion (-).\n"
+                    "3. SALUDO: Saluda de forma natural y cercana ('Hola, qué tal', 'Hola [Nombre]' o entra directo al grano). NUNCA uses clichés robóticos como 'Gracias por tu interés en mi perfil', 'Entiendo completamente tu requerimiento', 'Me complace escuchar...' ni 'Estimado cliente'.\n"
+                    "4. PREGUNTAS CONSULTIVAS OBLIGATORIAS: Incluye SIEMPRE antes del cierre un apartado con al menos 2 preguntas técnicas o creativas directas para invitar al cliente a responder por el chat.\n"
+                    "5. NUNCA inventes 'Escenario 1' ni 'Escenario 2' salvo que el cliente haya pedido explícitamente cotizar escenarios en su anuncio.\n"
+                    "6. Cierre profesional invitando a coordinar por el chat de la plataforma Freelancer.com."
+                )
+            else:
+                sys_inst = (
+                    "Eres Jack Michael Berrocal (@jmberrocale), Ingeniero de Sistemas y Desarrollador Full-Stack (Python, JavaScript, React, WordPress, APIs, SQL). "
+                    "Tu objetivo es redactar propuestas técnicas directas, profesionales y de alto valor para clientes en Freelancer.com.\n\n"
+                    "REGLAS CRÍTICAS DE REDACCIÓN:\n"
+                    "1. GRAMÁTICA OBLIGATORIA: Escribe SIEMPRE en PRIMERA PERSONA DEL SINGULAR ('Me encargaré de...', 'Desarrollaré...', 'Implementaré...', 'Configuraré...', 'Tengo experiencia en...'). ESTÁ TOTALMENTE PROHIBIDO conjugar en segunda persona ('Conectarás...', 'Redactarás...', 'Publicarás...', 'Harás...') porque suena a darle órdenes al cliente.\n"
+                    "2. FORMATO: Freelancer.com NO soporta Markdown. TOTALMENTE PROHIBIDO usar asteriscos (** ni *). NO uses almohadillas (#). Escribe en texto plano limpio con párrafos legibles y viñetas simples con guion (-).\n"
+                    "3. SALUDO: Saluda de forma natural y profesional ('Hola, qué tal', 'Hola [Nombre]' o directo a la propuesta). NUNCA uses clichés robóticos como 'Gracias por tu interés en mi perfil', 'Entiendo completamente tu requerimiento', 'Me complace escuchar...' ni 'Estimado cliente'.\n"
+                    "4. PREGUNTAS CONSULTIVAS OBLIGATORIAS: Incluye SIEMPRE antes del cierre un apartado con al menos 2 preguntas técnicas o consultivas directas basadas en el proyecto para invitar al cliente a responder en el chat.\n"
+                    "5. PRESUPUESTO Y VALOR: Justifica la cotización de referencia planteada ({suggested_bid}) demostrando alta competencia técnica y entregables concretos.\n"
+                    "6. NUNCA inventes 'Escenario 1' ni 'Escenario 2' salvo que el cliente haya pedido explícitamente cotizar escenarios en su anuncio.\n"
+                    "7. Cierre directo invitando a coordinar los detalles técnicos por el chat de Freelancer.com."
+                )
 
-Responde ÚNICAMENTE con el texto de la propuesta listo para enviar.
+            scenario_note = ""
+            if "escenario" in description.lower():
+                scenario_note = "\n- El cliente solicita cotizar escenarios específicos en su brief. Responde punto por punto a lo solicitado."
+
+            ai_prompt = f"""PROYECTO FREELANCER.COM:
+Título: {title}
+Presupuesto del cliente: {budget or "A convenir"}
+Cotización de referencia: {suggested_bid}
+Plazo de referencia: {timeline}
+
+ANUNCIO DEL CLIENTE:
+{description}
+
+INSTRUCCIÓN:
+Redacta la propuesta para postular a este proyecto.
+- Escribe SIEMPRE en PRIMERA PERSONA del singular ('Me encargaré...', 'Desarrollaré...'). NUNCA en segunda persona ('Conectarás...').
+- OBLIGATORIO: Incluye al final MÍNIMO 2 preguntas consultivas específicas para iniciar la conversación por el chat.
+- NO uses asteriscos (** ni *) porque en Freelancer.com se muestran como caracteres rotos.
+- NO uses clichés robóticos ('Gracias por tu interés en mi perfil', 'Entiendo completamente tu requerimiento', 'Me complace escuchar...', 'Estimado cliente', etc.).
+- Mensaje conciso (3 a 5 párrafos breves), humano, técnico y enfocado en resolver exactamente lo que el cliente pide.{scenario_note}
 """
 
-        llm_text = self._call_external_llm(prompt)
-        if llm_text:
-            return {
-                "category": category,
-                "suggested_bid": suggested_bid,
-                "suggested_timeline": timeline,
-                "is_hourly": is_hourly,
-                "proposal_text": codeword_prefix + llm_text
-            }
+        proposal_text = None
+        try:
+            llm_res = self._call_external_llm(ai_prompt, system_instructions=sys_inst)
+            if llm_res and len(llm_res.strip()) > 80:
+                proposal_text = strip_all_emojis(llm_res.strip())
+        except Exception as e:
+            print(f"[ProposalGenerator] LLM call error: {e}")
 
-        # --- MOTOR COGNITIVO DETERMINÍSTICO AVANZADO ---
-        proposal_text = self._generate_cognitive_proposal(
-            title=title,
-            description=description,
-            category=category,
-            suggested_bid=suggested_bid,
-            timeline=timeline,
-            is_hourly=is_hourly,
-            budget=budget,
-            github_url=github_url
-        )
+        # Fallback determinístico avanzado si la IA no estuviera disponible
+        if not proposal_text:
+            if is_english:
+                proposal_text = self._generate_cognitive_proposal_en(
+                    title=title,
+                    description=description,
+                    category=category,
+                    suggested_bid=suggested_bid,
+                    timeline=timeline,
+                    is_hourly=is_hourly,
+                    budget=budget,
+                    github_url=github_url
+                )
+            else:
+                proposal_text = self._generate_cognitive_proposal(
+                    title=title,
+                    description=description,
+                    category=category,
+                    suggested_bid=suggested_bid,
+                    timeline=timeline,
+                    is_hourly=is_hourly,
+                    budget=budget,
+                    github_url=github_url
+                )
+            proposal_text = strip_all_emojis(proposal_text)
+
+        # Safeguard estricto: Asegurar que la propuesta contenga al menos 2 preguntas consultivas
+        if is_english:
+            if proposal_text.count("?") < 2:
+                en_questions_map = {
+                    "web_dev": (
+                        "\n\nTo ensure the optimal technical setup, I would like to ask:\n"
+                        "1. Do you already have the hosting/domain infrastructure configured, or would you like recommendations?\n"
+                        "2. Do you have wireframes or design references ready, or should we refine them in chat?"
+                    ),
+                    "python_automation_scraping": (
+                        "\n\nTo calibrate the extraction pipeline:\n"
+                        "1. Do the target sources require login authentication, dynamic pagination, or anti-bot handling?\n"
+                        "2. Would you prefer the output in structured CSV/Excel format, or directly integrated into a database/API?"
+                    ),
+                    "qa_testing": (
+                        "\n\nTo tailor the testing scope:\n"
+                        "1. Which devices, operating systems, or browsers are your highest priority for this test run?\n"
+                        "2. Would you prefer bug reports in a structured spreadsheet or directly logged into a tracker like Jira/Trello?"
+                    ),
+                    "sql_database": (
+                        "\n\nTo structure the best database solution:\n"
+                        "1. What is the specific database engine (PostgreSQL, MySQL, SQLite) and estimated data volume?\n"
+                        "2. Are you looking for optimized query scripts, or also schema indexing and stored procedures?"
+                    ),
+                    "graphic_design_creative": (
+                        "\n\nTo align on your visual concept:\n"
+                        "1. Do you have existing brand guidelines or color palettes to follow, or should we explore new concepts?\n"
+                        "2. What specific export formats and dimensions do you need for final delivery?"
+                    ),
+                    "it_support": (
+                        "\n\nTo plan the support configuration:\n"
+                        "1. What is the current server/OS environment (Ubuntu, Debian, CentOS, Windows)?\n"
+                        "2. Do you have existing configuration documentation or backups ready before making changes?"
+                    )
+                }
+                proposal_text += en_questions_map.get(category, (
+                    "\n\nTo get started smoothly:\n"
+                    "1. When are you looking to have this completed?\n"
+                    "2. Would you like to discuss the technical specifics in chat so I can begin right away?"
+                ))
+        else:
+            if proposal_text.count("?") < 2:
+                questions_map = {
+                    "web_dev": (
+                        "\n\nPara definir la mejor estrategia técnica, me gustaría consultarte:\n"
+                        "1. ¿Cuentas ya con el servicio de hosting y dominio configurado, o requieres recomendación sobre la mejor infraestructura?\n"
+                        "2. ¿Tienes definida la estructura y contenidos de cada sección, o requieres apoyo en la organización de la información?"
+                    ),
+                    "ecommerce_stores": (
+                        "\n\nPara avanzar de forma precisa:\n"
+                        "1. ¿Tienes definido el catálogo de productos con sus imágenes y precios en algún archivo estructurado (Excel o CSV)?\n"
+                        "2. ¿Qué pasarelas de pago y operadores logísticos tienes previsto integrar para tu mercado objetivo?"
+                    ),
+                    "python_automation_scraping": (
+                        "\n\nPara calibrar la extracción y entrega:\n"
+                        "1. ¿Los sitios de origen cuentan con autenticación previa, paginación dinámica o medidas anti-bot que debamos contemplar?\n"
+                        "2. ¿Prefieres la entrega en una hoja estructurada de Excel/CSV o directamente sincronizada con una base de datos?"
+                    ),
+                    "sql_database": (
+                        "\n\nPara estructurar la solución óptima:\n"
+                        "1. ¿Cuál es el motor de base de datos específico (PostgreSQL, MySQL, SQLite) y el volumen aproximado de registros?\n"
+                        "2. ¿Requieres únicamente los scripts DDL/consultas optimizadas o también la creación de índices y procedimientos almacenados?"
+                    ),
+                    "ai_chatbot_system": (
+                        "\n\nPara definir la arquitectura ideal:\n"
+                        "1. ¿Prefieres utilizar directamente la API oficial de WhatsApp Cloud de Meta o una plataforma intermediaria tipo Twilio?\n"
+                        "2. ¿Te gustaría gestionar las respuestas y palabras clave desde una hoja vinculada en vivo o desde un panel dedicado?"
+                    ),
+                    "graphic_design_creative": (
+                        "\n\nPara enfocar la propuesta visual:\n"
+                        "1. ¿Tienes referencias de estilo, paleta de colores preferida o manual de identidad existente para mantener la coherencia?\n"
+                        "2. ¿En qué dimensiones y formatos específicos necesitas la entrega final para impresión o difusión digital?"
+                    )
+                }
+                extra_q = questions_map.get(category, (
+                    "\n\nPara iniciar de forma precisa:\n"
+                    "1. ¿Cuentas con especificaciones técnicas detalladas o material base para arrancar?\n"
+                    "2. ¿Cuál es tu fecha límite ideal para tener esta primera versión funcionando?"
+                ))
+                if re.search(r'(?i)\bquedo\b', proposal_text):
+                    parts = re.split(r'(?i)(?=\bquedo\b)', proposal_text, maxsplit=1)
+                    proposal_text = parts[0].strip() + extra_q + "\n\n" + parts[1].strip()
+                else:
+                    proposal_text = proposal_text.strip() + extra_q
 
         return {
             "category": category,
             "suggested_bid": suggested_bid,
             "suggested_timeline": timeline,
             "is_hourly": is_hourly,
-            "proposal_text": codeword_prefix + proposal_text
+            "proposal_text": strip_all_emojis(codeword_prefix + proposal_text)
         }
+
+    def _generate_cognitive_proposal_en(
+        self,
+        title: str,
+        description: str,
+        category: str,
+        suggested_bid: str,
+        timeline: str,
+        is_hourly: bool,
+        budget: str = "",
+        github_url: str = "https://github.com/JackMBerrocal"
+    ) -> str:
+        """
+        Generates high-impact English technical proposals for international clients.
+        100% first-person singular, professional, human, and chat-based.
+        """
+        budget_mention = f" (within your {budget} budget)" if budget else ""
+        commercial_note = f"Proposed rate: {suggested_bid}. Timeline: {timeline}." if is_hourly else f"Fixed quote: {suggested_bid}{budget_mention}. Delivery timeline: {timeline}."
+        chat_close = "I am available right now via Freelancer chat to coordinate all details and start immediately. We can manage 100% of this project directly through this chat with no external calls needed."
+
+        if category == "web_dev":
+            return f"""Hi there! I reviewed your project "{title}" with great interest.
+
+I am Jack Berrocal, a Systems Engineer and Full-Stack Web Developer. I specialize in building fast, responsive, and robust web applications with clean, maintainable code.
+
+Here is how I will approach your project:
+- Review your exact technical requirements and architecture.
+- Implement the requested features with full responsiveness across desktop, tablet, and mobile.
+- Thoroughly test functionality, user experience, and performance before delivery.
+- Provide clean source code and complete deployment support.
+
+Commercial reference: {commercial_note}
+
+To tailor the technical approach:
+1. Do you already have the hosting/domain infrastructure configured, or would you like recommendations?
+2. Do you have wireframes or design references ready, or should we refine them in chat?
+
+{chat_close}"""
+
+        elif category == "python_automation_scraping":
+            return f"""Hi! I specialize in Python automation, robust web scraping, and API integrations.
+
+For "{title}", I can build a clean, efficient script that reliably handles data extraction with proper error handling and rate-limiting.
+
+Deliverables:
+- Well-structured Python automation script tailored to your exact target sources.
+- Structured data delivery in CSV, Excel, JSON, or direct database sync.
+- Anti-detection and pagination handling if required by the target site.
+- Complete documentation so you can run the script effortlessly.
+
+Commercial reference: {commercial_note}
+
+To calibrate the pipeline:
+1. Do the target sources require login authentication, dynamic pagination, or anti-bot handling?
+2. Would you prefer the output in structured CSV/Excel format, or directly integrated into a database/API?
+
+{chat_close}"""
+
+        elif category == "qa_testing":
+            return f"""Hello! As a Systems Engineer with a solid background in Software QA and Usability, I can thoroughly test your application and deliver actionable results.
+
+For "{title}", I will execute methodical functional and user experience tests to identify bugs, edge cases, and areas of refinement.
+
+Deliverables:
+- Comprehensive test coverage across your prioritized workflows.
+- Detailed bug reports with clear reproduction steps, screenshots, and severity ratings.
+- Actionable usability feedback to improve user retention and flow.
+- Structured summary report ready for your engineering team.
+
+Commercial reference: {commercial_note}
+
+To tailor the testing scope:
+1. Which devices, operating systems, or browsers are your highest priority for this test run?
+2. Would you prefer bug reports in a structured spreadsheet or directly logged into a tracker like Jira/Trello?
+
+{chat_close}"""
+
+        elif category == "sql_database":
+            return f"""Hi! I specialize in database architecture, SQL optimization, and data engineering (PostgreSQL, MySQL, SQLite).
+
+For "{title}", I can structure, optimize, or troubleshoot your database logic ensuring high performance and data integrity.
+
+Deliverables:
+- Clean, optimized SQL scripts and schema architecture.
+- Indexing and query performance tuning to prevent bottlenecks.
+- Stored procedures, triggers, or views as required.
+- Full verification and testing of data consistency.
+
+Commercial reference: {commercial_note}
+
+To structure the best database solution:
+1. What is the specific database engine and estimated data volume?
+2. Are you looking for optimized query scripts, or also schema indexing and stored procedures?
+
+{chat_close}"""
+
+        elif category == "ai_chatbot_system":
+            return f"""Hello! I build intelligent chatbots and workflow automations (WhatsApp Cloud API, Telegram, REST APIs).
+
+For "{title}", I can set up a reliable, automated conversational system tailored to your specific interaction flow.
+
+Deliverables:
+- Complete conversational logic and message dispatch flow.
+- Webhook endpoints and secure API integrations.
+- Comprehensive end-to-end testing to verify response accuracy.
+- Deployment support and clear administration guidance.
+
+Commercial reference: {commercial_note}
+
+To align on your automation logic:
+1. Which platform or API provider will host the bot (WhatsApp Cloud API, Twilio, or another)?
+2. Do you have a flowchart or specific FAQ responses already outlined?
+
+{chat_close}"""
+
+        elif category == "graphic_design_creative":
+            return f"""Hello! I am a Creative Graphic Designer with extensive experience in Adobe Illustrator, Photoshop, branding, and visual identity.
+
+For "{title}", I will create clean, high-impact, and original designs that elevate your brand and communicate your message effectively.
+
+Deliverables:
+- Creative, polished design concepts based on your requirements.
+- High-resolution, print-ready and web-ready vector files (AI, PSD, PDF, PNG, SVG).
+- Fast turnaround with dedicated revisions until you are 100% satisfied.
+
+Commercial reference: {commercial_note}
+
+To align on your visual concept:
+1. Do you have existing brand guidelines or color palettes to follow, or should we explore new concepts?
+2. What specific export formats and dimensions do you need for final delivery?
+
+{chat_close}"""
+
+        else:
+            return f"""Hello! I am Jack Berrocal, a Systems Engineer with hands-on experience in full-stack development, automation, and technical problem-solving.
+
+For "{title}", I can step in, analyze your requirements, and deliver a clean, reliable solution.
+
+Deliverables:
+- Methodical execution following software engineering best practices.
+- Clear communication and timely updates throughout the project.
+- Complete verification and deployment assistance.
+
+Commercial reference: {commercial_note}
+
+To get started smoothly:
+1. When are you looking to have this completed?
+2. Would you like to discuss the technical specifics in chat so I can begin right away?
+
+{chat_close}"""
 
     def _generate_cognitive_proposal(
         self,
@@ -536,362 +1082,302 @@ Responde ÚNICAMENTE con el texto de la propuesta listo para enviar.
 
         # Formato de bloque comercial según modalidad
         if is_hourly:
-            commercial_block = f"""💼 Modalidad de Trabajo & Tarifa:
+            commercial_block = f""" Modalidad de Trabajo & Tarifa:
 • Tarifa Propuesta: {suggested_bid}.
 • Disponibilidad: {timeline}.
 • Control & Transparencia: Registro transparente de actividades, bitácora diaria de tareas cumplidas y total adaptación a tu franja horaria."""
         else:
             budget_mention = f" (dentro de tu presupuesto de {budget})" if budget else ""
-            commercial_block = f"""📦 Cotización Cerrada & Plazo Llave en Mano:
+            commercial_block = f""" Cotización Cerrada & Plazo Llave en Mano:
 • Presupuesto Cerrado: {suggested_bid}{budget_mention}.
 • Plazo de Entrega: {timeline} con puesta en producción.
 • Garantía de Calidad: Incluye entrega de accesos, archivos fuente y una ronda de ajustes finales para certificar que cada sección quede exactamente como deseas."""
 
-        closing_block = "Quedo disponible en este momento por el chat de la plataforma para resolver cualquier consulta y arrancar de inmediato. Coordinamos el 100% del proyecto por este chat, sin necesidad de llamadas externas ni pérdidas de tiempo. 🚀"
+        closing_block = "Quedo disponible en este momento por el chat de la plataforma para resolver cualquier consulta y arrancar de inmediato. Coordinamos el 100% del proyecto por este chat, sin necesidad de llamadas externas ni pérdidas de tiempo. "
 
         # -------------------------------------------------------------
-        # 1. DESARROLLO WEB & WORDPRESS / HOSTINGER / LANDING PAGES
+        # 1. DESARROLLO WEB & WORDPRESS / HOSTINGER / LANDING PAGES (Jack)
         # -------------------------------------------------------------
         if category == "web_dev":
-            pages_desc = f"de {details['pages_count']} páginas" if details['pages_count'] else "de servicios profesionales"
-            platform_desc = "WordPress alojado en tu servidor Hostinger" if (details['has_hostinger'] and details['has_wordpress']) else ("WordPress" if details['has_wordpress'] else "web responsiva")
+            pages_desc = f"de {details['pages_count']} páginas" if details['pages_count'] else ""
+            platform_desc = "en WordPress" if details['has_wordpress'] else "web moderna y responsiva"
+            budget_txt = f"{suggested_bid}" if suggested_bid else "a convenir"
 
-            # Pilar 1: Maquetación y estilo
-            pages_count_str = f"{details['pages_count']} páginas" if details['pages_count'] else "páginas requeridas"
-            if details['brand_guide_ready'] or details['structure_defined']:
-                p1 = f"""1. 🎨 Maquetación Fiel a tu Guía de Estilo & Adaptabilidad Total:
-Implementación de las {pages_count_str} respetando al 100% la guía de estilo del diseñador, la estructura establecida, los textos redactados y las fotografías preparadas. Interfaz moderna y fluida optimizada para celulares, tablets y computadoras de escritorio cumpliendo con los estándares de tu marca."""
-            else:
-                p1 = """1. 🎨 Maquetación Responsiva & Estética Moderna:
-Diseño visual moderno optimizado para celulares, tablets y computadoras de escritorio cumpliendo estándares UI/UX, logrando una presentación clara y profesional de tus servicios."""
+            return f"""¡Hola! Leí con atención tu requerimiento para "{title}".
 
-            # Pilar 2: Funcionalidad técnica y normativas
-            p2_points = []
-            if details['has_cookie_banner']:
-                p2_points.append("Instalación y configuración del banner de cookies para estricto cumplimiento legal de privacidad y publicidad")
-            if details['has_contact_form']:
-                p2_points.append("Integración de formularios de contacto directos para captar las consultas de los clientes")
-            if details['no_shop'] or details['no_dynamic']:
-                p2_points.append("Arquitectura estática ultra ligera sin sobrecarga de plugins de tienda ni bases de datos dinámicas innecesarias")
-            else:
-                p2_points.append("Formularios de contacto operativos y optimización básica on-page")
+Como desarrollador web full-stack, me especializo en construir sitios y landing pages limpias, rápidas y 100% optimizadas para celulares y computadoras {pages_desc} {platform_desc}.
 
-            p2 = f"""2. ⚡ Funcionalidad & Cumplimiento Normativo:
-{chr(10).join(['• ' + pt for pt in p2_points])}."""
+Me enfoco en entregarte:
+- Diseño moderno, fluido y alineado a tu marca (respetando guías, logos o textos que ya tengas).
+- Formulario de contacto funcional, certificado SSL y optimización de velocidad de carga.
+- Código ordenado y despliegue sin fallas sobre tu hosting para que quede publicado y listo para usar.
 
-            # Pilar 3: Despliegue en hosting
-            if details['has_hostinger'] and details['domain_linked']:
-                p3 = """3. 🚀 Despliegue en Hostinger & Alta Velocidad de Carga:
-Configuración en tu hosting Hostinger sobre el dominio que ya tienes vinculado, certificado SSL activo, compresión de imágenes a formato WebP y optimización de caché para una velocidad de carga instantánea (PageSpeed 90+)."""
-            else:
-                p3 = """3. 🚀 Despliegue en Servidor & Verificación Técnica:
-Puesta en marcha sobre tu servidor con certificado SSL activo, código ordenado y revisión completa de enlaces y formularios previo a la entrega."""
+Mi cotización de referencia es de {budget_txt} con un plazo de entrega de {timeline}. Puedes ver proyectos reales y código comprobable en mi GitHub ({github_url}).
 
-            # Preguntas estratégicas (NUNCA preguntar lo que el cliente ya dio)
-            questions = []
-            if details['has_wordpress']:
-                if not details['has_elementor'] and not details['has_gutenberg']:
-                    questions.append("¿Prefieres que la maquetación se desarrolle con Elementor o con Gutenberg (bloques nativos de WordPress para máxima velocidad en Hostinger)?")
+Para definir la mejor estrategia técnica, me gustaría consultarte:
+1. ¿Cuentas ya con el servicio de hosting y dominio configurado, o requieres recomendación sobre la mejor infraestructura?
+2. ¿Tienes definida la estructura y contenidos de cada sección, o requieres apoyo en la organización de la información?
 
-            if details['pdf_provided']:
-                questions.append("¿Podrías compartirme el PDF por el chat de la plataforma para validar la estructura exacta de las páginas y arrancar con el mapa claro?")
-            elif not details['structure_defined']:
-                questions.append("¿Tienes ya definido el esquema o boceto de las secciones que llevará cada página?")
-
-            if details['has_cookie_banner'] and details['has_ads_publicity']:
-                questions.append("¿Deseas que el banner de cookies sea compatible con Google Consent Mode v2 para medir tus campañas de publicidad sin bloqueos?")
-            elif details['has_contact_form']:
-                questions.append("¿Los formularios de contacto enviarán las consultas a un correo corporativo específico?")
-
-            if len(questions) < 2:
-                questions.append("¿Cuentas con los accesos al panel de Hostinger/WordPress listos para comenzar la maquetación hoy mismo?")
-
-            q_block = "\n".join([f"• {q}" for q in questions[:3]])
-
-            return f"""Hola, revisé minuciosamente los requerimientos para "{title}".
-
-Comprendo con total claridad lo que necesitas: maquetar un sitio web profesional {pages_desc} en {platform_desc}, convirtiendo fielmente los materiales ya preparados en una web funcional, rápida y orientada a presentar tus servicios:
-
-{p1}
-
-{p2}
-
-{p3}
-
-Portafolio web con proyectos reales desplegados disponible en mi GitHub ({github_url}).
-
-💡 Preguntas clave para afinar los detalles de inmediato:
-{q_block}
-
-{commercial_block}
-
-{closing_block}"""
+Quedo atento por el chat de la plataforma para resolver cualquier duda técnica y comenzar."""
 
         # -------------------------------------------------------------
-        # 2. CRECIMIENTO DE REDES SOCIALES (TIKTOK, REELS, INSTAGRAM)
-        # -------------------------------------------------------------
-        elif category == "social_media_growth":
-            reels_str = f"de {details['reels_count']} contenidos" if details['reels_count'] else "con publicaciones y reels estratégicos"
-
-            return f"""Hola, revisé los detalles de tu proyecto para "{title}".
-
-Entiendo que el objetivo prioritario es impulsar el alcance, engagement y flujo de prospectos de forma coordinada en Instagram y TikTok {reels_str}, trabajando con métricas de conversión comprobables:
-
-1. 🔍 Diagnóstico & Posicionamiento: Análisis del perfil actual, benchmarks de competidores en tu nicho y definición de ganchos (hooks) para retener la atención en los primeros 3 segundos.
-2. 📱 Creación & Adaptación de Contenidos: Edición dinámica de reels y posts adaptados a las tendencias y algoritmos actuales de TikTok e Instagram, con portadas atractivas y llamados a la acción (CTA) claros.
-3. 📈 Optimización Semanal de Resultados: Monitoreo periódico de retención y reproducciones para iterar sobre los formatos que generen mayor interacción y tráfico.
-
-Portafolio de edición y proyectos visuales disponible en mi perfil de GitHub ({github_url}).
-
-💡 Preguntas clave para iniciar con precisión:
-• ¿Cuentan actualmente con material grabado para edición y adaptación, o partiremos de guiones conceptualizados desde cero?
-• ¿Cuál es el producto, servicio o llamado a la acción central hacia donde queremos dirigir a los seguidores?
-• ¿La estrategia inicial se basará en crecimiento 100% orgánico o se complementará con campañas de Meta Ads / TikTok Ads?
-
-{commercial_block}
-
-{closing_block}"""
-
-        # -------------------------------------------------------------
-        # 3. E-COMMERCE & TIENDAS VIRTUALES (SHOPIFY / WOOCOMMERCE)
+        # 2. E-COMMERCE & TIENDAS VIRTUALES (SHOPIFY / WOOCOMMERCE) (Jack)
         # -------------------------------------------------------------
         elif category == "ecommerce_stores":
-            items_str = f"de los {details['products_count']} productos" if details['products_count'] else "del catálogo completo de productos"
+            items_str = f"de los {details['products_count']} productos" if details['products_count'] else "de tus productos"
+            budget_txt = f"{suggested_bid}" if suggested_bid else "a convenir"
 
-            return f"""Hola, leí con atención los requerimientos de tu proyecto para "{title}".
+            return f"""¡Hola! Revisé con atención tu proyecto para "{title}".
 
-Puedo encargarme de la configuración integral, carga de productos y optimización de tu tienda virtual para asegurar un flujo de compra rápido, confiable y con alta conversión móvil:
+Puedo encargarme de la configuración y puesta a punto de tu tienda online (Shopify / WooCommerce) para que quede lista para vender de forma fluida y segura:
 
-1. 🛍️ Carga de Catálogo & Arquitectura de Productos: Subida detallada {items_str} con variantes (tallas, colores), títulos optimizados para búsqueda, descripciones atractivas y control de inventario.
-2. 💳 Pasarelas de Pago & Configuración de Envíos: Integración segura de métodos de cobro locales e internacionales y cálculo automático de costos de despacho según zonas geográficas.
-3. 📱 Optimización Móvil & Checkout sin Fricción: Verificación rigurosa de que el proceso de compra funcione con fluidez desde cualquier celular.
+- Carga y organización {items_str} con sus variantes (tallas, colores), fotos y descripciones optimizadas.
+- Integración segura de pasarelas de pago y configuración de tarifas/zonas de envío.
+- Verificación exhaustiva del checkout para asegurar una compra móvil ágil y sin fricción.
 
-💡 Preguntas clave sobre tu tienda:
-• ¿En qué plataforma está construida la tienda (Shopify, WooCommerce, Tiendanube u otra)?
-• ¿Tienes ya la lista de productos organizada con imágenes y precios, o requieres apoyo para estructurar la base de datos de productos?
-• ¿Qué pasarelas de pago principales necesitas tener habilitadas para el cobro a clientes?
+Mi cotización de referencia es de {budget_txt} con plazo de {timeline}.
 
-{commercial_block}
+Para avanzar de forma precisa:
+1. ¿Tienes definido el catálogo de productos con sus imágenes y precios en algún archivo estructurado (Excel o CSV)?
+2. ¿Qué pasarelas de pago y operadores logísticos tienes previsto integrar para tu mercado objetivo?
 
-{closing_block}"""
-
-        # -------------------------------------------------------------
-        # 4. SOPORTE & ATENCIÓN AL CLIENTE POR WHATSAPP / CHAT
-        # -------------------------------------------------------------
-        elif category == "customer_support_whatsapp":
-            return f"""Hola, leí con detenimiento tu solicitud para la atención y soporte de clientes vía WhatsApp.
-
-Cuento con disponibilidad inmediata para cubrir tu servicio cumpliendo rigurosamente con una velocidad de respuesta menor a 2 minutos, tratamiento formal de "usted" y una redacción impecable en español nativo:
-
-1. 💬 Atención Empática & Rigurosa: Aplicación estricta de tus protocolos y políticas de empresa para resolver dudas frecuentes, guiar compras y atender consultas con amabilidad y precisión.
-2. ⌨️ Eficiencia con WhatsApp Web: Uso intensivo de atajos de teclado, etiquetas organizativas y respuestas rápidas para gestionar múltiples conversaciones en paralelo sin descuidar el detalle.
-3. 📊 Bitácora Diaria de Incidencias: Registro consolidado de chats atendidos, motivos principales de consulta y escalamiento inmediato de casos especiales al cierre de cada jornada.
-
-💡 Preguntas clave para coordinar la atención:
-• ¿Cuál es el volumen promedio aproximado de conversaciones o consultas que se reciben por turno?
-• ¿Cuentas con un documento de preguntas frecuentes (FAQs), catálogo o guía de respuestas para iniciar la inducción de inmediato?
-• ¿El servicio se gestiona directamente sobre WhatsApp Business / Web o a través de una plataforma multiagente (como Kommo, ManyChat o Zendesk)?
-
-{commercial_block}
-
-{closing_block}"""
+Quedo disponible en el chat de Freelancer para coordinar los accesos o la lista de productos y arrancar."""
 
         # -------------------------------------------------------------
-        # 5. SETTER DE VENTAS & PROSPECCIÓN CRM
-        # -------------------------------------------------------------
-        elif category == "sales_setter_crm":
-            return f"""Hola, revisé tu publicación para el rol de Setter de Ventas y Prospección Comercial.
-
-Cuento con comunicación asertiva, disciplina metódica y enfoque orientado a resultados para transformar prospectos interesados en reuniones agendadas de alto valor en tu calendario:
-
-1. 🎯 Cualificación Rápida de Leads: Respuesta inmediata a prospectos aplicando preguntas estratégicas para validar interés, necesidad real y capacidad de decisión.
-2. 💬 Tratamiento de Objeciones & Agendamiento: Manejo empático de dudas habituales para asegurar la cita en el horario del cerrador, manteniendo un trato formal y profesional.
-3. 📈 Seguimiento Riguroso en CRM: Registro diario del estatus de cada contacto en tu CRM o herramienta de control para evitar pérdida de oportunidades comerciales.
-
-💡 Preguntas clave para el flujo comercial:
-• ¿De qué canales provienen los prospectos principales (Meta Ads, inbound en redes sociales o prospección en frío)?
-• ¿Qué herramienta utilizan para el agendamiento y control de citas (Calendly, HubSpot, Google Calendar)?
-• ¿Cuentan con un guión o estructura de cualificación predefinida para iniciar de inmediato?
-
-{commercial_block}
-
-{closing_block}"""
-
-        # -------------------------------------------------------------
-        # 6. ASISTENCIA VIRTUAL & GESTIÓN ADMINISTRATIVA
-        # -------------------------------------------------------------
-        elif category == "virtual_assistant_admin":
-            return f"""Hola, revisé los detalles de tu solicitud para asistencia virtual y soporte administrativo.
-
-Como profesional en Ingeniería de Sistemas, ofrezco un perfil organizado, metódico y confiable para gestionar tus operaciones diarias con autonomía y confidencialidad:
-
-1. 📋 Gestión Operativa Diaria: Administración de correos, agenda de reuniones, seguimiento de pendientes y comunicación formal con clientes o proveedores en español neutro impecable.
-2. 🗄️ Control de Documentación y Datos: Manejo avanzado de Google Workspace, Excel/Sheets y Notion, manteniendo reportes limpios, actualizados y ordenados.
-3. ⚡ Reportes de Cierre de Jornada: Entrega diaria del estatus de actividades cumplidas y asuntos pendientes para tu completa tranquilidad.
-
-💡 Preguntas clave para organizar las labores:
-• ¿Cuáles serán las tareas prioritarias en las que necesitas apoyo durante los primeros días?
-• ¿La posición requiere disponibilidad en un horario continuo específico o se maneja por objetivos diarios?
-• ¿Qué herramientas principales utiliza el equipo para la comunicación interna y asignación de tareas?
-
-{commercial_block}
-
-{closing_block}"""
-
-        # -------------------------------------------------------------
-        # 7. CHATBOTS CON INTELIGENCIA ARTIFICIAL & AUTOMATIZACIONES
-        # -------------------------------------------------------------
-        elif category == "ai_chatbot_system":
-            return f"""Hola, leí con atención tu proyecto para la implementación de un sistema de Chatbot con Inteligencia Artificial.
-
-Como Ingeniero de Sistemas especializado en Software y Ciencia de Datos (Oracle Next Education), puedo diseñar una arquitectura conversacional robusta, confiable y libre de alucinaciones:
-
-1. 🧠 Base de Conocimientos & RAG: Integración de modelos LLM con tus catálogos, PDFs y políticas para que el bot responda con precisión matemática y lenguaje natural a las dudas de tus usuarios.
-2. 🔗 Conexión de Canales Oficiales: Integración mediante webhooks seguros con la API oficial de WhatsApp (Meta Cloud API / Twilio), Telegram o Chat Web, sincronizando datos con tu base de datos o CRM.
-3. 🔀 Derivación Inteligente & Auditoría: Detección automática de intenciones complejas para transferir el chat a un asesor humano cuando sea necesario, guardando telemetría de cada mensaje.
-
-Portafolio de proyectos de automatización e IA disponible en mi GitHub ({github_url}).
-
-💡 Preguntas clave sobre la arquitectura:
-• ¿El bot se integrará con la API oficial de WhatsApp Cloud o sobre un chat web integrado en tu plataforma?
-• ¿Cuentan con un archivo de preguntas frecuentes, catálogo o manual estructurado para entrenar la base de conocimiento?
-• ¿Qué acciones automáticas debe ejecutar el bot además de responder dudas (ej: agendar citas, registrar leads o consultar stock)?
-
-{commercial_block}
-
-{closing_block}"""
-
-        # -------------------------------------------------------------
-        # 8. POWER BI & ANALÍTICA DE DATOS
-        # -------------------------------------------------------------
-        elif category == "power_bi_data":
-            return f"""Hola, revisé tu proyecto sobre "{title}".
-
-Como Ingeniero de Sistemas especializado en Ciencia de Datos por Oracle Next Education (ONE / Alura), puedo diseñar un dashboard ejecutivo, interactivo y orientado a la toma de decisiones:
-
-1. 🔄 Modelado & ETL con Power Query: Extracción, limpieza y normalización de tus fuentes de datos, garantizando integridad y eliminando redundancias.
-2. 📊 Métricas & Fórmulas DAX: Creación de modelo relacional en estrella con medidas DAX para monitorear indicadores clave de rendimiento (ventas, márgenes, cohortes o tendencias).
-3. 🎨 Visualización Ejecutiva de Alto Impacto: Diseño de interfaz intuitiva con segmentadores dinámicos, filtros temporales y layout limpio para la dirección.
-
-Cuento con proyectos prácticos de analítica y bases de datos en mi repositorio ({github_url}).
-
-💡 Preguntas clave sobre tus datos:
-• ¿En qué formato se encuentran las fuentes de datos originales (Excel, Google Sheets, base de datos SQL o ERP)?
-• ¿Cuáles son los 3 indicadores o KPIs más críticos que la dirección necesita visualizar en este reporte?
-• ¿El reporte requiere actualización programada automática o carga periódica manual de archivos?
-
-{commercial_block}
-
-{closing_block}"""
-
-        # -------------------------------------------------------------
-        # 9. WEB SCRAPING & AUTOMATIZACIÓN PYTHON
+        # 3. WEB SCRAPING & AUTOMATIZACIÓN PYTHON (Jack)
         # -------------------------------------------------------------
         elif category == "python_automation_scraping":
-            return f"""Hola, leí con atención tu requerimiento técnico para "{title}".
+            budget_txt = f"{suggested_bid}" if suggested_bid else "a convenir"
 
-Puedo desarrollar el script de extracción y automatización en Python de forma rápida, robusta y con código limpio:
+            return f"""¡Hola! Leí tu requerimiento técnico para "{title}".
 
-1. ⚙️ Extracción Confiable & Evasión: Desarrollo modular con Playwright / Requests / BeautifulSoup, diseñado con reintentos automáticos, manejo de errores y respeto de estructuras web.
-2. 🗄️ Procesamiento & Limpieza con Pandas: Normalización rigurosa de los campos extraídos para entregártelos exactamente en el formato requerido (Excel estructurado, CSV o base de datos relacional).
-3. 📦 Entregable Documentado y Reutilizable: Código fuente ordenado con manual de 1 paso o script ejecutable para que puedas volver a correr la extracción cuando lo desees.
+Trabajo frecuentemente desarrollando scripts de extracción web y automatización en Python (Playwright, Requests, BeautifulSoup, Pandas), con código limpio, modular y manejo robusto de excepciones para que la extracción corra sin fallas:
 
-Proyectos similares de scraping y automatización disponibles en mi GitHub ({github_url}).
+- Script en Python documentado y listo para ejecutar en tu entorno.
+- Exportación estructurada de los datos al formato que necesites (Excel estructurado, CSV o base de datos).
+- Soporte para verificar que obtengas exactamente la información requerida.
 
-💡 Preguntas clave para el scraper:
-• ¿El sitio web objetivo requiere inicio de sesión (login) o cuenta con algún sistema de protección Captcha/Cloudflare?
-• ¿En qué formato específico necesitas la entrega final de los datos extraídos (Excel, CSV o base de datos)?
-• ¿La extracción se ejecutará una única vez o requieres que el script quede automatizado para ejecuciones periódicas?
+Mi propuesta de referencia es de {budget_txt} con entrega en {timeline}. Proyectos de código y scripts comprobables en mi GitHub ({github_url}).
 
-{commercial_block}
+Para calibrar la extracción y entrega:
+1. ¿Los sitios de origen cuentan con autenticación previa, paginación dinámica o medidas anti-bot que debamos contemplar?
+2. ¿Prefieres la entrega en una hoja estructurada de Excel/CSV o directamente sincronizada con una base de datos?
 
-{closing_block}"""
-
-        # -------------------------------------------------------------
-        # 10. QA TESTING & ASEGURAMIENTO DE CALIDAD
-        # -------------------------------------------------------------
-        elif category == "qa_testing":
-            return f"""Hola, leí con detenimiento tu solicitud de QA Testing para "{title}".
-
-Puedo realizar las pruebas funcionales exhaustivas para certificar la estabilidad, seguridad y experiencia de usuario de tu software:
-
-1. 🧪 Matriz de Casos de Prueba: Elaboración de cobertura completa con escenarios funcionales positivos, negativos y casos borde (edge cases).
-2. 🚀 Pruebas Funcionales & Verificación de APIs: Validación de flujos end-to-end de usuario y verificación de endpoints con Postman (códigos de respuesta HTTP, validación de schemas JSON y tiempos de carga).
-3. 📋 Reporte Detallado de Bugs en Jira/Trello: Documentación estructurada de cada incidencia con pasos exactos de reproducción, evidencias en video/capturas, severidad y comportamiento esperado.
-
-Formación especializada en aseguramiento de calidad con proyectos comprobables en GitHub ({github_url}).
-
-💡 Preguntas clave para la fase de testing:
-• ¿La aplicación a evaluar es un entorno web, aplicación móvil (Android/iOS) o endpoints de API backend?
-• ¿Cuentan con historias de usuario o especificaciones funcionales previas, o estructuramos los casos desde los flujos principales?
-• ¿En qué herramienta prefieres que se registren los reportes de bugs (Jira, Trello, Notion o GitHub Issues)?
-
-{commercial_block}
-
-{closing_block}"""
+Quedo disponible en el chat de la plataforma para revisar los enlaces o campos que necesitas extraer."""
 
         # -------------------------------------------------------------
-        # 11. SQL & BASES DE DATOS
+        # 4. SQL & BASES DE DATOS (Jack)
         # -------------------------------------------------------------
         elif category == "sql_database":
-            return f"""Hola, revisé tu requerimiento sobre "{title}".
+            budget_txt = f"{suggested_bid}" if suggested_bid else "a convenir"
 
-Puedo ayudarte a estructurar, depurar o consultar tu base de datos con máxima eficiencia y rendimiento:
+            return f"""¡Hola! Revisé tu necesidad técnica sobre "{title}".
 
-1. 🔍 Diagnóstico & Modelado Relacional: Análisis de esquemas, claves foráneas, tipos de datos y normalización (PostgreSQL, MySQL o SQLite).
-2. ⚡ Consultas SQL Optimizadas: Redacción de consultas complejas con JOINs eficientes, agregaciones, subconsultas e índices para tiempos de respuesta mínimos.
-3. 📄 Scripts Probados y Documentados: Entrega de código SQL limpio, comentado y validado para su integración directa.
+Como Ingeniero de Sistemas, tengo amplia experiencia modelando esquemas relacionales y redactando consultas SQL optimizadas (PostgreSQL, MySQL, SQLite) con índices eficientes y tiempos de respuesta mínimos.
 
-Repositorio técnico con proyectos de bases de datos disponible en GitHub ({github_url}).
+Te entrego los scripts limpios, comentados y listos para ejecutar sobre tu motor de base de datos.
 
-💡 Preguntas clave sobre tu base de datos:
-• ¿Qué motor de base de datos están utilizando actualmente (PostgreSQL, MySQL, SQL Server u otro)?
-• ¿El objetivo principal es crear un nuevo esquema relacional o depurar y acelerar consultas de un sistema en producción?
-• ¿Cuentan con un diagrama entidad-relación o descripción de las tablas involucradas?
+Mi cotización de referencia es de {budget_txt} con entrega en {timeline}. Repositorios con proyectos prácticos disponibles en mi GitHub ({github_url}).
 
-{commercial_block}
+Para estructurar la solución óptima:
+1. ¿Cuál es el motor de base de datos específico (PostgreSQL, MySQL, SQLite) y el volumen aproximado de registros?
+2. ¿Requieres únicamente los scripts DDL/consultas optimizadas o también la creación de índices y procedimientos almacenados?
 
-{closing_block}"""
+Quedo atento por el chat de la plataforma para revisar la estructura actual y avanzar."""
 
         # -------------------------------------------------------------
-        # 12. DISEÑO GRÁFICO, PHOTOSHOP, ILUSTRACIÓN & BRANDING
+        # 4.5. CHATBOTS & SISTEMAS DE BOTS CON APIS (Jack)
+        # -------------------------------------------------------------
+        elif category == "ai_chatbot_system":
+            budget_txt = f"{suggested_bid}" if suggested_bid else "a convenir"
+
+            return f"""¡Hola! Revisé con atención los requerimientos de tu proyecto "{title}".
+
+Como Ingeniero de Sistemas, desarrollo bots y flujos automatizados con código limpio (Python, WhatsApp Cloud API, Meta Graph API, Twilio o plataformas visuales) con alta disponibilidad y fácil mantenimiento para tu equipo:
+
+- Configuración y conexión funcional del bot con manejo de eventos y palabras clave.
+- Panel o archivo estructurado para que puedas actualizar respuestas y enlaces sin depender de un desarrollador.
+- Guía práctica de uso y pruebas conjuntas para validar el flujo al 100%.
+
+Mi cotización de referencia es de {budget_txt} con plazo de {timeline}. Código y proyectos prácticos verificables en mi GitHub ({github_url}).
+
+Para afinar la arquitectura ideal:
+1. ¿Tienes preferencia por utilizar directamente la API oficial de WhatsApp Cloud de Meta o una pasarela como Twilio?
+2. ¿Te gustaría gestionar las respuestas y palabras clave desde una hoja en vivo (Google Sheets) o desde un panel web dedicado?
+
+Quedo a tu disposición por el chat de la plataforma para coordinar los detalles e iniciar de inmediato."""
+
+        # -------------------------------------------------------------
+        # 5. DISEÑO GRÁFICO, PHOTOSHOP, ILUSTRACIÓN & BRANDING (Esposa de Jack)
         # -------------------------------------------------------------
         elif category == "graphic_design_creative":
-            return f"""Hola, revisé detalladamente los requerimientos visuales para "{title}".
+            t_low = f"{title} {description}".lower()
+            has_scenarios = any(w in t_low for w in ["escenario", "escenarios", "dos escenarios", "restyling", "pelada"])
+            is_manual = any(w in t_low for w in ["manual", "manuales", "branding", "identidad visual", "guía de estilo"])
+            budget_txt = f"{suggested_bid}" if suggested_bid else "a convenir"
 
-Comprendo con exactitud el impacto estético y la calidad que buscas transmitir. Como equipo de diseño gráfico y creativo con dominio avanzado de Adobe Photoshop y Adobe Illustrator, ofrecemos entregas ágiles y acabados de nivel agencia:
+            if has_scenarios or is_manual:
+                return f"""¡Hola! Revisé con atención los detalles de tu búsqueda para "{title}".
 
-1. 🎨 Propuestas Originales & Concepto Visual: Creación de conceptos gráficos desde cero (logotipos, banners publicitarios, piezas para redes sociales, retoque fotográfico avanzado o vectorización en Illustrator), 100% alineados con tu identidad de marca.
-2. 📦 Entrega Multiformato de Alta Resolución: Entrega de los archivos fuente editables (.AI y .PSD organizados en capas y vectores), versiones listas para imprenta (PDF CMYK 300 DPI) y formatos digitales optimizados para web y redes (.PNG con fondo transparente, .JPG alta definición y .SVG escalable).
-3. ✨ Revisiones Ágiles hasta tu Plena Conformidad: Ajustes en composición, paleta cromática y tipografía sin costos adicionales hasta que el entregable quede exactamente como lo imaginas.
+Como diseñadora gráfica especializada en Branding e Identidad Visual (Adobe Illustrator y Photoshop), me encantaría trabajar en este proyecto y acompañar el crecimiento de tus marcas:
 
-💡 Preguntas clave para iniciar con el diseño:
-• ¿Cuentas con una paleta de colores corporativa o referencias visuales (marcas, estilos o bocetos) que te gusten especialmente?
-• ¿Cuáles son las medidas o formatos finales requeridos (dimensiones para redes sociales, web o material impreso)?
-• ¿Requieres que el primer borrador esté listo dentro de las próximas 24 a 48 horas?
+• Cobertura completa: Diseño de logotipo, paleta cromática, combinaciones tipográficas, elementos gráficos y manual de comunicación estructurado con usos correctos e incorrectos.
+• Entregables profesionales: Archivos fuente editables (.AI vector y .PSD en capas), versiones de alta resolución listas para imprenta (PDF 300 DPI) y formatos digitales optimizados (.PNG transparente y .SVG).
+• Compromiso con tus tiempos y flujos: Me adapto con total seriedad a los calendarios de onboarding y entregas que manejan.
 
-{commercial_block}
+Mi cotización de referencia es de {budget_txt} con plazo sugerido de {timeline} (ajustable según el escenario o alcance exacto). Cuento con portfolio de manuales e identidades desarrolladas para compartirte de inmediato.
 
-{closing_block}"""
+Para avanzar de forma precisa:
+1. ¿Tienes referencias de estilo, paleta de colores preferida o manual de identidad existente para mantener la coherencia?
+2. ¿En qué dimensiones y formatos específicos necesitas la entrega final para impresión o difusión digital?
+
+Quedo atenta por el chat de la plataforma para enviarte muestras y coordinar."""
+            else:
+                return f"""¡Hola! Revisé tu anuncio para "{title}".
+
+Como diseñadora gráfica con amplia experiencia en Adobe Illustrator y Photoshop, puedo ayudarte a crear una propuesta visual atractiva, moderna y alineada con lo que buscas transmitir:
+
+- Conceptos creativos originales adaptados a tu identidad.
+- Archivos fuente editables (.AI / .PSD), versiones listas para imprenta (PDF 300 DPI) y formatos digitales (.PNG transparente, .JPG y .SVG).
+- Ajustes y revisiones hasta tu total conformidad.
+
+Mi presupuesto de referencia es de {budget_txt} con entrega en {timeline}.
+
+Para enfocar el trabajo creativo:
+1. ¿Tienes alguna paleta de colores o referencias visuales que te gusten especialmente para este proyecto?
+2. ¿Requieres los archivos optimizados para formato web/redes, imprenta en alta resolución o ambos?
+
+Si gustas, conversemos por el chat de la plataforma para ver referencias o detalles y comenzar."""
 
         # -------------------------------------------------------------
-        # 13. GENERAL / SOPORTE TI
+        # 6. GENERAL / OTROS PROYECTOS TÉCNICOS
         # -------------------------------------------------------------
         else:
-            return f"""Hola, revisé con atención tu proyecto para "{title}".
+            budget_txt = f"{suggested_bid}" if suggested_bid else "a convenir"
+            return f"""¡Hola! Revisé los detalles de tu proyecto para "{title}".
 
-Como Ingeniero de Sistemas, pongo a tu disposición mi formación técnica, disciplina y capacidad de resolución para abordar tu requerimiento con rapidez y precisión:
+Como Ingeniero de Sistemas, puedo ayudarte a resolver este requerimiento con rapidez, código ordenado y buenas prácticas profesionales.
 
-1. 🛠️ Diagnóstico Técnico: Análisis detallado de la necesidad para plantear la solución más limpia y duradera.
-2. ⚙️ Ejecución Metódica: Aplicación de buenas prácticas profesionales con comunicación constante y cumplimiento de plazos.
-3. 📋 Entrega Llave en Mano: Entrega documentada y acompañamiento post-entrega para verificar que todo funcione a tu entera satisfacción.
+Mi propuesta de referencia es de {budget_txt} con entrega en {timeline}. Cuento con proyectos prácticos verificables en mi GitHub ({github_url}).
 
-Portafolio técnico y proyectos prácticos disponibles en mi GitHub ({github_url}).
+Para iniciar con claridad técnica:
+1. ¿Cuentas con las especificaciones o material base listo para comenzar la implementación?
+2. ¿Cuál es la fecha límite ideal en la que necesitas tener esta entrega operativa?
 
-💡 Preguntas clave para comenzar:
-• ¿Cuáles son los entregables más urgentes que necesitas tener listos en los primeros días?
-• ¿Cuentas con accesos o documentación previa que pueda revisar de inmediato?
+Quedo a tu disposición por el chat de la plataforma para revisar los detalles e iniciar de inmediato."""
 
-{commercial_block}
+    def generate_execution_plan(self, title: str, description: str, client_name: str, budget: str) -> str:
+        """
+        Diseña el Blueprint Técnico de Ejecución Paso a Paso para que Jack M. Berrocal
+        y Antigravity desarrollen el proyecto adjudicado juntos en pair-programming dentro del IDE.
+        """
+        extracted = BriefDetailExtractor.extract(title, description)
+        category = self.categorize_project(title, description)
+        bid_info = self.estimate_bid_and_time(budget, category, f"{title} {description}")
+        is_hourly = bid_info.get("is_hourly", False)
+        
+        # 1. Intentar generación con AiRouter / Ollama Local
+        try:
+            from core.ai_router import AiRouter
+            router = AiRouter()
+            if router.is_ollama_online():
+                if category == "graphic_design_creative":
+                    role_context = (
+                        "Este es un proyecto de DISEÑO GRÁFICO Y CREATIVO. En el equipo de Jack, su esposa es la Diseñadora Gráfica Principal. "
+                        "El objetivo es preparar una hoja de requerimientos clara, visual y ejecutiva para pasársela directamente a ella: "
+                        "1. Especificaciones de diseño (paleta, estilo, tipografía, dimensiones en px/cm). "
+                        "2. Formatos finales de entrega (PNG transparente, SVG vectorial, PSD/AI editable, PDF). "
+                        "3. Proceso de revisión y entrega rápida al cliente."
+                    )
+                else:
+                    role_context = (
+                        "Este es un proyecto de PROGRAMACIÓN / SISTEMAS. Jack M. Berrocal (Ingeniero de Sistemas Senior) supervisa y aprueba, "
+                        "y Antigravity (IA Lead Developer en el IDE) se encarga de escribir todo el código fuente, la arquitectura, los tests unitarios "
+                        "y la documentación. Los tiempos deben ser realistas y cómodos (3 a 5 días) sin prisas irreales."
+                    )
 
-{closing_block}"""
+                prompt = (
+                    f"PROYECTO ADJUDICADO: {title}\n"
+                    f"CATEGORÍA: {category}\n"
+                    f"CLIENTE: {client_name}\n"
+                    f"PRESUPUESTO ACORDADO: {budget}\n"
+                    f"DESCRIPCIÓN Y REQUERIMIENTO DEL CLIENTE:\n{description}\n\n"
+                    f"{role_context}\n\n"
+                    f"Genera un Plan Técnico de Ejecución Paso a Paso, exhaustivo, seguro y profesional.\n\n"
+                    f"Estructura obligatoria en Markdown:\n"
+                    f"###  1. Alcance y Entregables Exactos (Para liberar el hito de pago)\n"
+                    f"###  2. Stack Tecnológico o Herramientas de Diseño Sugeridas\n"
+                    f"###  3. Plan de Ejecución Paso a Paso\n"
+                    f"###  4. Mensaje Profesional de Entrega (Para Freelancer.com Chat)\n"
+                    f"###  5. Primer Paso Inmediato\n"
+                )
+                res = router.generate_ai_response(
+                    user_message=prompt,
+                    system_instructions=(
+                        "Eres el Arquitecto de Soluciones Principal de Antigravity colaborando con Jack M. Berrocal y su equipo. "
+                        "Tu objetivo es diseñar un plan técnico o creativo impecable, realista en tiempos, sin promesas vacías, listo para ejecutar."
+                    ),
+                    history=[]
+                )
+                if res and res.get("content") and len(res["content"].strip()) > 150:
+                    return res["content"].strip()
+        except Exception as e:
+            print(f"[generate_execution_plan] AI generation error: {e}")
+
+        # 2. Fallback Determinístico de Alta Precisión
+        return f"""###  1. Alcance y Entregables Exactos (Para liberar el hito de pago de {budget or 'contrato'})
+- **Proyecto:** {title}
+- **Cliente:** {client_name}
+- **Entregable Principal:** Solución técnica completa, funcional y documentada lista para producción o entrega al cliente.
+- **Criterio de Aceptación:** Validación del requerimiento descrito por el cliente sin errores de ejecución ni dependencias faltantes.
+
+---
+
+### 2. Stack Tecnológico y Arquitectura Sugerida
+- **Lenguaje Principal:** Python 3.11+ / JavaScript según requerimiento del proyecto.
+- **Módulos y Librerías:** Requests, Beautiful Soup / Playwright (si hay scraping), FastAPI / Pydantic (si hay backend/APIs), Pandas / OpenPyXL (si hay datos/Excel).
+- **Control de Calidad:** Modularización en archivos limpios, tipado estricto y captura exhaustiva de excepciones (`try/except/finally`).
+- **Estructura Recomendada:**
+  - `main.py` (Punto de entrada)
+  - `core/` (Lógica de negocio y transformaciones)
+  - `data/` (Archivos de entrada y salida generados)
+  - `README.md` (Instrucciones ejecutables para el cliente)
+
+---
+
+### 3. Plan de Desarrollo Paso a Paso (Jack + Antigravity)
+- **Paso 1: Entorno y Requerimientos**
+  - Creación de entorno virtual o verificación de dependencias en `scratch/projects/{title[:20].lower().replace(' ', '_')}`.
+  - Creación del archivo `requirements.txt`.
+- **Paso 2: Desarrollo del Motor Principal**
+  - Implementación de las funciones nucleares descritas en el proyecto.
+  - Validación de estructuras de entrada y salida con logging claro en consola.
+- **Paso 3: Blindaje y Manejo Defensivo de Errores**
+  - Manejo de desconexiones, tiempos de espera (timeouts) y casos borde (edge cases).
+- **Paso 4: Pruebas y Auditoría**
+  - Ejecución de pruebas de humo (smoke tests) en entorno local para verificar el 100% de la funcionalidad.
+- **Paso 5: Empaquetado y Guía para el Cliente**
+  - Creación de archivo ejecutable o script empaquetado (.zip) junto con una guía de 3 pasos para que el cliente lo ponga en marcha.
+
+---
+
+### 4. Mensaje Profesional de Entrega (Para Freelancer.com Chat)
+*"Estimado {client_name}, un gusto saludarte.*
+
+*Te confirmo que he completado el desarrollo de '{title}' conforme a todas las especificaciones acordadas.*
+
+*Adjunto el paquete final junto con la documentación técnica y guía de ejecución paso a paso. He realizado pruebas completas para certificar su correcto funcionamiento.*
+
+*Quedo a tu disposición en el chat para cualquier revisión o ajuste que requieras antes de liberar el hito. ¡Muchas gracias por tu confianza!"*
+
+*Atentamente,*  
+*Jack M. Berrocal*  
+*Ingeniero de Sistemas Senior*
+
+---
+
+### 5. Primer Paso de Trabajo Inmediato
+Jack, para arrancar este desarrollo juntos, simplemente escribe en nuestro chat:
+ **"Antigravity, desarrollemos el Paso 1 para el proyecto: {title}"**  
+¡Y empezaremos a crear los archivos y código en pair-programming de inmediato!"""
+

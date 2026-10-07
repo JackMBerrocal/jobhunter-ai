@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JobHunter AI | Asistente de Búsqueda Laboral (Primer Empleo Remoto)</title>
-  <meta name="description" content="Agente autónomo profesional de búsqueda y postulación de empleo remoto para Ingenieros de Sistemas sin experiencia previa.">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Freelancer Studio AI | Operaciones Freelance 100% Remotas (@jmberrocale)</title>
+  <meta name="description" content="Centro de operaciones y radar en tiempo real para proyectos freelance 100% remotos en Freelancer.com: Páginas Web, Sistemas & Python y Diseño Gráfico.">
   <link rel="icon" type="image/png" sizes="32x32" href="/static/scrapy_icon_32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/static/scrapy_icon_16.png">
   <link rel="shortcut icon" href="/static/favicon.ico">
@@ -681,6 +684,119 @@
       box-shadow: 0 2px 6px rgba(67, 56, 202, 0.35);
     }
 
+    /* Pipeline Kanban Stages - Reorganización para Jack */
+    .pipeline-tabs-wrapper {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-bottom: 1.25rem;
+    }
+    .pipeline-tab-card {
+      background: #ffffff;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      position: relative;
+    }
+    .pipeline-tab-card:hover {
+      border-color: #cbd5e1;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .pipeline-tab-card.active {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    .pipeline-tab-card.tab-applied.active {
+      background: #eef2ff;
+      border-color: #6366f1;
+    }
+    .pipeline-tab-card.tab-replied.active {
+      background: #fffbeb;
+      border-color: #f59e0b;
+    }
+    .pipeline-tab-card.tab-accepted.active {
+      background: #ecfdf5;
+      border-color: #10b981;
+    }
+    .pipeline-tab-card.tab-completed.active {
+      background: #f0fdf4;
+      border-color: #059669;
+    }
+    .pipeline-tab-card.tab-radar.active {
+      background: #eef2ff;
+      border-color: #4f46e5;
+    }
+    .pipeline-tab-card.tab-unselected.active {
+      background: #f1f5f9;
+      border-color: #64748b;
+    }
+    .pipeline-tab-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .pipeline-counter-badge {
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: #e2e8f0;
+      color: #334155;
+    }
+    .tab-applied.active .pipeline-counter-badge { background: #4f46e5; color: #ffffff; }
+    .tab-replied.active .pipeline-counter-badge { background: #d97706; color: #ffffff; }
+    .tab-accepted.active .pipeline-counter-badge { background: #059669; color: #ffffff; }
+    .tab-completed.active .pipeline-counter-badge { background: #166534; color: #ffffff; }
+    .tab-radar.active .pipeline-counter-badge { background: #4f46e5; color: #ffffff; }
+    .tab-unselected.active .pipeline-counter-badge { background: #475569; color: #ffffff; }
+    .pipeline-tab-desc {
+      font-size: 0.72rem;
+      color: #64748b;
+      line-height: 1.3;
+    }
+
+    /* Financial & Membership Goals Bar */
+    .goals-dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+      margin-bottom: 1.25rem;
+    }
+    .goal-summary-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .goal-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .goal-card-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+
 
     /* Banner y Control de Búsqueda Continua 24/7 */
     .continuous-card {
@@ -1063,800 +1179,331 @@
 </head>
 <body>
 
-  <!-- Encabezado de Agencia Maximalista -->
-  <header style="background: linear-gradient(90deg, #0b0f19 0%, #111827 50%, #0f172a 100%); border-bottom: 1px solid rgba(99, 102, 241, 0.25); box-shadow: 0 4px 20px rgba(0,0,0,0.25);">
-    <div class="brand">
-      <div class="brand-logo" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%); box-shadow: 0 0 16px rgba(99, 102, 241, 0.45);">
-        <svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
-      </div>
-      <div>
-        <div class="brand-title" style="color: #ffffff; letter-spacing: -0.02em; font-weight: 800; display: flex; align-items: center; gap: 8px;">
-          AGENCIA TALENTO IA <span style="font-size: 0.72rem; font-weight: 700; background: rgba(99, 102, 241, 0.25); border: 1px solid rgba(129, 140, 248, 0.4); color: #c7d2fe; padding: 2px 8px; border-radius: 12px; text-transform: uppercase;">Freelance Command</span>
+  <!-- ENCABEZADO MINIMALISTA & MODERNO -->
+  <header style="background: linear-gradient(135deg, #0b0f19 0%, #111827 50%, #0f172a 100%); border-bottom: 1px solid rgba(99, 102, 241, 0.25); padding: 12px 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); position: sticky; top: 0; z-index: 100;">
+    <div style="max-width: 1440px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+      
+      <!-- Brand & Profile Status -->
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%); width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(99, 102, 241, 0.45); color: #ffffff;">
+          <svg style="width: 22px; height: 22px; fill: currentColor;" viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
         </div>
-        <div class="brand-subtitle" id="headerProfileSubtitle" style="color: #94a3b8; font-weight: 500;">
-          Radar Autónomo de Contratos por Horas &amp; Precio Fijo • Cierre en Chat
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <h1 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #ffffff; letter-spacing: -0.01em;">
+              FREELANCER STUDIO AI
+            </h1>
+            <span style="font-size: 0.72rem; font-weight: 700; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #6ee7b7; padding: 2px 8px; border-radius: 12px; text-transform: uppercase;">
+              🟢 100% Freelancer Activo
+            </span>
+          </div>
+          <div style="font-size: 0.8rem; color: #94a3b8; display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+            <span style="color: #f1f5f9; font-weight: 600;">Jack M. Berrocal (@jmberrocale)</span>
+            <span>•</span>
+            <span style="color: #38bdf8;">100% Remoto</span>
+            <span>•</span>
+            <span style="color: #cbd5e1;">Páginas Web • Sistemas &amp; Python • Diseño Gráfico</span>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="header-actions">
-      <button class="btn btn-primary" onclick="scanFreelanceProjects()" id="btnHeaderScanFreelance" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); font-weight: 700; box-shadow: 0 2px 10px rgba(79, 70, 229, 0.35);">
-        ⚡ Escanear Contratos Freelance
-      </button>
-      <button class="btn btn-connect" onclick="openConnectModal()" style="background: rgba(30, 41, 59, 0.8); color: #93c5fd; border-color: rgba(147, 197, 253, 0.3);">
-        🦊 LibreWolf Navegador
-      </button>
-      <button class="btn btn-secondary" onclick="scanEmails()" id="btnScanEmails" style="background: rgba(30, 41, 59, 0.8); color: #cbd5e1; border-color: #334155;">
-        📬 Bandeja de Entrevistas
-      </button>
+      <!-- Action Buttons -->
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <!-- Botón Sincronizar Bids Real -->
+        <button class="btn btn-secondary" onclick="syncFreelancerApi()" id="btnSyncFreelanceApi" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #a7f3d0; font-weight: 700; font-size: 0.84rem; padding: 7px 14px; border-radius: 8px;" title="Verifica bids reales y retira ofertas cerradas en tu cuenta de Freelancer">
+          🔄 Sincronizar Bids Real
+        </button>
+
+        <!-- Botón Escanear Radar Ahora -->
+        <button class="btn btn-primary" onclick="scanFreelanceProjects()" id="btnScanFreelance" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); border: none; font-weight: 700; font-size: 0.84rem; padding: 7px 16px; border-radius: 8px; box-shadow: 0 2px 10px rgba(79, 70, 229, 0.35);" title="Busca nuevas oportunidades freelance 100% remotas">
+          🔍 Buscar Proyectos Ahora
+        </button>
+
+        <!-- Botón Abrir LibreWolf -->
+        <button class="btn btn-secondary" onclick="openFreelanceInLibreWolf('web')" style="background: rgba(249, 115, 22, 0.18); border: 1px solid #f97316; color: #fed7aa; font-weight: 700; font-size: 0.84rem; padding: 7px 14px; border-radius: 8px;" title="Abre Freelancer.com en tu navegador LibreWolf donde tienes tu sesión iniciada">
+          🦊 Abrir LibreWolf ↗
+        </button>
+
+        <!-- Toggle Auto-Bidder -->
+        <div style="display: flex; align-items: center; gap: 8px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.12); padding: 5px 12px; border-radius: 8px;">
+          <span id="autobidStatusBadge" style="font-size: 0.8rem; font-weight: 700; color: #10b981; display: flex; align-items: center; gap: 6px;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981;"></span>
+            AUTO-BID 24/7 ACTIVO
+          </span>
+          <button id="btnToggleAutoBid" onclick="toggleAutoBidMode()" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.75rem; font-weight: 700; background: #dc2626; border-color: #b91c1c; color: #ffffff; border-radius: 6px;" title="Pausar o reanudar el auto-bidder">
+            ⏸️ Pausar
+          </button>
+        </div>
+      </div>
+
     </div>
   </header>
 
-  <!-- Barra de Diagnóstico de Salud del Sistema (Tiempo Real) -->
-  <div class="health-bar" style="background: #0f172a; border-bottom: 1px solid rgba(255,255,255,0.08); color: #cbd5e1;">
-    <div class="health-items">
-      <div class="health-item">
-        <div class="health-indicator pulse" style="background: #10b981; box-shadow: 0 0 8px #10b981;"></div>
-        <span id="healthAgentStatus" style="color: #34d399; font-weight: 700;">🟢 AGENCIA OPERATIVA (RADAR 24/7)</span>
-      </div>
-      <div class="health-item">
-        <span style="color: #94a3b8;">⏱️ Modalidades:</span> <strong style="color: #fbbf24;">Por Horas &amp; Precio Fijo</strong>
-      </div>
-      <div class="health-item">
-        <span style="color: #94a3b8;">🛡️ Regla de Cierre:</span> <strong style="color: #38bdf8;">100% Chat Plataforma (Sin Llamadas)</strong>
-      </div>
-      <div class="health-item">
-        <span style="color: #94a3b8;">👤 Especialista:</span> <strong id="healthUser" style="color: #e2e8f0;">Jack Berrocal (Ing. de Sistemas)</strong>
-      </div>
-    </div>
+  <!-- CONTENEDOR PRINCIPAL -->
+  <main class="container" style="max-width: 1440px; margin: 16px auto; padding: 0 16px;">
 
-    <div style="display: flex; align-items: center; gap: 8px;">
-      <label style="font-size: 0.8rem; color: #94a3b8;">Ver navegador en pantalla:</label>
-      <input type="checkbox" id="chkHeadless" onchange="toggleBrowserVisibility(this.checked)" style="cursor: pointer;">
-    </div>
-  </div>
+    <!-- TAB FREELANCE PRINCIPAL ACTIVO -->
+    <div id="freelanceTab" class="tab-content active" style="display: block;">
 
-  <!-- Contenedor Principal -->
-  <main class="container">
-
-    <!-- Badges de Prioridad de Agencia & Políticas de Cierre -->
-    <div class="policy-badges" style="margin-top: 1rem; margin-bottom: 1.25rem;">
-      <div class="policy-badge" style="background: #eef2ff; color: #3730a3; border-color: #c7d2fe; font-weight: 700;">
-        <span>⚡</span> Prioridad #1: Contratos Freelance (Por Hora &amp; Por Trabajo)
-      </div>
-      <div class="policy-badge" style="background: #fffbeb; color: #b45309; border-color: #fde68a; font-weight: 700;">
-        <span>⏱️</span> Contratos Por Horas: Tarifa / hr • Turnos &amp; Bitácora Diaria
-      </div>
-      <div class="policy-badge" style="background: #ecfdf5; color: #065f46; border-color: #a7f3d0; font-weight: 700;">
-        <span>📦</span> Por Trabajo Realizado: Entregables Llave en Mano &amp; Garantía
-      </div>
-      <div class="policy-badge" style="background: #f0fdf4; color: #166534; border-color: #86efac; font-weight: 700;">
-        <span>🛡️</span> Cierre Seguro: 100% en Chat de Plataforma (Cero Llamadas)
-      </div>
-      <div class="policy-badge" style="background: #f8fafc; color: #475569; border-color: #cbd5e1;">
-        <span>💼</span> Prioridad #2 (Segundo Plano): Vacantes Remotas Corporativas
-      </div>
-    </div>
-
-    <!-- Banner Comando de Agencia & Auto-Bidder 24/7 -->
-    <div class="continuous-card" id="continuousBanner" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #111827 100%); border: 1px solid rgba(99, 102, 241, 0.35); box-shadow: 0 4px 20px rgba(0,0,0,0.15); color: #ffffff;">
-      <div style="flex: 1; min-width: 280px;">
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;">
-          <h2 style="font-size: 1.18rem; font-weight: 700; color: #ffffff; margin: 0;">
-            ⚡ COMANDO DE AGENCIA: RADAR FREELANCE &amp; AUTO-BIDDER 24/7
-          </h2>
-          <span class="badge-agency-priority">Prioridad Freelance Activa</span>
-          <span class="metric-badge" id="continuousCycleText" style="background: rgba(99,102,241,0.25); color: #c7d2fe; font-size: 0.75rem;">
-            Auto-Bid Modo 2 Habilitado
-          </span>
-        </div>
-        <p style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 6px; line-height: 1.5;">
-          El agente opera autónomamente detectando proyectos en <strong>Freelancer.com</strong> y <strong>Get on Board</strong>, distinguiendo contratos por horas y de precio fijo, formulando <strong>preguntas estratégicas</strong> y cerrando directamente dentro del chat sin llamadas externas. El rastreo de empleos corporativos corre en segundo plano.
-        </p>
-        <div id="continuousStatusText" style="font-size: 0.82rem; display: flex; align-items: center; gap: 8px; color: #94a3b8;">
-          <span style="color: #34d399;">●</span> <strong>Telemetría de Agencia:</strong> Radar freelance activo escaneando oportunidades cada 75s.
-        </div>
-      </div>
-
-      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button class="btn btn-primary" onclick="scanFreelanceProjects()" style="background: #4f46e5; border-color: #4338ca; font-weight: 700; font-size: 0.88rem; padding: 0.6rem 1.1rem;">
-            🔄 Escanear Freelance Ahora
-          </button>
-          <button class="btn btn-secondary" id="btnToggleContinuous" onclick="toggleContinuousHunter()" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: #e2e8f0; font-size: 0.85rem; padding: 0.6rem 1rem;">
-            ▶️ Búsqueda Remota Corp (2do Plano)
-          </button>
-        </div>
-        <span id="continuousNextRun" style="font-size: 0.78rem; color: #94a3b8; font-family: var(--font-mono);">
-          Radar de Contratos Operativo
-        </span>
-      </div>
-    </div>
-
-    <!-- Tarjetas de Métricas de Agencia -->
-    <div class="metrics-grid">
-      <div class="metric-card" style="border-left: 4px solid #4f46e5;">
-        <div class="metric-info">
-          <h3>Proyectos Freelance en Radar</h3>
-          <div class="value" id="statFreelanceTotal">97</div>
-          <span class="metric-badge" style="background:#eef2ff; color:#4338ca;">100% en Español &amp; Activos</span>
-        </div>
-        <div style="font-size: 2rem;">⚡</div>
-      </div>
-
-      <div class="metric-card" style="border-left: 4px solid #f59e0b;">
-        <div class="metric-info">
-          <h3>Contratos Por Hora (Hourly)</h3>
-          <div class="value" id="statFreelanceHourly" style="color: #d97706;">59</div>
-          <span class="metric-badge" style="background:#fffbeb; color:#b45309;">Tarifa Horaria + Turnos</span>
-        </div>
-        <div style="font-size: 2rem;">⏱️</div>
-      </div>
-
-      <div class="metric-card" style="border-left: 4px solid #10b981;">
-        <div class="metric-info">
-          <h3>Por Trabajo Realizado (Fijo)</h3>
-          <div class="value" id="statFreelanceFixed" style="color: #059669;">38</div>
-          <span class="metric-badge" style="background:#ecfdf5; color:#047857;">Precio Cerrado / Llave en Mano</span>
-        </div>
-        <div style="font-size: 2rem;">📦</div>
-      </div>
-
-      <div class="metric-card" style="border-left: 4px solid #06b6d4;">
-        <div class="metric-info">
-          <h3>Ofertas Enviadas / Auto-Bids</h3>
-          <div class="value" id="statFreelanceApplied">9</div>
-          <span class="metric-badge" style="background:#ecfeff; color:#0891b2;">Sin Llamadas • Cierre en Chat</span>
-        </div>
-        <div style="font-size: 2rem;">🎯</div>
-      </div>
-
-      <div class="metric-card" style="border-left: 4px solid #64748b;">
-        <div class="metric-info">
-          <h3>Vacantes Remotas Corp (2do Plano)</h3>
-          <div class="value" id="statTotalJobs" style="color: #475569;">0</div>
-          <span class="metric-badge" style="background:#f1f5f9; color:#475569;">Segundo Plano Autónomo</span>
-        </div>
-        <div style="font-size: 2rem;">💼</div>
-      </div>
-    </div>
-
-    <!-- Consola de Telemetría en Vivo -->
-    <div class="console-card">
-      <div class="console-header">
-        <span>TELEMETRÍA DEL AGENTE EN VIVO (PLAYWRIGHT & SCRAPERS)</span>
-        <span id="currentProcessingText" style="color: #38bdf8;">En espera</span>
-      </div>
-      <div class="console-logs" id="consoleLogs">
-        <div class="console-line">Iniciando sistema...</div>
-      </div>
-    </div>
-
-    <!-- Pestañas de Navegación (Prioridad Freelance de Agencia) -->
-    <div class="nav-tabs">
-      <button class="tab-btn active" id="btnTabFreelance" onclick="switchTab('freelanceTab', this)">
-        ⚡ Radar Freelance & Contratos <span class="tab-counter" id="tabFreelanceCount">0</span>
-      </button>
-      <button class="tab-btn" id="btnTabJobs" onclick="switchTab('jobsTab', this)">
-        💼 Vacantes Corporativas (2do Plano) <span class="tab-counter" id="tabJobsCount">0</span>
-      </button>
-      <button class="tab-btn" id="btnTabRoles" onclick="switchTab('targetRolesTab', this)">
-        🎯 Especialidades de Agencia <span class="tab-counter" id="tabRolesCount">8</span>
-      </button>
-      <button class="tab-btn" id="btnTabApplied" onclick="switchTab('appliedTab', this)">
-        🚀 Postulaciones & Ofertas <span class="tab-counter" id="tabAppliedCount">0</span>
-      </button>
-      <button class="tab-btn" id="btnTabEmails" onclick="switchTab('emailsTab', this)">
-        📬 Radar de Entrevistas <span class="tab-counter" id="tabEmailCount">0</span>
-      </button>
-      <button class="tab-btn" id="btnTabProfile" onclick="switchTab('profileTab', this)">
-        👤 Perfil & Credenciales
-      </button>
-    </div>
-
-    <!-- Pestaña: Vacantes Corporativas (Segundo Plano) -->
-    <div id="jobsTab" class="tab-content">
-      <div class="toolbar" style="flex-direction: column; align-items: stretch; gap: 10px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-          <div class="filter-group">
-            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Plataforma:</span>
-            <div class="badge-filter active" onclick="filterPlatform('all', this)">Todas</div>
-            <div class="badge-filter" onclick="filterPlatform('getonbrd', this)">Get on Board</div>
-            <div class="badge-filter" onclick="filterPlatform('torre', this)">Torre.co</div>
-            <div class="badge-filter" onclick="filterPlatform('remotetech', this)">Remote Tech</div>
-            <div class="badge-filter" onclick="filterPlatform('computrabajo', this)">Computrabajo</div>
-            <div class="badge-filter" onclick="filterPlatform('linkedin', this)">LinkedIn</div>
-            <div class="badge-filter" onclick="filterPlatform('bumeran', this)">Bumeran</div>
-            <div class="badge-filter" onclick="filterPlatform('laborum', this)">Laborum</div>
-          </div>
-
-          <div style="display: flex; gap: 8px;">
-            <button class="btn btn-secondary btn-sm" onclick="cleanExpiredJobs()" title="Comprueba que los enlaces sigan abiertos en los portales">
-              🛡️ Auditar y Descartar Expiradas
-            </button>
-            <button class="btn btn-secondary btn-sm" onclick="purgeInvalidJobs()">
-              🧹 Limpiar Duplicados / Basura
-            </button>
+      <!-- 1. TIRA DE MÉTRICAS CLAVE (4 Tarjetas Limpias en 1 Sola Fila - Sin Duplicados) -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 16px;">
+        
+        <!-- Card 1: Proyectos en Radar -->
+        <div style="background: #ffffff; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; border-left: 4px solid #6366f1; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <div style="font-size: 0.76rem; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.03em;">Proyectos en Radar</div>
+              <div id="statFreelanceTotal" style="font-size: 1.85rem; font-weight: 800; color: #1e293b; margin: 2px 0;">43</div>
+              <div style="font-size: 0.78rem; color: #4338ca; font-weight: 600;">Oportunidades 100% Remotas</div>
+            </div>
+            <span style="font-size: 1.5rem; background: #eef2ff; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 10px;">🎯</span>
           </div>
         </div>
 
-        <!-- Filtro Dinámico de Puestos Laborales Objetivo -->
-        <div class="filter-group" style="padding-top: 8px; border-top: 1px solid #e2e8f0; flex-wrap: wrap; gap: 6px;">
-          <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-right: 4px;">Puesto Objetivo:</span>
-          <div class="badge-filter active" onclick="filterRole('all', this)">Todos los Puestos</div>
-          <div class="badge-filter" onclick="filterRole('qa_tester', this)">🧪 QA / Calidad</div>
-          <div class="badge-filter" onclick="filterRole('desarrollador_jr', this)">💻 Desarrollo</div>
-          <div class="badge-filter" onclick="filterRole('soporte_ti', this)">🛠️ Soporte TI</div>
-          <div class="badge-filter" onclick="filterRole('practicante_sistemas', this)">🎓 Practicante</div>
-          <div class="badge-filter" onclick="filterRole('analista_datos', this)">📊 Datos</div>
-          <div class="badge-filter" onclick="filterRole('ingeniero_sistemas', this)">⚙️ Sistemas</div>
-        </div>
-      </div>
-
-      <div class="jobs-list" id="jobsList">
-        <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
-          Cargando vacantes analizadas...
-        </div>
-      </div>
-    </div>
-
-    <!-- Pestaña 2: Puestos a Postular (Gestor de Roles Objetivo) -->
-    <div id="targetRolesTab" class="tab-content">
-      <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1.5rem;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 1rem;">
-          <div>
-            <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
-              <span>🎯</span> Puestos Laborales a los que Postula el Agente
-            </h3>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
-              Activa o pausa los puestos a los que deseas que el agente busque y postule automáticamente 24/7. También puedes agregar nuevos cargos personalizados.
-            </p>
+        <!-- Card 2: Propuestas Enviadas Real -->
+        <div style="background: #ffffff; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; border-left: 4px solid #06b6d4; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <div style="font-size: 0.76rem; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.03em;">Propuestas Enviadas</div>
+              <div id="statFreelanceApplied" style="font-size: 1.85rem; font-weight: 800; color: #0891b2; margin: 2px 0;">0</div>
+              <div style="font-size: 0.78rem; color: #0e7490; font-weight: 600;">0 activas en espera en Freelancer</div>
+            </div>
+            <span style="font-size: 1.5rem; background: #ecfeff; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 10px;">📤</span>
           </div>
+        </div>
+
+        <!-- Card 3: Bids Disponibles Membresía -->
+        <div style="background: #ffffff; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; border-left: 4px solid #f59e0b; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <div style="font-size: 0.76rem; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.03em;">Bids (Mes Gratis)</div>
+              <div style="font-size: 1.85rem; font-weight: 800; color: #d97706; margin: 2px 0;">
+                <span id="goalBidsMonth">100 / 100</span>
+              </div>
+              <div style="font-size: 0.78rem; color: #92400e; font-weight: 600;">
+                Hoy: <strong id="goalBidsToday">0</strong>/<span id="goalMaxDaily">4</span> usados • Filtro Seguro
+              </div>
+            </div>
+            <span style="font-size: 1.5rem; background: #fffbeb; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 10px;">💳</span>
+          </div>
+        </div>
+
+        <!-- Card 4: Meta Financiera -->
+        <div style="background: #ffffff; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; border-left: 4px solid #10b981; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div style="flex: 1;">
+              <div style="font-size: 0.76rem; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.03em;">Meta Mensual</div>
+              <div style="display: flex; align-items: baseline; gap: 6px; margin: 2px 0;">
+                <span id="goalEarnedAmount" style="font-size: 1.85rem; font-weight: 800; color: #059669;">$0 USD</span>
+                <span style="font-size: 0.85rem; color: #64748b; font-weight: 600;">/ $1,500 USD</span>
+              </div>
+              <div style="background: #e2e8f0; height: 6px; border-radius: 3px; overflow: hidden; margin-top: 4px; margin-bottom: 4px; position: relative;">
+                <div id="goalProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #34d399, #10b981); transition: width 0.4s ease;"></div>
+              </div>
+              <div style="font-size: 0.74rem; color: #047857; font-weight: 600;">
+                Piso mínimo obligatorio: $1,000 USD
+              </div>
+            </div>
+            <span style="font-size: 1.5rem; background: #ecfdf5; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 10px; margin-left: 8px;">💰</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- NUEVO: TERMINAL DE ACTIVIDAD EN VIVO DEL AGENTE FREELANCER (24/7) -->
+      <div style="background: #0b0f19; border-radius: 12px; border: 1px solid #1e293b; padding: 14px 18px; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.18); color: #e2e8f0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px;">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <span class="badge" id="badgeActiveRolesCount" style="background: #dcfce7; color: #15803d; font-weight: 700; font-size: 0.82rem; padding: 6px 12px; border: 1px solid #bbf7d0;">
-              🟢 6 Puestos Activos
+            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #10b981; box-shadow: 0 0 12px #10b981; animation: pulseAnim 2s infinite;"></span>
+            <span style="font-weight: 800; font-size: 0.92rem; color: #f8fafc; letter-spacing: -0.01em;">
+              MONITOR DE ACTIVIDAD EN VIVO (FREELANCER.COM 24/7)
+            </span>
+            <span id="liveAgentPill" style="background: rgba(16, 185, 129, 0.18); border: 1px solid #10b981; color: #6ee7b7; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 12px;">
+              🟢 ESCANEANDO &amp; EVALUANDO
             </span>
           </div>
-        </div>
-
-        <!-- Banner Explicativo -->
-        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-sm); padding: 0.85rem 1rem; margin-bottom: 1.5rem; font-size: 0.82rem; color: #1e40af; display: flex; align-items: center; gap: 10px;">
-          <span style="font-size: 1.3rem;">💡</span>
-          <div>
-            <strong>Control Total de tu Búsqueda:</strong> Si desactivas un puesto (por ejemplo, si hoy solo quieres buscar <strong>Soporte TI</strong> o <strong>QA Tester</strong>), el agente apagará la postulación a desarrollo y solo buscará ofertas de los puestos que mantengas activos.
+          <div style="display: flex; align-items: center; gap: 14px; font-size: 0.78rem; color: #94a3b8;">
+            <span>⏱️ <strong id="radarCountdownText" style="color: #38bdf8;">Próximo escaneo en breve</strong></span>
+            <span>•</span>
+            <span>Intervalo: <strong style="color: #e2e8f0;">60s</strong></span>
+            <span>•</span>
+            <span>Perfil: <strong style="color: #f1f5f9;">@jmberrocale (Jack)</strong></span>
+            <span>•</span>
+            <span>Navegador: <strong style="color: #fb923c;">LibreWolf</strong></span>
           </div>
         </div>
 
-        <!-- Grid de Tarjetas de Puestos -->
-        <div id="targetRolesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; margin-bottom: 1.5rem;">
-          <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
-            Cargando puestos objetivo...
+        <!-- Terminal de Logs del Agente -->
+        <div id="consoleLogs" style="background: #030712; border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 10px 14px; font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; font-size: 0.8rem; line-height: 1.6; max-height: 140px; min-height: 85px; overflow-y: auto; color: #cbd5e1;">
+          <div style="color: #64748b; font-style: italic;">Conectando con la telemetría del agente en segundo plano...</div>
+        </div>
+      </div>
+
+      <!-- 2. PESTAÑAS DE ETAPAS DEL PIPELINE (5 Etapas Claras - RADAR ACTIVO POR DEFECTO) -->
+      <div class="pipeline-tabs-wrapper" id="pipelineTabsGroup" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 14px;">
+        
+        <!-- Etapa 1: Radar / Nuevos (ACTIVO POR DEFECTO) -->
+        <div class="pipeline-tab-card tab-radar active" id="pipeTabRadar" onclick="selectFreelanceStage('radar', this)">
+          <div class="pipeline-tab-title">
+            <span>🎯 1. Radar Oportunidades</span>
+            <span class="pipeline-counter-badge badge-radar" id="countTabRadar">0</span>
           </div>
+          <div class="pipeline-tab-desc">Oportunidades activas 100% remotas para ofertar.</div>
         </div>
 
-        <!-- Formulario para Agregar Nuevo Puesto -->
-        <div style="background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: var(--radius-md); padding: 1.2rem;">
-          <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0 0 6px 0; display: flex; align-items: center; gap: 6px;">
-            <span>➕</span> Agregar un Nuevo Puesto de Trabajo Personalizado
-          </h4>
-          <p style="font-size: 0.78rem; color: var(--text-secondary); margin: 0 0 12px 0;">
-            ¿Deseas que el agente busque un cargo específico? Escribe el título del puesto y las palabras clave asociadas.
-          </p>
-          <div style="display: grid; grid-template-columns: 1.5fr 2fr 1.2fr auto; gap: 10px; align-items: end;">
-            <div>
-              <label style="font-size: 0.76rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Nombre del Cargo / Puesto:</label>
-              <input type="text" id="newRoleName" placeholder="Ej: Administrador de Redes Junior" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.82rem;">
-            </div>
-            <div>
-              <label style="font-size: 0.76rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Palabras Clave (separadas por coma):</label>
-              <input type="text" id="newRoleKeywords" placeholder="Ej: redes, cisco, mikrotik, lan, vpn" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.82rem;">
-            </div>
-            <div>
-              <label style="font-size: 0.76rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Categoría:</label>
-              <select id="newRoleCategory" style="width: 100%; padding: 0.5rem 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.82rem; background: #fff;">
-                <option value="Sistemas & TI">⚙️ Sistemas & TI</option>
-                <option value="Desarrollo & Programación">💻 Desarrollo & Software</option>
-                <option value="Calidad & Testing">🧪 Testing / QA</option>
-                <option value="Soporte & Operaciones">🛠️ Soporte TI & Helpdesk</option>
-                <option value="Datos & Analítica">📊 Datos & BI</option>
-                <option value="Cloud & DevOps">☁️ Cloud / DevOps</option>
-              </select>
-            </div>
-            <button class="btn btn-primary" onclick="addNewRoleFromUI()" style="height: 38px; display: flex; align-items: center; gap: 6px;">
-              <span>+</span> Agregar Puesto
+        <!-- Etapa 2: Propuestas Enviadas -->
+        <div class="pipeline-tab-card tab-applied" id="pipeTabApplied" onclick="selectFreelanceStage('applied', this)">
+          <div class="pipeline-tab-title">
+            <span>📤 2. Propuestas Enviadas</span>
+            <span class="pipeline-counter-badge badge-applied" id="countTabApplied">0</span>
+          </div>
+          <div class="pipeline-tab-desc">Ofertas enviadas. Esperando respuesta del cliente.</div>
+        </div>
+
+        <!-- Etapa 3: Cliente Respondió -->
+        <div class="pipeline-tab-card tab-replied" id="pipeTabReplied" onclick="selectFreelanceStage('replied', this)">
+          <div class="pipeline-tab-title">
+            <span>💬 3. Clientes en Chat</span>
+            <span class="pipeline-counter-badge badge-replied" id="countTabReplied">0</span>
+          </div>
+          <div class="pipeline-tab-desc">¡Cliente en chat! Responder rápido para cerrar trato.</div>
+        </div>
+
+        <!-- Etapa 4: Ganados / A Trabajar -->
+        <div class="pipeline-tab-card tab-accepted" id="pipeTabAccepted" onclick="selectFreelanceStage('accepted', this)">
+          <div class="pipeline-tab-title">
+            <span>🏆 4. Ganados / A Trabajar</span>
+            <span class="pipeline-counter-badge badge-accepted" id="countTabAccepted">0</span>
+          </div>
+          <div class="pipeline-tab-desc">Adjudicados. Jack + Antigravity construyendo juntos.</div>
+        </div>
+
+        <!-- Etapa 5: No Seleccionados / Concluidos -->
+        <div class="pipeline-tab-card tab-unselected" id="pipeTabUnselected" onclick="selectFreelanceStage('unselected', this)">
+          <div class="pipeline-tab-title">
+            <span>❌ 5. No Seleccionados</span>
+            <span class="pipeline-counter-badge badge-unselected" id="countTabUnselected">0</span>
+          </div>
+          <div class="pipeline-tab-desc">Plazo vencido o adjudicado a otro. Cero dudas.</div>
+        </div>
+
+      </div>
+
+      <!-- 3. BARRA DE FILTROS Y BÚSQUEDA (DIRECTAMENTE PEGADA AL GRID DE PROYECTOS) -->
+      <div style="background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 12px 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+        
+        <!-- Fila 1: Búsqueda y Modalidad -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          
+          <!-- Buscador en tiempo real -->
+          <div style="flex: 1; min-width: 280px;">
+            <input type="text" id="freelanceSearchInput" oninput="filterFreelanceSearch(this.value)" placeholder="🔍 Buscar por palabra clave, tecnología (WordPress, React, Python, Logo, Figma, Bot)..." style="width: 100%; padding: 8px 12px; font-size: 0.88rem; border-radius: 8px; border: 1px solid #cbd5e1; outline: none; transition: border-color 0.2s;">
+          </div>
+
+          <!-- Filtro Modalidad Horas vs Fijo -->
+          <div style="display: flex; align-items: center; gap: 6px;" id="filterModalityGroup">
+            <span style="font-size: 0.78rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Modalidad:</span>
+            <button class="badge-filter active" id="flModalityAll" onclick="filterFreelanceModality('all', this)">
+              Todas
+            </button>
+            <button class="badge-filter" id="flModalityHourly" onclick="filterFreelanceModality('hourly', this)">
+              ⏱️ Por Horas
+            </button>
+            <button class="badge-filter" id="flModalityFixed" onclick="filterFreelanceModality('fixed', this)">
+              📦 Precio Fijo
             </button>
           </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Pestaña 3: Mis Postulaciones y Registros Realizados -->
-    <div id="appliedTab" class="tab-content">
-
-      <!-- HERO: RASTREADOR UNIVERSAL DE ORIGEN & CORREOS -->
-      <div class="tracer-hero">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 0.8rem;">
-          <div>
-            <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); padding: 3px 10px; border-radius: 20px; font-size: 0.76rem; color: #a5b4fc; font-weight: 600; margin-bottom: 8px;">
-              <span>⚡</span> Trazabilidad Inversa Inteligente
-            </div>
-            <h3 style="font-size: 1.3rem; font-weight: 700; margin: 0 0 6px 0; display: flex; align-items: center; gap: 8px;">
-              <span>🔍</span> Rastreador de Origen: ¿De dónde vino ese correo o evaluación?
-            </h3>
-            <p style="font-size: 0.85rem; color: #94a3b8; margin: 0; max-width: 800px; line-height: 1.45;">
-              Si te llegó un correo de reclutador o evaluación (ej: <strong>SOLGAS</strong> vía <em>evaluar.com</em>, <strong>Monnet</strong> vía <em>buk.pe</em>, <strong>Falabella</strong> vía <em>AIRA</em>), escribe aquí el nombre de la empresa, el remitente o el texto y rastrearemos de inmediato la oferta oficial, el portal de procedencia y el enlace directo.
-            </p>
-          </div>
         </div>
 
-        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
-          <input type="text" id="tracerInput" placeholder="Pega el nombre de la empresa, remitente o asunto (ej: SOLGAS, Monnet, evaluar.com, buk.pe, sostenibilidad...)" style="flex: 1; min-width: 260px; padding: 0.7rem 1rem; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #f8fafc; font-size: 0.88rem; font-family: inherit;" onkeydown="if(event.key==='Enter') executeTracerLookup()">
-          <button class="btn btn-primary" onclick="executeTracerLookup()" style="padding: 0.7rem 1.4rem; background: #4f46e5; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);">
-            <span>🔎</span> Rastrear Vacante
-          </button>
-          <button class="btn btn-secondary" onclick="clearTracerLookup()" id="btnClearTracer" style="display: none; padding: 0.7rem 1rem; border-radius: 8px; border: 1px solid #475569; color: #cbd5e1; background: #1e293b; cursor: pointer;">
-            Limpiar
-          </button>
+        <!-- Fila 2: Especialidades Directas -->
+        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; border-top: 1px solid #f1f5f9; padding-top: 8px;">
+          <span style="font-size: 0.78rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-right: 4px;">Especialidad:</span>
+          <button class="badge-filter active" onclick="filterFreelanceCategory('all', this)">Todas las Especialidades</button>
+          <button class="badge-filter" onclick="filterFreelanceCategory('web_dev', this)">🌐 Páginas Web &amp; Frontend</button>
+          <button class="badge-filter" onclick="filterFreelanceCategory('ecommerce_stores', this)">🛍️ Tiendas &amp; E-Commerce</button>
+          <button class="badge-filter" onclick="filterFreelanceCategory('python_automation', this)">🐍 Sistemas &amp; Python</button>
+          <button class="badge-filter" onclick="filterFreelanceCategory('ai_chatbot_system', this)">🤖 Bots &amp; Automatización</button>
+          <button class="badge-filter" onclick="filterFreelanceCategory('graphic_design_creative', this)">🎨 Diseño Gráfico (Esposa)</button>
         </div>
 
-        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 0.76rem; color: #94a3b8;">
-          <span style="font-weight: 600;">💡 Búsquedas rápidas:</span>
-          <button type="button" class="tracer-chip" onclick="quickTracer('SOLGAS')">🏢 SOLGAS S.A.</button>
-          <button type="button" class="tracer-chip" onclick="quickTracer('Monnet')">🏢 Monnet Payments</button>
-          <button type="button" class="tracer-chip" onclick="quickTracer('evaluar.com')">🧪 evaluar.com</button>
-          <button type="button" class="tracer-chip" onclick="quickTracer('buk.pe')">📑 buk.pe</button>
-          <button type="button" class="tracer-chip" onclick="quickTracer('Valtx')">🏢 Valtx</button>
-          <button type="button" class="tracer-chip" onclick="quickTracer('AIRA')">🤖 AIRA (Falabella/Entel)</button>
-        </div>
-
-        <!-- Contenedor dinámico de resultados de trazabilidad -->
-        <div id="tracerResultsContainer" style="display: none;"></div>
       </div>
 
-      <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 1.2rem;">
-          <div>
-            <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
-              <span>🚀</span> Registro de Postulaciones y Cuentas
-            </h3>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
-              Auditoría en tiempo real: Dónde se registró el agente, con qué oferta laboral exacta fue y el anuncio de la propuesta.
-            </p>
-          </div>
-          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <button class="btn btn-primary btn-sm" onclick="autoConfirmAllApplications()" id="btnAutoConfirmAll" style="background: #16a34a; border-color: #15803d; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(22,163,74,0.3);" title="Completa y confirma automáticamente con IA todas las vacantes pendientes">
-              <span>⚡</span> Auto-Confirmar y Postular Todo con IA
-            </button>
-            <button class="btn btn-secondary btn-sm" onclick="fetchAppliedJobs()">
-              🔄 Actualizar Registro
-            </button>
-          </div>
-        </div>
-
-        <!-- Filtros rápidos para postulaciones y barra de búsqueda en tiempo real -->
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button class="badge-filter active" id="appFilterAll" onclick="filterApplications('all', this)">
-              Todas (<span id="countAppAll">0</span>)
-            </button>
-            <button class="badge-filter" id="appFilterSuccess" onclick="filterApplications('success', this)">
-              🟢 Exitosas (<span id="countAppSuccess">0</span>)
-            </button>
-            <button class="badge-filter" id="appFilterReview" onclick="filterApplications('requires_manual_action', this)">
-              🟡 Requieren Revisión (<span id="countAppReview">0</span>)
-            </button>
-            <button class="badge-filter" id="appFilterEmails" onclick="filterApplications('with_emails', this)" style="background:#f0fdf4; border-color:#86efac; color:#166534;">
-              📬 Con Respuestas (<span id="countAppEmails">0</span>)
-            </button>
-          </div>
-          <div style="min-width: 250px; flex: 1; max-width: 380px;">
-            <input type="text" id="appSearchInput" placeholder="🔍 Filtrar postulaciones por empresa, título o portal..." oninput="filterApplicationsByText(this.value)" style="width: 100%; padding: 0.45rem 0.8rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.82rem; font-family: inherit;">
-          </div>
-        </div>
-
-        <div class="jobs-list" id="appliedJobsList">
-          <div style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
-            Cargando historial de postulaciones y registros...
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Pestaña 2: Correos de Reclutadores -->
-    <div id="emailsTab" class="tab-content">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h3 style="font-size: 1.1rem;">Mensajes Detectados en Gmail</h3>
-        <button class="btn btn-secondary btn-sm" onclick="scanEmails()">Actualizar Bandeja</button>
-      </div>
-      <div class="jobs-list" id="emailsList">
-        <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
-          No hay mensajes de reclutadores pendientes por ahora. Presiona 'Escanear Correos'.
-        </div>
-      </div>
-    </div>
-
-    <!-- Pestaña 3: Perfil del Candidato -->
-    <div id="profileTab" class="tab-content">
-      <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; max-width: 800px;">
-        <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Información del Candidato (Ingeniero de Sistemas)</h3>
-        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.2rem;">Configura tu perfil y sube tu CV para que el agente complete formularios y adjunte tus documentos automáticamente.</p>
-
-        <!-- Tarjeta de Currículum Vitae (CV) -->
-        <div style="background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: var(--radius-md); padding: 1.2rem; margin-bottom: 1.5rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <div style="font-size: 1.8rem; background: #eff6ff; padding: 6px 10px; border-radius: 8px;">📄</div>
-              <div>
-                <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0;">Currículum Vitae (CV) para Postulaciones</h4>
-                <p style="font-size: 0.78rem; color: var(--text-secondary); margin: 2px 0 0 0;">El agente adjuntará este archivo automáticamente en Get on Board, Computrabajo y portales externos.</p>
-              </div>
-            </div>
-            <a href="/api/profile/cv/download" target="_blank" class="btn btn-secondary btn-sm" id="btnDownloadCv" style="display: none; text-decoration: none;">
-              👁️ Ver / Descargar CV
-            </a>
-          </div>
-
-          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; background: #ffffff; padding: 0.75rem 1rem; border-radius: 6px; border: 1px solid var(--border-color); margin-top: 12px;">
-            <div id="cvStatusText" style="font-size: 0.85rem; color: var(--text-main); font-weight: 500;">
-              ⏳ Verificando CV activo...
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <input type="file" id="cvFileInput" accept=".pdf,.docx,.doc" style="display: none;" onchange="uploadCvFile(this)">
-              <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('cvFileInput').click()" id="btnUploadCv">
-                📤 Subir o Cambiar mi CV (PDF)
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tarjeta de Credenciales y Auto-Registro -->
-        <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: var(--radius-md); padding: 1.2rem; margin-bottom: 1.5rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <div style="font-size: 1.8rem; background: #f0fdf4; padding: 6px 10px; border-radius: 8px; border: 1px solid #bbf7d0;">🔐</div>
-              <div>
-                <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin: 0;">Auto-Registro y Acceso en Portales</h4>
-                <p style="font-size: 0.78rem; color: var(--text-secondary); margin: 2px 0 0 0;">Credenciales que usa el agente para registrarte o iniciar sesión automáticamente en empresas y portales.</p>
-              </div>
-            </div>
-            <div style="display: flex; gap: 6px; align-items: center;">
-              <span class="badge" style="background: #e0f2fe; color: #0369a1; font-weight: 600; font-size: 0.72rem;">1º Cuenta de Google</span>
-              <span class="badge" style="background: #dcfce7; color: #15803d; font-weight: 600; font-size: 0.72rem;">2º Clave Michael23@*</span>
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; background: #ffffff; padding: 1rem; border-radius: 6px; border: 1px solid var(--border-color);">
-            <div>
-              <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Correo para Registro:</label>
-              <input type="email" id="authEmailInput" value="jmberrocale@gmail.com" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #f8fafc;" readonly>
-            </div>
-            <div>
-              <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Contraseña Universal de Registro:</label>
-              <div style="display: flex; gap: 6px;">
-                <input type="password" id="authPasswordInput" value="Michael23@*" style="flex: 1; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; font-family: monospace;">
-                <button type="button" class="btn btn-secondary btn-sm" onclick="togglePasswordVisibility()" id="btnTogglePw" title="Ver / Ocultar">👁️</button>
-                <button type="button" class="btn btn-primary btn-sm" onclick="saveAuthCredentials()">💾 Guardar</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Herramienta de Prueba en Vivo de Registro -->
-          <div style="margin-top: 12px; background: #ffffff; padding: 0.9rem 1rem; border-radius: 6px; border: 1px solid var(--border-color);">
-            <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">🚀 Probar Auto-Registro en cualquier Portal o Enlace:</label>
-            <div style="display: flex; gap: 8px;">
-              <input type="url" id="testPortalUrl" placeholder="https://ejemplo.com/registro o enlace de vacante..." style="flex: 1; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.82rem;">
-              <button type="button" class="btn btn-secondary btn-sm" onclick="testPortalAuth()" id="btnTestPortal">⚡ Probar Auto-Registro</button>
-            </div>
-            <div id="portalTestResult" style="display: none; margin-top: 8px; padding: 6px 10px; border-radius: 4px; font-size: 0.78rem;"></div>
-          </div>
-        </div>
-
-        <form id="profileForm" onsubmit="saveProfile(event)" style="display: grid; gap: 14px;">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-            <div>
-              <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Nombre Completo:</label>
-              <input type="text" id="profFullName" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit;">
-            </div>
-            <div>
-              <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Correo Gmail:</label>
-              <input type="email" id="profEmail" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit;">
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-            <div>
-              <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Teléfono:</label>
-              <input type="text" id="profPhone" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit;">
-            </div>
-            <div>
-              <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Carrera / Grado:</label>
-              <input type="text" id="profDegree" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit;">
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-            <div>
-              <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">🔗 Perfil de LinkedIn:</label>
-              <input type="url" id="profLinkedin" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit;" placeholder="https://www.linkedin.com/in/jackmberrocal">
-            </div>
-            <div>
-              <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">🐙 Perfil de GitHub (Proyectos Reales):</label>
-              <input type="url" id="profGithub" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit;" placeholder="https://github.com/JackMBerrocal">
-            </div>
-          </div>
-
-          <div>
-            <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Pretensiones Salariales (🇵🇪 Soles S/ 2,200 - 2,800 en Perú | 🌎 Dólares $850 - 1,200 USD Internacional):</label>
-            <input type="text" id="profSalary" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit;">
-          </div>
-
-          <div>
-            <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Argumento de Compensación por falta de experiencia formal:</label>
-            <textarea id="profWhyHire" rows="3" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit; font-size: 0.85rem;"></textarea>
-          </div>
-
-          <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
-            <button type="submit" class="btn btn-primary">Guardar Perfil</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Pestaña Freelance: Proyectos Rápidos en Español -->
-    <div id="freelanceTab" class="tab-content active">
-      <!-- Header Banner Freelance -->
-      <div class="freelance-header-card">
-        <div>
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-            <span style="font-size: 1.5rem;">⚡</span>
-            <h2 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Centro de Operaciones Freelance &amp; Contratos de Agencia</h2>
-            <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">100% en Español &amp; Cierre en Chat</span>
-          </div>
-          <p style="margin: 0; font-size: 0.88rem; color: #e0e7ff; max-width: 760px; line-height: 1.45;">
-            Monitorea oportunidades verificadas de contratos por horas (hourly) y proyectos por trabajo realizado (precio fijo). Cada propuesta lee el brief detalle a detalle, incluye <strong>preguntas estratégicas</strong> para que el cliente nos escoja y <strong>cierra 100% en la plataforma sin llamadas</strong>.
-          </p>
-        </div>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-          <button class="btn btn-secondary" onclick="scanFreelanceProjects()" id="btnScanFreelance" style="background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); color: #ffffff; font-weight: 600;">
-            🔄 Escanear Nuevos Proyectos
-          </button>
-          <button class="btn btn-primary" onclick="toggleExternalProposalBox()" style="background: #ffffff; color: #4338ca; border: none; font-weight: 700;">
-            ✍️ Generar Cotización Ganadora
-          </button>
-          <button class="btn btn-primary" onclick="toggleMiamBotCopilotBox()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: 1px solid #34d399; font-weight: 700; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
-            <span>🤖</span> MiamBot Copilot de Cierre en Chat
-          </button>
-          <a href="/companion" target="_blank" class="btn btn-primary" style="background: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%); color: #ffffff; border: 1px solid #818cf8; font-weight: 700; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4); text-decoration: none;">
-            <span>🎙️</span> Asistente Virtual de Voz
-          </a>
-        </div>
-      </div>
-
-      <!-- Panel de Control: Auto-Bid Autónomo en Tiempo Real (Modo 2) -->
-      <div id="autobidBannerCard" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); border-radius: 12px; padding: 18px 22px; color: #ffffff; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; border: 1px solid rgba(99, 102, 241, 0.35); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);">
-        <div style="display: flex; align-items: center; gap: 14px;">
-          <div id="autobidPulseIcon" style="width: 46px; height: 46px; border-radius: 50%; background: rgba(99, 102, 241, 0.25); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; border: 1px solid rgba(129, 140, 248, 0.4);">
-            ⚡
-          </div>
-          <div>
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px; flex-wrap: wrap;">
-              <h3 style="margin: 0; font-size: 1.12rem; font-weight: 700; color: #ffffff;">Auto-Bid Autónomo 24/7 (Modo 2: Primer Ofertante)</h3>
-              <span id="autobidStatusBadge" style="background: #334155; color: #94a3b8; font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase;">
-                ⏸️ Pausado
-              </span>
-            </div>
-            <p style="margin: 0; font-size: 0.84rem; color: #cbd5e1; line-height: 1.45;">
-              Monitorea Freelancer.com activamente en tiempo real para ofertar de forma automática en los primeros minutos de publicación.
-              <span style="display: block; margin-top: 3px; color: #94a3b8; font-size: 0.8rem;">
-                🛡️ Tarifa mínima: <strong style="color: #6ee7b7;">$<span id="abMinHourly">15</span> USD/hr</strong> • Cuota: <strong style="color: #6ee7b7;"><span id="abBidsToday">0</span>/<span id="abMaxDaily">4</span> ofertas hoy</strong> • Escaneo continuo cada <span id="abInterval">75</span>s
-              </span>
-            </p>
-          </div>
-        </div>
-
-        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-          <button id="btnToggleAutoBid" onclick="toggleAutoBidMode()" class="btn btn-primary" style="background: #4f46e5; border-color: #4338ca; font-weight: 700; font-size: 0.88rem; padding: 8px 18px; border-radius: 8px;">
-            ⚡ Activar Modo 2 (Auto-Bid)
-          </button>
-          <button id="btnAutoBidAllPending" onclick="autoBidAllPendingFreelance()" class="btn btn-secondary" style="background: rgba(99, 102, 241, 0.25); border-color: #818cf8; color: #e0e7ff; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; font-weight: 600;" title="Oferta automáticamente a todos los proyectos freelance pendientes">
-            ⚡ Postular a Todos los Pendientes
-          </button>
-          <button onclick="viewAutoAppliedProjects()" class="btn btn-secondary" style="background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #6ee7b7; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; font-weight: 600;">
-            📋 Ver Auto-Ofertados (<span id="abBannerCount">0</span>)
-          </button>
-          <button onclick="openAutoBidConfigModal()" class="btn btn-secondary" style="background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.3); color: #ffffff; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px;">
-            ⚙️ Reglas &amp; Límites
-          </button>
-        </div>
-      </div>
-
-      <!-- Generador Rápido de Propuestas para Proyectos Pegados (Workana, Upwork, etc.) -->
-      <div id="externalProposalBox" class="freelance-generator-box" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 1.2rem;">🪄</span>
-            <strong style="font-size: 1rem; color: #1e1b4b;">Generador de Propuesta Ganadora para cualquier Proyecto Externo</strong>
-          </div>
-          <button class="btn btn-secondary btn-sm" onclick="toggleExternalProposalBox()">Cerrar</button>
-        </div>
-        <p style="font-size: 0.84rem; color: var(--text-secondary); margin-bottom: 14px;">
-          ¿Viste un proyecto en Workana, Upwork o LinkedIn? Pega aquí el requerimiento para que la IA arme tu cotización en USD, distinga si es por horas o entregable cerrado, y genere preguntas estratégicas sin llamadas.
-        </p>
-        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-          <div>
-            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Título del Proyecto:</label>
-            <input type="text" id="extProjTitle" placeholder="Ej: Script en Python para scraping de catálogo web a Excel" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit;">
-          </div>
-          <div>
-            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Presupuesto Cliente:</label>
-            <input type="text" id="extProjBudget" placeholder="Ej: $100 USD o $15 - $25 / hora" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit;">
-          </div>
-          <div>
-            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Nombre del Cliente:</label>
-            <input type="text" id="extProjClient" placeholder="Ej: Juan o Estimado Cliente" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit;">
-          </div>
-        </div>
-        <div style="margin-bottom: 12px;">
-          <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Requerimiento / Descripción del Cliente:</label>
-          <textarea id="extProjDesc" rows="4" placeholder="Pega aquí el texto que puso el cliente solicitando el trabajo..." style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit; font-size: 0.85rem;"></textarea>
-        </div>
-        <div style="display: flex; justify-content: flex-end; gap: 10px;">
-          <button class="btn btn-primary" onclick="generateExternalProposal()" id="btnGenerateExtProposal">
-            ⚡ Generar Propuesta Comercial con IA
-          </button>
-        </div>
-        <!-- Resultado de la propuesta externa -->
-        <div id="extProposalResult" style="display: none; margin-top: 14px; padding-top: 14px; border-top: 1px dashed #cbd5e1;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <div style="display: flex; gap: 8px; align-items: center;">
-              <span class="bid-calc-pill" id="extResultBid">$85 USD</span>
-              <span class="time-calc-pill" id="extResultTimeline">48 horas</span>
-              <span class="portal-tag" id="extResultCategory">python_automation</span>
-            </div>
-            <button class="btn btn-primary btn-sm" onclick="copyExternalProposalText()" style="background: #059669; border-color: #047857;">
-              📋 Copiar Propuesta
-            </button>
-          </div>
-          <pre id="extProposalText" style="white-space: pre-wrap; font-family: inherit; font-size: 0.88rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; color: #1e293b; line-height: 1.55;"></pre>
-        </div>
-      </div>
-
-      <!-- MiamBot Sales Copilot: Cierre de Tratos en Chat de Freelancer (Psicología de Ventas 24/7) -->
-      <div id="miambotChatCopilotBox" class="freelance-generator-box" style="display: none; background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f8fafc 100%); border: 1.5px solid #10b981; box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.15);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 1.6rem; background: #10b981; color: #ffffff; width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">🤖</span>
-            <div>
-              <strong style="font-size: 1.05rem; color: #064e3b; display: block;">MiamBot Sales Copilot: Asistente de Cierre de Chat</strong>
-              <span style="font-size: 0.8rem; color: #047857;">Psicología de ventas, manejo de objeciones y creación de Hito (Milestone) en Freelancer.com</span>
-            </div>
-          </div>
-          <button class="btn btn-secondary btn-sm" onclick="toggleMiamBotCopilotBox()">Cerrar</button>
-        </div>
-
-        <p style="font-size: 0.84rem; color: #334155; margin-bottom: 14px; line-height: 1.45;">
-          ¿Un cliente respondió a tu propuesta en Freelancer.com? <strong>Pega aquí el mensaje del cliente</strong>. MiamBot redactará la respuesta ideal con persuasión profesional, trato formal, respuesta técnica y llamado a la acción para cerrar el hito de pago (Milestone).
-        </p>
-
-        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-          <div>
-            <label style="font-size: 0.78rem; font-weight: 700; color: #064e3b; display: block; margin-bottom: 4px;">Objetivo del Cierre:</label>
-            <select id="mbGoalSelect" style="width: 100%; padding: 0.6rem; border: 1px solid #a7f3d0; border-radius: 6px; font-size: 0.83rem; background: #ffffff; color: #0f172a; font-weight: 600;">
-              <option value="close_milestone">🤝 Cerrar Trato y Pedir Creación de Hito (Milestone)</option>
-              <option value="negotiate_price">💰 Manejo de Objeción de Precio / Descuento</option>
-              <option value="timeline_urgency">⏱️ Pregunta por Tiempo de Entrega / Urgencia</option>
-              <option value="portfolio_proof">📁 Pregunta por Portafolio / Experiencia / GitHub</option>
-              <option value="prevent_external_call">🛡️ Cliente pide llamada / WhatsApp (Mantener 100% en Chat)</option>
-            </select>
-          </div>
-          <div>
-            <label style="font-size: 0.78rem; font-weight: 700; color: #064e3b; display: block; margin-bottom: 4px;">Presupuesto Cotizado (Opcional):</label>
-            <input type="text" id="mbOfferedBid" placeholder="Ej: €140 EUR o $150 USD" style="width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.83rem;">
-          </div>
-          <div>
-            <label style="font-size: 0.78rem; font-weight: 700; color: #064e3b; display: block; margin-bottom: 4px;">Plazo Estimado (Opcional):</label>
-            <input type="text" id="mbTimeline" placeholder="Ej: 3 a 4 días hábiles" style="width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.83rem;">
-          </div>
-        </div>
-
-        <div style="margin-bottom: 12px;">
-          <label style="font-size: 0.78rem; font-weight: 700; color: #064e3b; display: block; margin-bottom: 4px;">Mensaje o Pregunta que te hizo el Cliente en Freelancer.com:</label>
-          <textarea id="mbClientMessage" rows="3" placeholder="Ej: 'Hola Jack, vi tu propuesta. ¿En cuánto tiempo podrías tener lista la web en WordPress y qué necesitas de mi parte?'" style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; font-family: inherit;"></textarea>
-        </div>
-
-        <div style="display: flex; justify-content: flex-end; gap: 10px;">
-          <button class="btn btn-primary" onclick="generateMiamBotChatReply()" id="btnGenerateMiamBotReply" style="background: #059669; border-color: #047857; font-weight: 700; display: flex; align-items: center; gap: 6px;">
-            <span>⚡</span> Generar Respuesta de Cierre MiamBot
-          </button>
-        </div>
-
-        <!-- Resultado de la respuesta MiamBot -->
-        <div id="mbReplyResult" style="display: none; margin-top: 14px; padding-top: 14px; border-top: 1px dashed #a7f3d0;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
-            <div style="display: flex; gap: 8px; align-items: center;">
-              <span class="portal-tag" id="mbIntentBadge" style="background: #d1fae5; color: #065f46; font-weight: 700;">CIERRE DE MILESTONE</span>
-              <span style="font-size: 0.78rem; color: #047857; font-weight: 600;">✨ Lista para enviar al chat del cliente</span>
-            </div>
-            <button class="btn btn-primary btn-sm" onclick="copyMiamBotReplyText()" style="background: #059669; border-color: #047857; font-weight: 700;">
-              📋 Copiar al Portapapeles
-            </button>
-          </div>
-          <textarea id="mbReplyText" rows="6" style="width: 100%; padding: 12px; border: 1px solid #a7f3d0; border-radius: 8px; font-family: inherit; font-size: 0.88rem; line-height: 1.55; color: #0f172a; background: #ffffff;"></textarea>
-        </div>
-      </div>
-
-      <!-- Filtros de Proyectos Freelance (Modalidad, Especialidad, Estado y Búsqueda) -->
-      <div class="toolbar" style="flex-direction: column; align-items: stretch; gap: 12px; margin-bottom: 1.25rem;">
-        <!-- Fila 1: Filtro de Modalidad de Contratación -->
-        <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px; background: #faf5ff; border: 1px solid #e9d5ff; padding: 10px 14px; border-radius: 8px;">
-          <div class="filter-group" id="filterModalityGroup">
-            <span style="font-size: 0.85rem; font-weight: 700; color: #581c87; display: flex; align-items: center; gap: 6px;">
-              <span>💼</span> Modalidad de Contrato:
-            </span>
-            <div class="badge-filter active" id="flModalityAll" onclick="filterFreelanceModality('all', this)">
-              Todas las Modalidades (<span id="countModalityAll">97</span>)
-            </div>
-            <div class="badge-filter" id="flModalityHourly" onclick="filterFreelanceModality('hourly', this)" style="border-color:#f59e0b; color:#b45309; background:#fffbeb; font-weight:700;">
-              ⏱️ Por Horas (Hourly) (<span id="countModalityHourly">59</span>)
-            </div>
-            <div class="badge-filter" id="flModalityFixed" onclick="filterFreelanceModality('fixed', this)" style="border-color:#10b981; color:#047857; background:#ecfdf5; font-weight:700;">
-              📦 Por Trabajo Realizado (Precio Fijo) (<span id="countModalityFixed">38</span>)
-            </div>
-          </div>
-        </div>
-
-        <!-- Fila 2: Especialidades de Agencia & Plataformas -->
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-          <div class="filter-group" style="flex-wrap: wrap;">
-            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Especialidad:</span>
-            <div class="badge-filter active" onclick="filterFreelanceCategory('all', this)">Todas</div>
-            <div class="badge-filter" onclick="filterFreelanceCategory('customer_support_whatsapp', this)">💬 WhatsApp &amp; Chat</div>
-            <div class="badge-filter" onclick="filterFreelanceCategory('sales_setter_crm', this)">🎯 Setter &amp; Ventas</div>
-            <div class="badge-filter" onclick="filterFreelanceCategory('ai_chatbot_system', this)">🤖 Chatbots &amp; IA</div>
-            <div class="badge-filter" onclick="filterFreelanceCategory('social_media_growth', this)">📱 Redes &amp; TikTok</div>
-            <div class="badge-filter" onclick="filterFreelanceCategory('ecommerce_stores', this)">🛍️ Tiendas E-Commerce</div>
-            <div class="badge-filter" onclick="filterFreelanceCategory('virtual_assistant_admin', this)">📋 Asistencia Virtual</div>
-            <div class="badge-filter" onclick="filterFreelanceCategory('python_automation', this)">🐍 Python &amp; Auto</div>
-            <div class="badge-filter" onclick="filterFreelanceCategory('power_bi_data', this)">📊 Power BI &amp; Datos</div>
-            <div class="badge-filter" onclick="filterFreelanceCategory('qa_testing', this)">🧪 QA Testing &amp; APIs</div>
-            <div class="badge-filter" onclick="filterFreelanceCategory('sql_database', this)">🗄️ SQL &amp; Bases de Datos</div>
-            <div class="badge-filter" onclick="filterFreelanceCategory('web_dev', this)">🌐 Desarrollo Web</div>
-            <div class="badge-filter" onclick="filterFreelanceCategory('graphic_design_creative', this)">🎨 Diseño Gráfico &amp; Logos</div>
-          </div>
-          <div class="filter-group">
-            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Plataforma:</span>
-            <div class="badge-filter active" onclick="filterFreelancePlatform('all', this)">Todas</div>
-            <div class="badge-filter" onclick="filterFreelancePlatform('freelancer', this)">Freelancer.com</div>
-            <div class="badge-filter" onclick="filterFreelancePlatform('getonbrd', this)">Get on Board</div>
-          </div>
-        </div>
-
-        <!-- Fila 3: Estados & Buscador en Vivo -->
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-top: 1px solid #f1f5f9; padding-top: 8px;">
-          <div class="filter-group" id="filterStatusGroup">
-            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Estado:</span>
-            <div class="badge-filter active" id="flStatusAll" onclick="filterFreelanceStatus('all', this)">Todos</div>
-            <div class="badge-filter" id="flStatusAuto" onclick="filterFreelanceStatus('auto_applied', this)" style="background: #ecfdf5; border-color: #6ee7b7; color: #065f46; font-weight: 700;">⚡ Auto-Ofertados (<span id="flStatusAutoCount">0</span>)</div>
-            <div class="badge-filter" id="flStatusApplied" onclick="filterFreelanceStatus('applied', this)">✅ Postulados Manualmente</div>
-            <div class="badge-filter" id="flStatusReady" onclick="filterFreelanceStatus('proposal_generated', this)">⚡ Con Propuesta Lista</div>
-            <div class="badge-filter" id="flStatusOpen" onclick="filterFreelanceStatus('open', this)">⏳ Pendientes</div>
-          </div>
-
-          <div style="flex: 1; max-width: 360px; min-width: 220px;">
-            <input type="text" id="flSearchInput" oninput="filterFreelanceSearch(this.value)" placeholder="🔍 Buscar por palabra clave, tecnología..." style="width: 100%; padding: 0.45rem 0.8rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; font-family: inherit;">
-          </div>
-        </div>
-      </div>
-
-      <!-- Grid de Proyectos Freelance -->
+      <!-- 4. GRID DE RESULTADOS FRONT AND CENTER (¡Aquí se ven todos los proyectos de inmediato sin scroll previo!) -->
       <div id="freelanceProjectsContainer" class="freelance-grid">
         <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
-          Cargando oportunidades freelance...
+          Cargando oportunidades freelance en tiempo real...
         </div>
       </div>
+
     </div>
 
   </main>
+
+  <!-- BARRA DE ESTADO Y TELEMETRÍA DISCRETA AL PIE -->
+  <footer style="background: #0f172a; border-top: 1px solid rgba(255,255,255,0.08); padding: 8px 24px; color: #94a3b8; font-size: 0.78rem; margin-top: 24px;">
+    <div style="max-width: 1440px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="color: #34d399;">●</span>
+        <span>Freelancer.com API Conectada</span>
+        <span>•</span>
+        <span style="color: #cbd5e1;">LibreWolf Flatpak</span>
+        <span>•</span>
+        <span>Telemetría: Radar 24/7 activo</span>
+      </div>
+      <div>
+        <span>Jack M. Berrocal (Ing. de Sistemas) • Actualización automática cada 3s</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ELEMENTOS OCULTOS PARA RETROCOMPATIBILIDAD CON FUNCIONES JS -->
+  <div style="display: none;" id="legacyHiddenElements">
+    <div id="jobsList"></div>
+    <div id="targetRolesGrid"></div>
+    <div id="appliedJobsList"></div>
+    <div id="emailsList"></div>
+    <span id="tabJobsCount">0</span>
+    <span id="tabRolesCount">0</span>
+    <span id="tabAppliedCount">0</span>
+    <span id="tabEmailCount">0</span>
+    <span id="tabFreelanceCount">0</span>
+    <span id="statTotalJobs">0</span>
+    <span id="statAppliedJobs">0</span>
+    <span id="statExpiredJobs">0</span>
+    <span id="statInterviews">0</span>
+    <span id="statQueueSize">0</span>
+    <span id="topEarnedAmount">$0 USD</span>
+    <span id="topActiveBidsCount">0</span>
+    <div id="topGoalProgressBar"></div>
+    <span id="topGoalStatusText"></span>
+    <span id="statGoalDisplay">$0 / $1,500</span>
+    <span id="statFreelanceHourly">0</span>
+    <span id="statFreelanceFixed">0</span>
+    <span id="continuousNextRun"></span>
+    <span id="continuousStatusText"></span>
+    <span id="currentProcessingText"></span>
+    <span id="healthAgentStatus"></span>
+    <span id="healthUser"></span>
+    <input type="checkbox" id="chkHeadless">
+    <button id="btnTabFreelance"></button>
+    <button id="btnTabJobs"></button>
+    <button id="btnTabRoles"></button>
+    <button id="btnTabApplied"></button>
+    <button id="btnTabEmails"></button>
+    <button id="btnTabProfile"></button>
+    <button id="btnCleanClosedFreelance"></button>
+    <button id="btnToggleContinuous"></button>
+    <button id="btnTriggerLiveScan"></button>
+    <button id="btnToggleAutoBidInline"></button>
+    <span id="countTabCompleted">0</span>
+    <div id="pipeTabCompleted"></div>
+    <div id="jobsTab"></div>
+    <div id="targetRolesTab"></div>
+    <div id="appliedTab"></div>
+    <div id="emailsTab"></div>
+    <div id="profileTab"></div>
+  </div>
 
   <!-- Modal para Conexión de Cuentas en Navegador -->
   <div class="modal-overlay" id="connectModal">
@@ -2104,15 +1751,90 @@
     </div>
   </div>
 
+  <!-- Modal: Plan de Trabajo Técnico Paso a Paso (Antigravity Blueprint) -->
+  <div class="modal-overlay" id="freelancePlanModal" style="display:none;">
+    <div class="modal-box modal-large" style="max-width:920px;">
+      <div class="portal-modal-header" style="background: linear-gradient(135deg, #065f46 0%, #047857 50%, #0f172a 100%); color: #ffffff; padding: 18px 24px; border-radius: 12px 12px 0 0;">
+        <div>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 6px;">
+            <span class="portal-tag" style="background:#ecfdf5; color:#065f46; font-weight:800;">🎉 PROYECTO ADJUDICADO</span>
+            <span class="portal-tag" style="background:rgba(255,255,255,0.2); color:#ffffff; font-weight:700;" id="fPlanAgreedAmount">$0 USD</span>
+            <span class="portal-tag" style="background:rgba(16,185,129,0.3); color:#a7f3d0; font-weight:700;">🤝 PAIR PROGRAMMING ACTIVO</span>
+          </div>
+          <h3 id="fPlanTitle" style="margin:0 0 6px 0; font-size:1.35rem; color:#ffffff; font-weight:700;">Título del Proyecto</h3>
+          <div style="font-size:0.88rem; color:#d1fae5;" id="fPlanSubtitle">
+            Cliente • Presupuesto Acordado • Ingeniería de Sistemas Senior (Jack M. Berrocal + Antigravity)
+          </div>
+        </div>
+        <button class="portal-close-btn" onclick="closeFreelancePlanModal()" title="Cerrar" style="color:#ffffff;">&times;</button>
+      </div>
+
+      <div style="padding: 16px 20px;">
+        <!-- Banner de Compromiso y Cero Promesas Vacías -->
+        <div style="background: #f0fdf4; border: 1.5px solid #6ee7b7; border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 1.8rem;">🤝</span>
+          <div style="font-size: 0.85rem; color: #065f46; line-height: 1.45;">
+            <strong>Pacto de Desarrollo Jack + Antigravity:</strong> Desarrollaremos este proyecto paso a paso juntos aquí en el IDE. No prometemos nada que no sepamos construir. Todo el código será programado, probado y auditado en nuestras sesiones de pair-programming.
+          </div>
+        </div>
+
+        <!-- Instrucción de Ejecución Inmediata -->
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <div style="font-size: 0.85rem; color: #1e40af;">
+            🚀 <strong>¿Cómo empezar a programar ahora?</strong> Escribe en nuestro chat:<br>
+            <code id="fPlanChatInstruction" style="background: #dbeafe; color: #1e3a8a; padding: 4px 10px; border-radius: 6px; font-weight: 700; display: inline-block; margin-top: 4px;">
+              Antigravity, desarrollemos el Paso 1 del proyecto
+            </code>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="copyPlanInstruction()" style="background:#2563eb; border-color:#1d4ed8; font-weight:700;">
+            📋 Copiar Instrucción
+          </button>
+        </div>
+
+        <!-- Plan Técnico Detallado -->
+        <div style="margin-bottom: 16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+            <h4 style="font-size:0.95rem; font-weight:700; margin:0; color:#1e293b; display:flex; align-items:center; gap:6px;">
+              <span>🛠️</span> Plan de Ejecución Técnico Paso a Paso
+            </h4>
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-secondary btn-sm" onclick="regenerateFreelancePlan()" id="btnRegeneratePlan" style="font-size:0.78rem;">
+                🔄 Regenerar Plan con IA
+              </button>
+              <button class="btn btn-primary btn-sm" onclick="copyFreelancePlanText()" style="background:#059669; border-color:#047857; font-weight:700;">
+                📋 Copiar Plan Completo
+              </button>
+            </div>
+          </div>
+          <textarea id="fPlanText" rows="14" style="width:100%; padding:14px; border:1px solid #cbd5e1; border-radius:8px; font-family:monospace; font-size:0.86rem; line-height:1.6; color:#0f172a; background:#f8fafc;"></textarea>
+        </div>
+
+        <!-- Acciones del Modal -->
+        <div class="modal-actions" style="border-top:1px solid #f1f5f9; padding-top:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <button class="btn btn-secondary" onclick="closeFreelancePlanModal()">Cerrar</button>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <a id="fPlanChatLink" href="#" target="_blank" class="btn btn-secondary" style="font-size:0.85rem; display:inline-flex; align-items:center; gap:6px;">
+              💬 Abrir Chat Freelancer ↗
+            </a>
+            <button class="btn btn-primary" onclick="markCurrentPlanCompleted()" style="background:#059669; border-color:#047857; font-weight:700; font-size:0.85rem;">
+              💰 Marcar como Trabajo Completado &amp; Cobrado
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
   <!-- Modal de Configuración de Auto-Bid Autónomo (Modo 2) -->
   <div class="modal-overlay" id="autobidConfigModal" style="display:none;">
     <div class="modal-box" style="max-width:650px;">
       <div class="portal-modal-header">
         <div>
-          <span class="portal-tag" style="background:#e0e7ff; color:#4338ca; font-weight:700;">MODO 2 AUTÓNOMO</span>
-          <h3 style="margin-top:6px; margin-bottom:4px; font-size:1.25rem; color:#0f172a;">Reglas y Guardarraíles de Auto-Bid 24/7</h3>
+          <span class="portal-tag" style="background:#e0e7ff; color:#4338ca; font-weight:700;">ESTRATEGIA META $1,500 USD/MES</span>
+          <h3 style="margin-top:6px; margin-bottom:4px; font-size:1.25rem; color:#0f172a;">Reglas y Guardarraíles de Auto-Bid (100 Créditos)</h3>
           <div style="font-size:0.85rem; color:var(--text-secondary);">
-            Configura los filtros para que el agente oferte de forma inteligente y segura.
+            Optimizado para aprovechar tu mes de prueba gratis sin quemar créditos en ofertas saturadas o mal pagadas.
           </div>
         </div>
         <button class="portal-close-btn" onclick="closeAutoBidConfigModal()" title="Cerrar">&times;</button>
@@ -2124,67 +1846,81 @@
             <label style="font-size: 0.8rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">
               Tarifa Mínima por Hora ($ USD):
             </label>
-            <input type="number" id="cfgMinHourly" min="5" max="200" step="1" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem;">
-            <span style="font-size: 0.72rem; color: #64748b;">Descarta ofertas por debajo de este valor (ej: $15 USD/hr).</span>
+            <input type="number" id="cfgMinHourly" min="10" max="200" step="1" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem;">
+            <span style="font-size: 0.72rem; color: #64748b;">Recomendado: <strong>$20 USD/hr</strong> (descarta ofertas de baja tarifa).</span>
           </div>
 
           <div>
             <label style="font-size: 0.8rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">
               Presupuesto Mínimo Proyecto Fijo ($ USD):
             </label>
-            <input type="number" id="cfgMinFixed" min="10" max="10000" step="5" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem;">
-            <span style="font-size: 0.72rem; color: #64748b;">Evita micro-gigs abusivos (ej: mínimo $50 USD).</span>
+            <input type="number" id="cfgMinFixed" min="50" max="10000" step="10" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem;">
+            <span style="font-size: 0.72rem; color: #64748b;">Recomendado: <strong>$150 - $200 USD</strong> (vital para llegar a $1,500 con 3-4 cierres).</span>
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px;">
           <div>
             <label style="font-size: 0.8rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">
-              Cupo Máximo Diario de Ofertas:
+              Cupo Máximo Diario:
             </label>
-            <input type="number" id="cfgMaxDailyBids" min="1" max="50" step="1" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem;">
-            <span style="font-size: 0.72rem; color: #64748b;">Protege tus créditos mensuales de Freelancer.com.</span>
+            <input type="number" id="cfgMaxDailyBids" min="1" max="20" step="1" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem;">
+            <span style="font-size: 0.72rem; color: #64748b;">Máx <strong>3-4/día</strong> para no gastar los 100 créditos del mes antes de tiempo.</span>
           </div>
 
           <div>
             <label style="font-size: 0.8rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">
-              Intervalo de Escaneo Continuo (segundos):
+              Máx Competidores (Anti-Saturación):
+            </label>
+            <input type="number" id="cfgMaxCompetition" min="3" max="50" step="1" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem;">
+            <span style="font-size: 0.72rem; color: #64748b;">Ignora si ya tiene más de <strong>12 ofertas</strong> (ahorra tus créditos).</span>
+          </div>
+
+          <div>
+            <label style="font-size: 0.8rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">
+              Escaneo Continuo:
             </label>
             <input type="number" id="cfgCheckInterval" min="45" max="600" step="5" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem;">
-            <span style="font-size: 0.72rem; color: #64748b;">Recomendado: 60 - 90 seg para ser primer ofertante.</span>
+            <span style="font-size: 0.72rem; color: #64748b;">Recomendado: <strong>60-75s</strong> para ser de los primeros 3 en ofertar.</span>
           </div>
         </div>
 
         <div style="margin-bottom: 14px;">
           <label style="font-size: 0.8rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 6px;">
-            Especialidades Autorizadas para Auto-Bid:
+            Especialidades de Alto Retorno para Auto-Bid:
           </label>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 0.85rem;">
+            <label><input type="checkbox" id="cat_python" value="python_automation_scraping"> 🐍 Python & Scraping (Playwright/Bots) <strong>[Alto Ticket]</strong></label>
+            <label><input type="checkbox" id="cat_chatbot" value="ai_chatbot_system"> 🤖 Chatbots & Sistemas IA (WhatsApp/APIs) <strong>[Alto Ticket]</strong></label>
+            <label><input type="checkbox" id="cat_web" value="web_dev"> 🌐 Desarrollo Web & MVPs (FastAPI/React)</label>
+            <label><input type="checkbox" id="cat_powerbi" value="power_bi_data"> 📊 Power BI & Dashboards de Datos</label>
+            <label><input type="checkbox" id="cat_sql" value="sql_database"> 🗄️ SQL & Bases de Datos</label>
+            <label><input type="checkbox" id="cat_qa" value="qa_testing"> 🧪 QA Testing & APIs</label>
             <label><input type="checkbox" id="cat_whatsapp" value="customer_support_whatsapp"> 💬 WhatsApp & Chat Support</label>
             <label><input type="checkbox" id="cat_setter" value="sales_setter_crm"> 🎯 Setter de Ventas & CRM</label>
-            <label><input type="checkbox" id="cat_chatbot" value="ai_chatbot_system"> 🤖 Chatbots & Sistemas IA</label>
-            <label><input type="checkbox" id="cat_powerbi" value="power_bi_data"> 📊 Power BI & Datos</label>
-            <label><input type="checkbox" id="cat_qa" value="qa_testing"> 🧪 QA Testing & APIs</label>
-            <label><input type="checkbox" id="cat_sql" value="sql_database"> 🗄️ SQL & Bases de Datos</label>
-            <label><input type="checkbox" id="cat_web" value="web_dev"> 🌐 Desarrollo Web</label>
-            <label><input type="checkbox" id="cat_python" value="python_automation"> 🐍 Python & Automatización</label>
-            <label><input type="checkbox" id="cat_design" value="graphic_design_creative"> 🎨 Diseño Gráfico & Logos</label>
           </div>
         </div>
 
-        <div>
-          <label style="font-size: 0.8rem; font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">
-            Token Personal de API Freelancer.com (Opcional para envío &lt; 1s):
-          </label>
-          <input type="password" id="cfgApiToken" placeholder="Pega aquí tu Developer Auth Token si deseas envío instantáneo vía API" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; font-family: monospace;">
-          <span style="font-size: 0.72rem; color: #64748b;">Si no dispones de token, el agente opera mediante la sesión de tu navegador.</span>
+        <div style="background: #eef2ff; padding: 12px; border-radius: 8px; border: 1px solid #c7d2fe; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label style="font-size: 0.8rem; font-weight: 700; color: #3730a3;">
+              🔑 Token Personal de API Freelancer.com (Envío Instantáneo &lt; 300ms):
+            </label>
+            <a href="https://www.freelancer.com/developers" target="_blank" style="font-size: 0.75rem; color: #4338ca; text-decoration: underline; font-weight: 600;">
+              ↗️ Obtener Token Gratis en Freelancer
+            </a>
+          </div>
+          <input type="password" id="cfgApiToken" placeholder="Pega tu Token (Freelancer.com -> Developer -> Tokens)" style="width: 100%; padding: 8px; border: 1px solid #c7d2fe; border-radius: 6px; font-size: 0.85rem; font-family: monospace; background: #ffffff;">
+          <span style="font-size: 0.72rem; color: #4f46e5; display: block; margin-top: 3px;">
+            💡 <em>Con este token gratuito, tus ofertas se envían en 0.2 segundos vía API. Si lo dejas vacío, el agente intentará ofertar con la sesión de tu navegador local.</em>
+          </span>
         </div>
       </div>
 
       <div class="modal-actions" style="border-top:1px solid #f1f5f9; padding-top:12px; display:flex; justify-content:flex-end; gap:10px;">
         <button class="btn btn-secondary" onclick="closeAutoBidConfigModal()">Cancelar</button>
         <button class="btn btn-primary" onclick="saveAutoBidConfig()" style="background:#4338ca; border-color:#3730a3; font-weight:700;">
-          💾 Guardar Reglas de Auto-Bid
+          💾 Guardar Estrategia Meta $1500
         </button>
       </div>
     </div>
@@ -2203,6 +1939,52 @@
     let currentFreelanceSearchTerm = '';
     let freelanceProjectsData = [];
     let currentFreelanceModalProject = null;
+    let currentFreelanceStage = 'radar';
+    let currentPlanModalProject = null;
+    let prevRepliedCount = null;
+    let prevAcceptedCount = null;
+
+    function playWebChime(type) {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        const now = ctx.currentTime;
+        if (type === 'award') {
+          [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.14);
+            gain.gain.setValueAtTime(0.4, now + idx * 0.14);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.14 + 0.42);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + idx * 0.14);
+            osc.stop(now + idx * 0.14 + 0.42);
+          });
+        } else {
+          [587.33, 880.00].forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.16);
+            gain.gain.setValueAtTime(0.35, now + idx * 0.16);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.16 + 0.38);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + idx * 0.16);
+            osc.stop(now + idx * 0.16 + 0.38);
+          });
+        }
+      } catch (e) {
+        console.warn('Web Audio chime:', e);
+      }
+    }
+
+    window.addEventListener('focus', () => {
+      document.title = "JobHunter AI - Centro de Operaciones";
+    });
 
     // Iniciar datos y polling
     document.addEventListener('DOMContentLoaded', () => {
@@ -2221,7 +2003,7 @@
       const flTabBtn = document.getElementById('btnTabFreelance');
       if (flTabBtn) switchTab('freelanceTab', flTabBtn);
 
-      // Polling cada 3 segundos
+      // Polling cada 3 segundos en tiempo real
       setInterval(() => {
         fetchHealth();
         fetchStats();
@@ -2230,6 +2012,7 @@
         const flTab = document.getElementById('freelanceTab');
         if (flTab && flTab.classList.contains('active')) {
           fetchAutoBidStatus();
+          fetchFreelanceProjects();
         }
       }, 3000);
     });
@@ -2240,9 +2023,12 @@
         if (!res.ok) return;
         const data = await res.json();
         
-        document.getElementById('healthAgentStatus').innerText = data.agent.current_action || '🟢 Agente Operativo';
-        document.getElementById('healthUser').innerText = `${data.candidate.email} (${data.candidate.degree})`;
-        document.getElementById('chkHeadless').checked = !data.browser_engine.headless;
+        const elAgent = document.getElementById('healthAgentStatus');
+        if (elAgent) elAgent.innerText = data.agent?.current_action || '🟢 AGENCIA OPERATIVA (RADAR 24/7)';
+        const elUser = document.getElementById('healthUser');
+        if (elUser && data.candidate) elUser.innerText = `${data.candidate.email || 'Jack Berrocal'} (${data.candidate.degree || 'Ing. de Sistemas'})`;
+        const elHeadless = document.getElementById('chkHeadless');
+        if (elHeadless && data.browser_engine) elHeadless.checked = !data.browser_engine.headless;
       } catch (err) {
         console.error('Error fetching health:', err);
       }
@@ -2254,13 +2040,16 @@
         if (!res.ok) return;
         const data = await res.json();
         
-        document.getElementById('statTotalJobs').innerText = data.total_jobs;
-        document.getElementById('statAppliedJobs').innerText = data.applied_jobs;
-        document.getElementById('statQueueSize').innerText = data.queue_size;
-        document.getElementById('statInterviews').innerText = data.interviews;
-        if (document.getElementById('statExpiredJobs')) {
-          document.getElementById('statExpiredJobs').innerText = data.expired_jobs || 0;
-        }
+        const elTotalJobs = document.getElementById('statTotalJobs');
+        if (elTotalJobs) elTotalJobs.innerText = data.total_jobs || 0;
+        const elAppliedJobs = document.getElementById('statAppliedJobs');
+        if (elAppliedJobs) elAppliedJobs.innerText = data.applied_jobs || 0;
+        const elQueueSize = document.getElementById('statQueueSize');
+        if (elQueueSize) elQueueSize.innerText = data.queue_size || 0;
+        const elInterviews = document.getElementById('statInterviews');
+        if (elInterviews) elInterviews.innerText = data.interviews || 0;
+        const elExpired = document.getElementById('statExpiredJobs');
+        if (elExpired) elExpired.innerText = data.expired_jobs || 0;
 
         if (data.freelance_count !== undefined) {
           const tFreelanceCount = document.getElementById('tabFreelanceCount');
@@ -2285,6 +2074,8 @@
         if (data.freelance_applied_count !== undefined) {
           const statFlApplied = document.getElementById('statFreelanceApplied');
           if (statFlApplied) statFlApplied.innerText = data.freelance_applied_count;
+          const topActiveBids = document.getElementById('topActiveBidsCount');
+          if (topActiveBids) topActiveBids.innerText = data.freelance_applied_count;
         }
 
         if (data.active_roles_count !== undefined) {
@@ -2298,12 +2089,15 @@
           if (tAppCount) tAppCount.innerText = data.applied_jobs;
         }
         
-        if (data.current_processing_job) {
-          document.getElementById('currentProcessingText').innerText = `⚡ Postulando a: ${data.current_processing_job}`;
-        } else if (data.is_running) {
-          document.getElementById('currentProcessingText').innerText = `🔎 ${data.current_action}`;
-        } else {
-          document.getElementById('currentProcessingText').innerText = `🟢 Listo`;
+        const procText = document.getElementById('currentProcessingText');
+        if (procText) {
+          if (data.current_processing_job) {
+            procText.innerText = `⚡ Postulando a: ${data.current_processing_job}`;
+          } else if (data.is_running) {
+            procText.innerText = `🔎 ${data.current_action}`;
+          } else {
+            procText.innerText = `🟢 Listo`;
+          }
         }
       } catch (err) {
         console.error('Error fetching stats:', err);
@@ -3428,14 +3222,26 @@
         const res = await fetch('/api/logs');
         if (!res.ok) return;
         const data = await res.json();
+        const logs = data.logs || [];
         const logsDiv = document.getElementById('consoleLogs');
-        logsDiv.innerHTML = (data.logs || []).slice(-15).reverse().map(l => {
-          let cls = 'console-line';
-          if (l.includes('✨') || l.includes('✅') || l.includes('🎯')) cls += ' success';
-          if (l.includes('⚠️')) cls += ' warning';
-          if (l.includes('❌')) cls += ' error';
-          return `<div class="${cls}">${l}</div>`;
-        }).join('');
+        if (logsDiv) {
+          logsDiv.innerHTML = logs.slice(-15).reverse().map(l => {
+            let cls = 'console-line';
+            if (l.includes('✨') || l.includes('✅') || l.includes('🎯')) cls += ' success';
+            if (l.includes('⚠️')) cls += ' warning';
+            if (l.includes('❌')) cls += ' error';
+            return `<div class="${cls}">${l}</div>`;
+          }).join('');
+        }
+
+        // Actualizar ticker de radar en vivo
+        const flLog = [...logs].reverse().find(l => l.includes('Auto-Bid') || l.includes('Freelance') || l.includes('Filtro') || l.includes('Radar') || l.includes('Postulado') || l.includes('Sincronización'));
+        const radarActEl = document.getElementById('radarLiveActivity');
+        const radarTsEl = document.getElementById('radarLiveTimestamp');
+        if (flLog && radarActEl) {
+          radarActEl.innerText = flLog.replace(/\[⚡ Auto-Bid 24\/7\]|\[FreelanceHunter\]/g, '').trim();
+          if (radarTsEl) radarTsEl.innerText = new Date().toLocaleTimeString('es-PE', { hour12: false });
+        }
       } catch (err) {}
     }
 
@@ -3448,16 +3254,18 @@
         const ed = currentProfile.education || {};
         const sc = currentProfile.screening_answers || {};
 
-        document.getElementById('profFullName').value = p.full_name || '';
-        document.getElementById('profEmail').value = p.email || '';
-        document.getElementById('profPhone').value = p.phone || '';
+        if (document.getElementById('profFullName')) document.getElementById('profFullName').value = p.full_name || '';
+        if (document.getElementById('profEmail')) document.getElementById('profEmail').value = p.email || '';
+        if (document.getElementById('profPhone')) document.getElementById('profPhone').value = p.phone || '';
         if (document.getElementById('profLinkedin')) document.getElementById('profLinkedin').value = p.linkedin_url || '';
         if (document.getElementById('profGithub')) document.getElementById('profGithub').value = p.github_url || '';
-        document.getElementById('profDegree').value = ed.degree || '';
-        document.getElementById('profSalary').value = sc.salary_expectation_text || '';
-        document.getElementById('profWhyHire').value = sc.why_hire_me || '';
+        if (document.getElementById('profDegree')) document.getElementById('profDegree').value = ed.degree || '';
+        if (document.getElementById('profSalary')) document.getElementById('profSalary').value = sc.salary_expectation_text || '';
+        if (document.getElementById('profWhyHire')) document.getElementById('profWhyHire').value = sc.why_hire_me || '';
 
-        document.getElementById('headerProfileSubtitle').innerText = `${p.full_name || 'Ingeniero de Sistemas'} • Primer Empleo Remoto`;
+        if (document.getElementById('headerProfileSubtitle')) {
+          document.getElementById('headerProfileSubtitle').innerText = `${p.full_name || 'Ingeniero de Sistemas'} • Primer Empleo Remoto`;
+        }
         fetchCvInfo();
         fetchAuthCredentials();
       } catch (err) {
@@ -3570,12 +3378,15 @@
         const data = await res.json();
         const statusEl = document.getElementById('cvStatusText');
         const dlBtn = document.getElementById('btnDownloadCv');
-        if (data.exists) {
-          statusEl.innerHTML = `✅ <strong>CV Activo:</strong> <span style="color:#2563eb;">${data.filename}</span> <span style="color:var(--text-muted); font-size:0.75rem;">(${data.size_kb} KB • Actualizado: ${data.modified})</span>`;
-          dlBtn.style.display = 'inline-flex';
-        } else {
-          statusEl.innerHTML = `⚠️ <em style="color:#b45309;">No hay un CV cargado actualmente. Sube tu archivo PDF para postular en plataformas.</em>`;
-          dlBtn.style.display = 'none';
+        if (statusEl) {
+          if (data.exists) {
+            statusEl.innerHTML = `✅ <strong>CV Activo:</strong> <span style="color:#2563eb;">${data.filename}</span> <span style="color:var(--text-muted); font-size:0.75rem;">(${data.size_kb} KB • Actualizado: ${data.modified})</span>`;
+          } else {
+            statusEl.innerHTML = `⚠️ <em style="color:#b45309;">No hay un CV cargado actualmente. Sube tu archivo PDF para postular en plataformas.</em>`;
+          }
+        }
+        if (dlBtn) {
+          dlBtn.style.display = data.exists ? 'inline-flex' : 'none';
         }
       } catch (err) {
         console.error('Error fetching CV info:', err);
@@ -3705,21 +3516,97 @@
       fetchJobs();
     }
 
-    // --- Lógica del Módulo Freelance & Gigs ---
+    let lastRenderedProjectsSignature = '';
+
+    function selectFreelanceStage(stage, el) {
+      currentFreelanceStage = stage;
+      lastRenderedProjectsSignature = '';
+      document.querySelectorAll('.pipeline-tab-card').forEach(tab => tab.classList.remove('active'));
+      if (el) {
+        el.classList.add('active');
+      } else {
+        const stageIdMap = {
+          'applied': 'pipeTabApplied',
+          'replied': 'pipeTabReplied',
+          'accepted': 'pipeTabAccepted',
+          'completed': 'pipeTabCompleted',
+          'radar': 'pipeTabRadar',
+          'unselected': 'pipeTabUnselected'
+        };
+        const targetId = stageIdMap[stage];
+        if (targetId && document.getElementById(targetId)) {
+          document.getElementById(targetId).classList.add('active');
+        }
+      }
+      fetchFreelanceProjects();
+    }
 
     async function fetchFreelanceProjects() {
       const container = document.getElementById('freelanceProjectsContainer');
       if (!container) return;
       try {
-        let url = `/api/freelance/projects?category=${currentFreelanceCategory}&platform=${currentFreelancePlatform}&status=${currentFreelanceStatus}&modality=${currentFreelanceModality}`;
+        let url = `/api/freelance/projects?stage=${currentFreelanceStage}&category=${currentFreelanceCategory}&platform=${currentFreelancePlatform}&status=${currentFreelanceStatus}&modality=${currentFreelanceModality}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('Error al consultar proyectos freelance');
         const data = await res.json();
         freelanceProjectsData = data.projects || [];
         
-        const tabCount = document.getElementById('tabFreelanceCount');
-        if (tabCount && data.total !== undefined) {
-          tabCount.innerText = data.total;
+        // Actualizar contadores del pipeline de 5 etapas
+        if (data.pipeline_counts) {
+          const elApp = document.getElementById('countTabApplied');
+          if (elApp) elApp.innerText = data.pipeline_counts.applied || 0;
+          const elRep = document.getElementById('countTabReplied');
+          if (elRep) elRep.innerText = data.pipeline_counts.replied || 0;
+          const elAcc = document.getElementById('countTabAccepted');
+          if (elAcc) elAcc.innerText = data.pipeline_counts.accepted || 0;
+          const elComp = document.getElementById('countTabCompleted');
+          if (elComp) elComp.innerText = data.pipeline_counts.completed || 0;
+          const elRad = document.getElementById('countTabRadar');
+          if (elRad) elRad.innerText = data.pipeline_counts.radar || 0;
+          const elUns = document.getElementById('countTabUnselected');
+          if (elUns) elUns.innerText = data.pipeline_counts.unselected || 0;
+          
+          const tabCount = document.getElementById('tabFreelanceCount');
+          if (tabCount) tabCount.innerText = data.pipeline_counts.total_active || data.total || 0;
+        }
+
+        // Actualizar tarjetas de meta financiera ($1,000 Mínimo / $1,500 Meta / Sin Límite)
+        if (data.financials) {
+          const earned = data.financials.earned_usd || 0;
+          const minTarget = 1000.0;
+          const goalTarget = 1500.0;
+          
+          // Actualizar monto en tarjeta inferior y superior
+          const goalEl = document.getElementById('goalEarnedAmount');
+          if (goalEl) goalEl.innerText = `$${Math.round(earned)} USD`;
+          const topEarned = document.getElementById('topEarnedAmount');
+          if (topEarned) topEarned.innerText = `$${Math.round(earned)} USD`;
+          const statGoalDisp = document.getElementById('statGoalDisplay');
+          if (statGoalDisp) statGoalDisp.innerText = `$${Math.round(earned)} / $1,500`;
+
+          // Progreso hacia la meta de $1,500 (el mínimo $1,000 representa el 66.6%)
+          const progressPct = Math.min(100, Math.round((earned / goalTarget) * 100));
+          const barEl = document.getElementById('goalProgressBar');
+          if (barEl) barEl.style.width = `${progressPct}%`;
+          const topBarEl = document.getElementById('topGoalProgressBar');
+          if (topBarEl) topBarEl.style.width = `${progressPct}%`;
+
+          let statusMsg = '';
+          if (earned >= goalTarget) {
+            const extra = Math.round(earned - goalTarget);
+            statusMsg = `🎉 ¡META DE $1,500 USD SUPERADA! (+$${extra} USD sin límite rumbo a $5,000)`;
+          } else if (earned >= minTarget) {
+            const pctGoal = Math.round((earned / goalTarget) * 100);
+            statusMsg = `✅ Piso Mínimo de $1,000 USD asegurado • ${pctGoal}% hacia la Meta de $1,500 USD`;
+          } else {
+            const pctMin = Math.round((earned / minTarget) * 100);
+            statusMsg = `${pctMin}% hacia el Piso Mínimo de $1,000 USD • Meta Objetivo: $1,500 USD`;
+          }
+
+          const pctText = document.getElementById('goalPercentText');
+          if (pctText) pctText.innerText = statusMsg;
+          const topStatusText = document.getElementById('topGoalStatusText');
+          if (topStatusText) topStatusText.innerText = statusMsg;
         }
 
         if (data.total_unfiltered !== undefined) {
@@ -3756,49 +3643,79 @@
       const container = document.getElementById('freelanceProjectsContainer');
       if (!container) return;
 
+      const currentSignature = `${currentFreelanceStage}_${projects ? projects.map(p => `${p.id}:${p.status}:${p.pipeline_stage}:${p.client_replied}`).join('|') : 'empty'}`;
+      if (currentSignature === lastRenderedProjectsSignature) {
+        return; // Sin cambios, no parpadear ni reconstruir DOM
+      }
+      lastRenderedProjectsSignature = currentSignature;
+
       if (!projects || projects.length === 0) {
+        const emptyStateByStage = {
+          'applied': {
+            icon: '📤',
+            title: 'No hay ofertas enviadas en espera en este momento',
+            desc: 'Todas las ofertas enviadas se listan aquí para que veas dónde te postulaste. Revisa la pestaña "1. Radar de Oportunidades" para descubrir u ofertar a nuevos proyectos.'
+          },
+          'replied': {
+            icon: '💬',
+            title: 'No hay respuestas de clientes pendientes de atender',
+            desc: '¡Excelente! Cuando un cliente responda a tus propuestas en Freelancer.com o Get on Board, aparecerá aquí con alerta para responder rápido usando el Copilot de ventas.'
+          },
+          'accepted': {
+            icon: '🎉',
+            title: 'No hay proyectos adjudicados aún',
+            desc: '¡Pronto caerá el primero! Cada proyecto aceptado por el cliente aparecerá aquí con su botón especial para generar la hoja de ruta y construirlo juntos paso a paso con Antigravity.'
+          },
+          'completed': {
+            icon: '💰',
+            title: 'No hay proyectos finalizados aún',
+            desc: 'Al terminar y cobrar un proyecto adjudicado, márcalo como completado para sumarlo a tu meta de $5,000 USD de fin de año.'
+          },
+          'radar': {
+            icon: '🔍',
+            title: 'No hay proyectos en el radar con estos filtros',
+            desc: 'Prueba cambiando de especialidad o haz clic en "Escanear Radar Ahora" para consultar nuevas oportunidades en tiempo real.'
+          },
+          'unselected': {
+            icon: '📁',
+            title: 'No hay proyectos en el archivo de no seleccionados',
+            desc: 'Aquí aparecerán los proyectos cuyo plazo haya vencido o donde el cliente haya contratado a otro profesional, para que siempre tengas total certeza de tus postulaciones activas.'
+          }
+        };
+
+        const stateInfo = emptyStateByStage[currentFreelanceStage] || emptyStateByStage['radar'];
+
         container.innerHTML = `
-          <div style="grid-column: 1/-1; text-align: center; padding: 40px 20px; background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 12px;">
-            <span style="font-size: 2.5rem; display: block; margin-bottom: 8px;">🔍</span>
-            <strong style="font-size: 1.1rem; color: #1e293b; display: block; margin-bottom: 4px;">No hay contratos con los filtros seleccionados</strong>
-            <p style="font-size: 0.88rem; color: #64748b; margin-bottom: 14px;">Prueba seleccionando otra modalidad o especialidad, o presiona el botón para escanear nuevas oportunidades.</p>
-            <button class="btn btn-primary btn-sm" onclick="scanFreelanceProjects()">🔄 Escanear Ahora</button>
+          <div style="grid-column: 1/-1; text-align: center; padding: 48px 24px; background: #ffffff; border: 1.5px dashed #cbd5e1; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+            <span style="font-size: 2.8rem; display: block; margin-bottom: 10px;">${stateInfo.icon}</span>
+            <strong style="font-size: 1.15rem; color: #1e293b; display: block; margin-bottom: 6px;">${stateInfo.title}</strong>
+            <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 18px; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.5;">${stateInfo.desc}</p>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+              <button class="btn btn-secondary btn-sm" onclick="syncFreelancerApi()">🔄 Sincronizar Freelancer en Vivo</button>
+              <button class="btn btn-primary btn-sm" onclick="selectFreelanceStage('radar')">🔍 Ver Radar de Oportunidades</button>
+            </div>
           </div>
         `;
         return;
       }
 
+      const catLabels = {
+        'customer_support_whatsapp': '💬 WhatsApp & Chat',
+        'sales_setter_crm': '🎯 Setter & Ventas',
+        'ai_chatbot_system': '🤖 Chatbot IA',
+        'social_media_growth': '📱 Redes & TikTok',
+        'ecommerce_stores': '🛍️ Tiendas E-Commerce',
+        'virtual_assistant_admin': '📋 Asistente Virtual',
+        'python_automation': '🐍 Python & Auto',
+        'power_bi_data': '📊 Power BI & Datos',
+        'qa_testing': '🧪 QA Testing',
+        'sql_database': '🗄️ SQL & DB',
+        'web_dev': '🌐 Desarrollo Web',
+        'graphic_design_creative': '🎨 Diseño Gráfico & Logos'
+      };
+
       container.innerHTML = projects.map(p => {
         const platformClass = p.platform === 'freelancer' ? 'platform-freelancer' : (p.platform === 'getonbrd' ? 'platform-getonbrd' : 'platform-remotetech');
-        const isAutoApplied = p.auto_applied || p.status === 'auto_applied';
-        const statusBadge = isAutoApplied
-          ? `<span style="background: linear-gradient(135deg, #065f46 0%, #059669 100%); color: #ecfdf5; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.15);" title="${escapeHtml(p.bid_response_log || 'Oferta enviada automáticamente')}">⚡ Auto-Ofertado (${p.applied_at || 'Hoy'})</span>`
-          : (p.status === 'applied' 
-            ? '<span style="background: #dcfce7; color: #166534; font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 4px;">✅ Postulado</span>'
-            : (p.status === 'proposal_generated' 
-              ? '<span style="background: #fef3c7; color: #b45309; font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 4px;">⚡ Propuesta Lista</span>'
-              : ''));
-
-        const skillsHtml = (p.skills || []).slice(0, 4).map(s => 
-          `<span style="background: #f1f5f9; color: #475569; font-size: 0.72rem; padding: 2px 6px; border-radius: 4px;">${escapeHtml(s)}</span>`
-        ).join(' ');
-
-        const descSnippet = p.description ? p.description.slice(0, 160) + (p.description.length > 160 ? '...' : '') : 'Sin requerimiento detallado.';
-
-        const catLabels = {
-          'customer_support_whatsapp': '💬 WhatsApp & Chat',
-          'sales_setter_crm': '🎯 Setter & Ventas',
-          'ai_chatbot_system': '🤖 Chatbot IA',
-          'social_media_growth': '📱 Redes & TikTok',
-          'ecommerce_stores': '🛍️ Tiendas E-Commerce',
-          'virtual_assistant_admin': '📋 Asistente Virtual',
-          'python_automation': '🐍 Python & Auto',
-          'power_bi_data': '📊 Power BI & Datos',
-          'qa_testing': '🧪 QA Testing',
-          'sql_database': '🗄️ SQL & DB',
-          'web_dev': '🌐 Desarrollo Web',
-          'graphic_design_creative': '🎨 Diseño Gráfico & Logos'
-        };
         const catName = catLabels[p.category] || p.category || 'General';
         const catBadge = `<span style="background: #e0e7ff; color: #3730a3; font-size: 0.72rem; font-weight: 600; padding: 2px 7px; border-radius: 4px;">${escapeHtml(catName)}</span>`;
 
@@ -3807,14 +3724,158 @@
           ? `<div class="modality-banner-card modality-hourly"><span>⏱️ CONTRATO POR HORAS (HOURLY)</span><span>TARIFA: ${escapeHtml(p.suggested_bid)}</span></div>`
           : `<div class="modality-banner-card modality-fixed"><span>📦 PRECIO FIJO / TURNKEY</span><span>PRECIO: ${escapeHtml(p.suggested_bid)}</span></div>`;
 
+        const skillsHtml = (p.skills || []).slice(0, 4).map(s => 
+          `<span style="background: #f1f5f9; color: #475569; font-size: 0.72rem; padding: 2px 6px; border-radius: 4px;">${escapeHtml(s)}</span>`
+        ).join(' ');
+
+        const descSnippet = p.description ? p.description.slice(0, 160) + (p.description.length > 160 ? '...' : '') : 'Sin requerimiento detallado.';
+
+        // Banners y Acciones por Etapa del Pipeline
+        let stageHeaderHtml = '';
+        let stageNoticeHtml = '';
+        let cardBorderClass = '';
+        let actionButtonsHtml = '';
+
+        if (p.pipeline_stage === 'accepted' || p.is_awarded || p.status === 'accepted') {
+          cardBorderClass = 'style="border: 2px solid #10b981; box-shadow: 0 4px 18px rgba(16, 185, 129, 0.25); background: #ffffff;"';
+          stageHeaderHtml = `
+            <div style="background: linear-gradient(135deg, #065f46 0%, #059669 100%); color: #ffffff; padding: 8px 12px; border-radius: 8px; font-weight: 800; font-size: 0.83rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <span>🎉 ¡PROYECTO ADJUDICADO! (JACK + ANTIGRAVITY)</span>
+              <span style="background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 4px; font-weight: 800;">💰 ${escapeHtml(p.agreed_amount || p.suggested_bid || p.budget)}</span>
+            </div>
+          `;
+          stageNoticeHtml = `
+            <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px; padding: 8px 12px; margin-bottom: 10px; font-size: 0.83rem; color: #065f46;">
+              <strong>🤝 Pacto de Desarrollo Activo:</strong> Se construye paso a paso en Antigravity IDE. Cero promesas vacías, código profesional y probado.
+            </div>
+          `;
+          actionButtonsHtml = `
+            <button class="btn btn-primary btn-sm" onclick="openFreelancePlanModal(${p.id})" style="background: #059669; border-color: #047857; font-weight: 800; font-size: 0.82rem; padding: 6px 14px; box-shadow: 0 2px 8px rgba(5,150,105,0.35);">
+              🛠️ Ver / Generar Plan Paso a Paso
+            </button>
+            <a href="${p.url}" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 6px 10px; text-decoration: none; font-weight: 600;">
+              💬 Chat Freelancer ↗
+            </a>
+            <button class="btn btn-secondary btn-sm" onclick="updateFreelanceStatus(${p.id}, 'completed')" style="font-size: 0.8rem; padding: 6px 10px; color: #047857; border-color: #86efac; font-weight: 700;" title="Marcar como cobrado al terminar">
+              💰 Marcar Cobrado ($)
+            </button>
+          `;
+        } else if (p.pipeline_stage === 'replied' || p.client_replied || p.status === 'client_replied') {
+          cardBorderClass = 'style="border: 2px solid #0284c7; box-shadow: 0 4px 18px rgba(2, 132, 199, 0.25); background: #ffffff;"';
+          stageHeaderHtml = `
+            <div style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; padding: 8px 12px; border-radius: 8px; font-weight: 800; font-size: 0.83rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <span>💬 ¡EL CLIENTE RESPONDIÓ! RESPONDE CON COPILOT</span>
+              <span style="background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 4px; font-size: 0.76rem;">${p.client_reply_at || 'Activo'}</span>
+            </div>
+          `;
+          if (p.client_reply_text) {
+            stageNoticeHtml = `
+              <div style="background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 4px; padding: 8px 12px; margin-bottom: 10px; font-size: 0.83rem; color: #1e3a8a;">
+                <strong>Mensaje del cliente:</strong> <em>"${escapeHtml(p.client_reply_text)}"</em>
+              </div>
+            `;
+          }
+          actionButtonsHtml = `
+            <button class="btn btn-primary btn-sm" onclick="openMiamBotForProject(${p.id})" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-color: #0284c7; font-weight: 800; font-size: 0.82rem; padding: 6px 14px;">
+              🤖 Responder con MiamBot Copilot
+            </button>
+            <a href="${p.url}" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 6px 10px; text-decoration: none; font-weight: 600;">
+              💬 Abrir Chat Freelancer ↗
+            </a>
+            <button class="btn btn-secondary btn-sm" onclick="markProjectAccepted(${p.id})" style="background: #ecfdf5; border-color: #6ee7b7; color: #065f46; font-weight: 800; font-size: 0.8rem; padding: 6px 10px;" title="Marcar como adjudicado para empezar a construir">
+              🎉 ¡Nos Aceptaron!
+            </button>
+          `;
+        } else if (p.pipeline_stage === 'applied' || p.auto_applied || p.status === 'applied') {
+          stageHeaderHtml = `
+            <div style="background: linear-gradient(135deg, #334155 0%, #1e293b 100%); color: #f8fafc; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <span>📤 OFERTA ENVIADA (${p.applied_at || 'Reciente'}) • Esperando respuesta</span>
+              <span style="background: rgba(255,255,255,0.15); padding: 2px 7px; border-radius: 4px;">🎯 ${escapeHtml(p.suggested_bid)}</span>
+            </div>
+          `;
+          actionButtonsHtml = `
+            <a href="${p.url}" target="_blank" class="btn btn-primary btn-sm" style="background: #2563eb; border-color: #1d4ed8; font-weight: 700; font-size: 0.8rem; padding: 5px 12px; text-decoration: none;">
+              🦊 Ver en Freelancer ↗
+            </a>
+            <button class="btn btn-secondary btn-sm" onclick="openFreelanceProposalModal(${p.id})" style="font-size: 0.8rem; padding: 5px 10px; font-weight: 600;">
+              📋 Ver / Copiar Propuesta
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="updateFreelanceStatus(${p.id}, 'client_replied')" style="font-size: 0.78rem; padding: 5px 8px; background: #eff6ff; border-color: #bfdbfe; color: #1e40af; font-weight: 700;" title="El cliente me respondió en Freelancer">
+              💬 Cliente Respondió
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="markProjectAccepted(${p.id})" style="font-size: 0.78rem; padding: 5px 8px; background: #ecfdf5; border-color: #a7f3d0; color: #065f46; font-weight: 800;" title="El cliente aceptó la propuesta">
+              🎉 ¡Nos Aceptaron!
+            </button>
+          `;
+        } else if (p.pipeline_stage === 'completed' || p.status === 'completed') {
+          cardBorderClass = 'style="border: 2px solid #16a34a; background: #ffffff;"';
+          stageHeaderHtml = `
+            <div style="background: linear-gradient(135deg, #15803d 0%, #166534 100%); color: #ffffff; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <span>💰 PROYECTO COMPLETADO & COBRADO</span>
+              <span style="background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 4px;">Sumado a meta</span>
+            </div>
+          `;
+          actionButtonsHtml = `
+            <button class="btn btn-primary btn-sm" onclick="openFreelancePlanModal(${p.id})" style="background: #15803d; border-color: #166534; font-weight: 700; font-size: 0.8rem; padding: 5px 12px;">
+              🛠️ Ver Plan de Trabajo
+            </button>
+            <a href="${p.url}" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 5px 10px; text-decoration: none;">
+              🦊 Freelancer ↗
+            </a>
+          `;
+        } else if (p.pipeline_stage === 'unselected' || p.status === 'not_selected') {
+          cardBorderClass = 'style="border: 1px solid #cbd5e1; background: #f8fafc; opacity: 0.94;"';
+          stageHeaderHtml = `
+            <div style="background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: #f8fafc; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <span>❌ CONCLUIDO / NO SELECCIONADO</span>
+              <span style="background: rgba(0,0,0,0.25); padding: 2px 7px; border-radius: 4px; font-size: 0.74rem;">Convocatoria Cerrada</span>
+            </div>
+          `;
+          stageNoticeHtml = `
+            <div style="background: #f1f5f9; border-left: 4px solid #64748b; border-radius: 4px; padding: 8px 12px; margin-bottom: 10px; font-size: 0.82rem; color: #334155;">
+              <strong>ℹ️ Estado:</strong> ${escapeHtml(p.bid_response_log || 'El plazo de publicación finalizó o el cliente eligió a otro profesional.')}
+            </div>
+          `;
+          actionButtonsHtml = `
+            <a href="${p.url}" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 5px 10px; text-decoration: none;">
+              🦊 Ver en Freelancer ↗
+            </a>
+            <button class="btn btn-secondary btn-sm" onclick="openFreelanceProposalModal(${p.id})" style="font-size: 0.8rem; padding: 5px 10px; font-weight: 600;">
+              📋 Ver Propuesta Enviada
+            </button>
+          `;
+        } else {
+          // Radar / Nuevos
+          stageHeaderHtml = `
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; color: #475569; padding: 5px 10px; border-radius: 6px; font-weight: 600; font-size: 0.78rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span>🔍 OPORTUNIDAD EN RADAR</span>
+              <span>Listo para evaluar</span>
+            </div>
+          `;
+          actionButtonsHtml = `
+            <button class="btn btn-primary btn-sm" onclick="openFreelanceProposalModal(${p.id})" style="background: #4338ca; border-color: #3730a3; font-weight: 700; font-size: 0.8rem; padding: 5px 11px;">
+              ⚡ Ver Propuesta IA
+            </button>
+            <button class="btn btn-secondary btn-sm btn-quick-copy" onclick="quickCopyFreelanceProposal(${p.id}, this)" title="Copiar propuesta al portapapeles con 1 click" style="font-weight: 700; font-size: 0.8rem; padding: 5px 10px; background: #ecfdf5; border-color: #6ee7b7; color: #065f46;">
+              📋 Copiar Propuesta
+            </button>
+            <a href="${p.url}" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 5px 10px; text-decoration: none;" title="Abre directamente en LibreWolf">
+              🦊 LibreWolf ↗
+            </a>
+            <button class="btn btn-secondary btn-sm" onclick="triggerTestAutoBid(${p.id})" style="font-size: 0.76rem; padding: 5px 8px; background: #f8fafc; border-color: #cbd5e1; color: #334155; font-weight: 600;" title="Dispara una postulación de prueba para este proyecto">
+              ⚡ Auto-Bid
+            </button>
+          `;
+        }
+
         return `
-          <div class="freelance-card" id="freelance-card-${p.id}">
+          <div class="freelance-card" id="freelance-card-${p.id}" ${cardBorderClass}>
             <div>
+              ${stageHeaderHtml}
               <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px;">
                 <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                   <span class="platform-pill ${platformClass}">${escapeHtml(p.platform_name)}</span>
                   ${catBadge}
-                  ${statusBadge}
                 </div>
                 <span class="budget-pill" title="Presupuesto fijado por el cliente">
                   💰 ${escapeHtml(p.budget)}
@@ -3832,10 +3893,7 @@
                 <span class="time-calc-pill" title="Tiempo de entrega estimado o disponibilidad">⏱️ ${escapeHtml(p.suggested_timeline)}</span>
               </div>
 
-              <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;">
-                <span class="agency-tag tag-probing" title="Incluye 2 a 3 preguntas clave para que el cliente nos responda">💡 Preguntas Estratégicas</span>
-                <span class="agency-tag tag-safe" title="Cierre 100% en chat sin desviar a llamadas">🛡️ Cierre 100% en Chat</span>
-              </div>
+              ${stageNoticeHtml}
 
               <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;">
                 👤 Cliente: <strong>${escapeHtml(p.client_name)}</strong> ${p.created_at ? `• 📅 ${p.created_at}` : ''}
@@ -3850,24 +3908,11 @@
 
             <div style="border-top: 1px solid #f1f5f9; padding-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
               <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
-                <button class="btn btn-primary btn-sm" onclick="openFreelanceProposalModal(${p.id})" style="background: #4338ca; border-color: #3730a3; font-weight: 700; font-size: 0.8rem; padding: 5px 11px;">
-                  ⚡ Ver Propuesta IA
-                </button>
-                <button class="btn btn-secondary btn-sm btn-quick-copy" onclick="quickCopyFreelanceProposal(${p.id}, this)" title="Copiar propuesta ganadora al portapapeles con 1 click" style="font-weight: 700; font-size: 0.8rem; padding: 5px 10px; background: #ecfdf5; border-color: #6ee7b7; color: #065f46;">
-                  📋 Copiar Propuesta
-                </button>
-                <a href="${p.url}" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 5px 10px; text-decoration: none;" title="Abre directamente en LibreWolf">
-                  🦊 LibreWolf ↗
-                </a>
-                ${!isAutoApplied ? `
-                  <button class="btn btn-secondary btn-sm" onclick="triggerTestAutoBid(${p.id})" style="font-size: 0.76rem; padding: 5px 8px; background: #f8fafc; border-color: #cbd5e1; color: #334155; font-weight: 600;" title="Dispara una postulación automática de prueba para este proyecto">
-                    ⚡ Auto-Bid
-                  </button>
-                ` : ''}
+                ${actionButtonsHtml}
               </div>
               <div style="display: flex; gap: 4px;">
-                ${!isAutoApplied && p.status !== 'applied' ? `
-                  <button class="btn btn-secondary btn-sm" onclick="updateFreelanceStatus(${p.id}, 'applied')" title="Marcar como ya enviado" style="color: #166534; font-size: 0.78rem; padding: 4px 7px;">
+                ${(p.pipeline_stage === 'radar' || (!p.auto_applied && p.status !== 'applied')) ? `
+                  <button class="btn btn-secondary btn-sm" onclick="updateFreelanceStatus(${p.id}, 'applied')" title="Marcar como ya postulado" style="color: #166534; font-size: 0.78rem; padding: 4px 7px;">
                     ✔
                   </button>
                 ` : ''}
@@ -3883,6 +3928,7 @@
 
     function filterFreelanceCategory(cat, el) {
       currentFreelanceCategory = cat;
+      lastRenderedProjectsSignature = '';
       const parent = el.parentElement;
       if (parent) {
         parent.querySelectorAll('.badge-filter').forEach(b => b.classList.remove('active'));
@@ -3893,6 +3939,7 @@
 
     function filterFreelanceModality(modality, el) {
       currentFreelanceModality = modality;
+      lastRenderedProjectsSignature = '';
       const parent = document.getElementById('filterModalityGroup');
       if (parent) {
         parent.querySelectorAll('.badge-filter').forEach(b => b.classList.remove('active'));
@@ -3934,6 +3981,16 @@
       fetchFreelanceProjects();
     }
 
+    function stripEmojis(text) {
+      if (!text) return '';
+      return text.replace(/[\u{10000}-\u{10FFFF}\u{2600}-\u{27BF}\u{2300}-\u{23FF}\u{2B00}-\u{2BFF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{3030}]/gu, '')
+                 .replace(/[ \t]+/g, ' ')
+                 .replace(/^[ \t]*[-•*]?[ \t]*[-•*][ \t]*/gm, '- ')
+                 .replace(/^(\d+\.)\s+/gm, '$1 ')
+                 .replace(/\n{3,}/g, '\n\n')
+                 .trim();
+    }
+
     function quickCopyFreelanceProposal(projectId, btn) {
       const project = freelanceProjectsData.find(p => p.id === projectId);
       if (!project) return;
@@ -3945,8 +4002,9 @@
           body: JSON.stringify({ project_id: projectId })
         }).then(r => r.json()).then(data => {
           if (data && data.proposal) {
-            project.generated_proposal = data.proposal;
-            navigator.clipboard.writeText(data.proposal).then(() => {
+            const cleanText = stripEmojis(data.proposal);
+            project.generated_proposal = cleanText;
+            navigator.clipboard.writeText(cleanText).then(() => {
               btn.innerText = '✓ ¡Copiado!';
               btn.style.background = '#059669';
               btn.style.color = '#ffffff';
@@ -3965,7 +4023,8 @@
         return;
       }
 
-      navigator.clipboard.writeText(project.generated_proposal).then(() => {
+      const cleanText = stripEmojis(project.generated_proposal);
+      navigator.clipboard.writeText(cleanText).then(() => {
         const origText = btn.innerText;
         btn.innerText = '✓ ¡Copiado!';
         btn.style.background = '#059669';
@@ -3991,17 +4050,22 @@
 
     async function scanFreelanceProjects() {
       const btn = document.getElementById('btnScanFreelance');
+      const btnTrigger = document.getElementById('btnTriggerLiveScan');
       if (btn) {
         btn.disabled = true;
         btn.innerText = '⏳ Escaneando...';
       }
-      showToast('🔍 Escaneando nuevas oportunidades freelance en Freelancer.com y Get on Board...');
+      if (btnTrigger) {
+        btnTrigger.disabled = true;
+        btnTrigger.innerText = '⏳ Escaneando...';
+      }
+      showToast('🔍 Escaneando oportunidades 100% remotas de Web, Sistemas y Diseño...');
       try {
         const res = await fetch('/api/freelance/scan', { method: 'POST' });
         const data = await res.json();
         showToast('🚀 Escaneo en segundo plano iniciado. Actualizando proyectos...');
-        setTimeout(() => fetchFreelanceProjects(), 3500);
-        setTimeout(() => fetchFreelanceProjects(), 8000);
+        setTimeout(() => fetchFreelanceProjects(), 2500);
+        setTimeout(() => fetchFreelanceProjects(), 6000);
       } catch (err) {
         alert('Error al escanear: ' + err);
       } finally {
@@ -4010,8 +4074,24 @@
             btn.disabled = false;
             btn.innerText = '🔄 Escanear Nuevos Proyectos';
           }
+          if (btnTrigger) {
+            btnTrigger.disabled = false;
+            btnTrigger.innerText = '🔍 Escanear Radar Ahora';
+          }
         }, 3000);
       }
+    }
+
+    function openFreelanceInLibreWolf(topic = 'web') {
+      const queryMap = {
+        'web': 'desarrollo web',
+        'design': 'diseno grafico',
+        'python': 'python automatizacion'
+      };
+      const q = queryMap[topic] || topic;
+      const url = `https://www.freelancer.com/job-search/projects/?languages=es&q=${encodeURIComponent(q)}`;
+      window.open(url, '_blank');
+      showToast(`🦊 Abriendo búsqueda de '${q}' en una nueva pestaña de tu LibreWolf...`);
     }
 
     function toggleExternalProposalBox() {
@@ -4309,8 +4389,9 @@
     function copyFreelanceProposalFromModal() {
       const textarea = document.getElementById('fModalProposalText');
       if (!textarea || !textarea.value) return;
-      navigator.clipboard.writeText(textarea.value).then(() => {
-        showToast('📋 ¡Propuesta copiada al portapapeles! Ahora ábrelo en LibreWolf y envíala al cliente.');
+      const cleanText = stripEmojis(textarea.value);
+      navigator.clipboard.writeText(cleanText).then(() => {
+        showToast('¡Propuesta copiada al portapapeles sin emojis! Lista para pegar en Freelancer.');
       }).catch(err => {
         alert('No se pudo copiar automáticamente: ' + err);
       });
@@ -4322,20 +4403,222 @@
       closeFreelanceProposalModal();
     }
 
-    async function updateFreelanceStatus(projectId, status) {
+    async function updateFreelanceStatus(projectId, status, agreedAmount = null) {
       try {
+        const payload = { project_id: projectId, status: status };
+        if (agreedAmount) payload.agreed_amount = agreedAmount;
         const res = await fetch('/api/freelance/update_status', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ project_id: projectId, status: status })
+          body: JSON.stringify(payload)
         });
         if (!res.ok) throw new Error('Error al actualizar estado');
-        showToast(status === 'applied' ? '🎉 ¡Proyecto marcado como postulado con éxito!' : 'Proyecto descartado.');
+        if (status === 'accepted') {
+          showToast('🎉 ¡Proyecto marcado como ADJUDICADO! ¡A trabajar juntos!');
+        } else if (status === 'client_replied') {
+          showToast('💬 Registrado: ¡El cliente respondió! Usa MiamBot Copilot para cerrar el trato.');
+        } else if (status === 'completed') {
+          showToast('💰 ¡Proyecto completado y cobrado! Sumando a tu meta de $5,000 USD.');
+        } else if (status === 'applied') {
+          showToast('📤 Proyecto registrado como oferta enviada.');
+        } else {
+          showToast('Proyecto descartado.');
+        }
         fetchFreelanceProjects();
         fetchStats();
       } catch (err) {
         console.error('Error updating freelance status:', err);
+        showToast('Error al actualizar: ' + err.message);
       }
+    }
+
+    async function markProjectAccepted(projectId) {
+      const p = freelanceProjectsData.find(item => item.id === projectId);
+      const defaultAmount = p ? (p.suggested_bid || p.budget || '$150 USD') : '$150 USD';
+      const agreed = prompt('¡Felicidades Jack! 🎉 Ingresa el monto acordado para este proyecto que nos aceptaron (Ej: $180 USD o $25/hr):', defaultAmount);
+      if (agreed === null) return;
+      await updateFreelanceStatus(projectId, 'accepted', agreed);
+      showToast('🎉 ¡Proyecto adjudicado! Abriendo plan técnico paso a paso con Antigravity...');
+      setTimeout(() => openFreelancePlanModal(projectId), 400);
+    }
+
+    function openMiamBotForProject(projectId) {
+      const p = freelanceProjectsData.find(item => item.id === projectId);
+      if (!p) return;
+      const box = document.getElementById('miambotChatCopilotBox');
+      if (box) {
+        box.style.display = 'block';
+        const bidInput = document.getElementById('mbOfferedBid');
+        if (bidInput) bidInput.value = p.suggested_bid || p.budget || '';
+        const timelineInput = document.getElementById('mbTimeline');
+        if (timelineInput) timelineInput.value = p.suggested_timeline || '3 a 4 días';
+        const msgInput = document.getElementById('mbClientMessage');
+        if (msgInput) {
+          if (p.client_reply_text) {
+            msgInput.value = p.client_reply_text;
+          }
+          msgInput.focus();
+        }
+        box.scrollIntoView({ behavior: 'smooth' });
+        showToast(`🤖 Copilot activado para '${p.title}'. Pega el mensaje del cliente si cambió.`);
+      }
+    }
+
+    async function syncFreelancerApi() {
+      const btn = document.getElementById('btnSyncFreelanceApi');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = '⏳ Sincronizando API...';
+      }
+      showToast('🔄 Consultando ofertas y chats activos directamente en Freelancer.com...');
+      try {
+        const res = await fetch('/api/freelance/sync_freelancer_api', { method: 'POST' });
+        const data = await res.json();
+        if (data.status === 'success') {
+          showToast(`✅ Sincronizado: ${data.bids_synced} ofertas activas revisadas. ${data.unread_threads} mensajes en chat.`);
+          fetchFreelanceProjects();
+          fetchAutoBidStatus();
+        } else {
+          showToast(`⚠️ ${data.message || 'Error en sincronización'}`);
+        }
+      } catch (err) {
+        showToast('Error de conexión al sincronizar con Freelancer: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = '🔄 Sincronizar Freelancer en Vivo';
+        }
+      }
+    }
+
+    async function cleanClosedFreelanceProjects() {
+      const btn = document.getElementById('btnCleanClosedFreelance');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = '🧹 Verificando estado...';
+      }
+      try {
+        const res = await fetch('/api/freelance/clean_closed', { method: 'POST' });
+        const data = await res.json();
+        if (data.status === 'success') {
+          if (data.cleaned_count > 0) {
+            showToast(`🧹 Se limpiaron ${data.cleaned_count} postulaciones cerradas o tomadas por otro.`);
+          } else {
+            showToast(`✅ Todo al día: Las postulaciones activas siguen vigentes.`);
+          }
+          fetchFreelanceProjects();
+        } else {
+          showToast(`⚠️ ${data.message || 'Error al depurar postulaciones'}`);
+        }
+      } catch (err) {
+        showToast('Error al depurar postulaciones: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = '🧹 Limpiar Tomados por Otro';
+        }
+      }
+    }
+
+    async function openFreelancePlanModal(projectId) {
+      const p = freelanceProjectsData.find(item => item.id === projectId);
+      if (!p) return;
+      currentPlanModalProject = p;
+
+      const titleEl = document.getElementById('fPlanTitle');
+      if (titleEl) titleEl.innerText = p.title;
+      const amtEl = document.getElementById('fPlanAgreedAmount');
+      if (amtEl) amtEl.innerText = p.agreed_amount || p.suggested_bid || p.budget || '$0 USD';
+      const subEl = document.getElementById('fPlanSubtitle');
+      if (subEl) subEl.innerText = `Cliente: ${p.client_name} • Plataforma: ${p.platform_name} • Jack M. Berrocal (Ingeniero de Sistemas Senior) + Antigravity`;
+      const instrEl = document.getElementById('fPlanChatInstruction');
+      if (instrEl) instrEl.innerText = `Antigravity, desarrollemos el Paso 1 del proyecto "${p.title}" (Presupuesto: ${p.agreed_amount || p.suggested_bid || p.budget})`;
+      const chatLink = document.getElementById('fPlanChatLink');
+      if (chatLink) chatLink.href = p.url || '#';
+
+      const planText = document.getElementById('fPlanText');
+      if (p.step_by_step_plan && p.step_by_step_plan.trim().length > 30) {
+        if (planText) planText.value = p.step_by_step_plan;
+      } else {
+        if (planText) planText.value = '⏳ Generando plan técnico paso a paso con Antigravity (Qwen2.5 / Ollama)...\nPor favor espera unos segundos.';
+        try {
+          const res = await fetch('/api/freelance/generate_execution_plan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ project_id: p.id })
+          });
+          const data = await res.json();
+          if (data && data.step_by_step_plan) {
+            p.step_by_step_plan = data.step_by_step_plan;
+            if (planText) planText.value = data.step_by_step_plan;
+          }
+        } catch (err) {
+          if (planText) planText.value = '⚠️ No se pudo generar el plan automáticamente: ' + err.message;
+        }
+      }
+
+      const modal = document.getElementById('freelancePlanModal');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeFreelancePlanModal() {
+      const modal = document.getElementById('freelancePlanModal');
+      if (modal) modal.style.display = 'none';
+      currentPlanModalProject = null;
+    }
+
+    async function regenerateFreelancePlan() {
+      if (!currentPlanModalProject) return;
+      const btn = document.getElementById('btnRegeneratePlan');
+      const planText = document.getElementById('fPlanText');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = '⏳ Regenerando...';
+      }
+      if (planText) planText.value = '⏳ Diseñando nueva hoja de ruta técnica con IA de Antigravity...';
+      try {
+        const res = await fetch('/api/freelance/generate_execution_plan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project_id: currentPlanModalProject.id, force: true })
+        });
+        const data = await res.json();
+        if (data && data.step_by_step_plan) {
+          currentPlanModalProject.step_by_step_plan = data.step_by_step_plan;
+          if (planText) planText.value = data.step_by_step_plan;
+          showToast('✨ Plan de ejecución técnico actualizado correctamente.');
+        }
+      } catch (err) {
+        alert('Error al regenerar plan: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = '🔄 Regenerar Plan con IA';
+        }
+      }
+    }
+
+    function copyFreelancePlanText() {
+      const planText = document.getElementById('fPlanText');
+      if (!planText || !planText.value) return;
+      navigator.clipboard.writeText(planText.value).then(() => {
+        showToast('📋 ¡Plan técnico copiado al portapapeles!');
+      }).catch(err => alert('Error al copiar: ' + err));
+    }
+
+    function copyPlanInstruction() {
+      const instr = document.getElementById('fPlanChatInstruction');
+      if (!instr) return;
+      navigator.clipboard.writeText(instr.innerText.trim()).then(() => {
+        showToast('📋 ¡Instrucción copiada! Pégala en el chat de Antigravity para empezar a programar.');
+      }).catch(err => alert('Error al copiar: ' + err));
+    }
+
+    async function markCurrentPlanCompleted() {
+      if (!currentPlanModalProject) return;
+      if (!confirm(`¿Confirmas que el proyecto "${currentPlanModalProject.title}" está terminado y cobrado? Se sumará a la meta de $5,000 USD.`)) return;
+      await updateFreelanceStatus(currentPlanModalProject.id, 'completed');
+      closeFreelancePlanModal();
     }
 
     // --- LÓGICA DE AUTO-BID AUTÓNOMO 24/7 (MODO 2) ---
@@ -4366,14 +4649,30 @@
       const badge = document.getElementById('autobidStatusBadge');
       const btnToggle = document.getElementById('btnToggleAutoBid');
       const minHrEl = document.getElementById('abMinHourly');
+      const minFixEl = document.getElementById('abMinFixed');
+      const maxCompEl = document.getElementById('abMaxComp');
       const bidsTodayEl = document.getElementById('abBidsToday');
       const maxDailyEl = document.getElementById('abMaxDaily');
+      const bidsMonthEl = document.getElementById('abBidsMonth');
+      const memberTotalEl = document.getElementById('abMemberTotal');
       const intervalEl = document.getElementById('abInterval');
       const pulseIcon = document.getElementById('autobidPulseIcon');
 
-      if (minHrEl) minHrEl.innerText = autoBidState.min_hourly_rate || 15;
+      // Tarjetas de control en el dashboard superior
+      const goalBidsMonth = document.getElementById('goalBidsMonth');
+      if (goalBidsMonth) goalBidsMonth.innerText = `${autoBidState.bids_month || 0} / ${autoBidState.membership_bids_total || 100}`;
+      const goalBidsToday = document.getElementById('goalBidsToday');
+      if (goalBidsToday) goalBidsToday.innerText = autoBidState.bids_today || 0;
+      const goalMaxDaily = document.getElementById('goalMaxDaily');
+      if (goalMaxDaily) goalMaxDaily.innerText = autoBidState.max_daily_bids || 4;
+
+      if (minHrEl) minHrEl.innerText = autoBidState.min_hourly_rate || 20;
+      if (minFixEl) minFixEl.innerText = autoBidState.min_fixed_budget || 150;
+      if (maxCompEl) maxCompEl.innerText = autoBidState.max_competition_bids || 12;
       if (bidsTodayEl) bidsTodayEl.innerText = autoBidState.bids_today || 0;
       if (maxDailyEl) maxDailyEl.innerText = autoBidState.max_daily_bids || 4;
+      if (bidsMonthEl) bidsMonthEl.innerText = autoBidState.bids_month || 0;
+      if (memberTotalEl) memberTotalEl.innerText = autoBidState.membership_bids_total || 100;
       if (intervalEl) intervalEl.innerText = autoBidState.check_interval_seconds || 75;
 
       const bannerCountEl = document.getElementById('abBannerCount');
@@ -4383,30 +4682,95 @@
 
       if (badge && btnToggle) {
         if (autoBidState.is_enabled) {
-          badge.style.background = 'linear-gradient(135deg, #059669 0%, #10b981 100%)';
-          badge.style.color = '#ffffff';
-          badge.innerHTML = '🟢 ACTIVO 24/7';
-          btnToggle.innerHTML = '⏸️ Pausar Auto-Bid';
+          badge.style.background = 'rgba(16, 185, 129, 0.2)';
+          badge.style.borderColor = '#10b981';
+          badge.style.color = '#6ee7b7';
+          badge.innerHTML = '<span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981; display: inline-block;"></span> AUTO-BID 24/7 ACTIVO';
+          btnToggle.innerHTML = '⏸️ Pausar';
           btnToggle.style.background = '#dc2626';
           btnToggle.style.borderColor = '#b91c1c';
-          if (pulseIcon) {
-            pulseIcon.style.background = 'rgba(16, 185, 129, 0.25)';
-            pulseIcon.style.borderColor = '#10b981';
-          }
+          btnToggle.style.color = '#ffffff';
         } else {
-          badge.style.background = '#334155';
+          badge.style.background = 'rgba(148, 163, 184, 0.2)';
+          badge.style.borderColor = '#64748b';
           badge.style.color = '#94a3b8';
-          badge.innerHTML = '⏸️ PAUSADO';
-          btnToggle.innerHTML = '⚡ Activar Modo 2 (Auto-Bid)';
-          btnToggle.style.background = '#4f46e5';
-          btnToggle.style.borderColor = '#4338ca';
-          if (pulseIcon) {
-            pulseIcon.style.background = 'rgba(99, 102, 241, 0.2)';
-            pulseIcon.style.borderColor = 'rgba(129, 140, 248, 0.4)';
-          }
+          badge.innerHTML = '<span style="width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; display: inline-block;"></span> AUTO-BID PAUSADO';
+          btnToggle.innerHTML = '⚡ Activar';
+          btnToggle.style.background = '#059669';
+          btnToggle.style.borderColor = '#047857';
+          btnToggle.style.color = '#ffffff';
+        }
+      }
+
+      const livePill = document.getElementById('liveAgentPill');
+      if (livePill) {
+        if (autoBidState.is_enabled) {
+          livePill.style.background = 'rgba(16, 185, 129, 0.18)';
+          livePill.style.borderColor = '#10b981';
+          livePill.style.color = '#6ee7b7';
+          livePill.innerHTML = '🟢 ESCANEANDO &amp; EVALUANDO (24/7)';
+        } else {
+          livePill.style.background = 'rgba(245, 158, 11, 0.18)';
+          livePill.style.borderColor = '#f59e0b';
+          livePill.style.color = '#fbbf24';
+          livePill.innerHTML = '⏸️ EN PAUSA';
+        }
+      }
+
+      // Elementos del Radar en Vivo
+      const radarDot = document.getElementById('radarPulseDot');
+      const radarTitle = document.getElementById('radarLiveTitle');
+      const radarSub = document.getElementById('radarLiveSubtitle');
+      const radarCd = document.getElementById('radarCountdownText');
+      const btnToggleInline = document.getElementById('btnToggleAutoBidInline');
+
+      if (autoBidState.is_enabled) {
+        if (radarDot) {
+          radarDot.style.background = '#10b981';
+          radarDot.style.boxShadow = '0 0 14px #10b981';
+        }
+        if (radarTitle) radarTitle.innerHTML = '🟢 Radar Autónomo Activo (Buscando y Postulando 24/7)';
+        if (radarSub) radarSub.innerText = 'Ciclos automáticos cada 75s • 100% Remoto • Web, Sistemas, Python y Diseño Gráfico';
+        if (radarCd) radarCd.innerText = `⏱️ Próximo escaneo: ${autoBidState.next_check ? autoBidState.next_check.split(' ')[1] : 'en breve'}`;
+        if (btnToggleInline) {
+          btnToggleInline.innerText = '⏸️ Pausar Auto-Postulación';
+          btnToggleInline.style.background = '#dc2626';
+          btnToggleInline.style.borderColor = '#b91c1c';
+        }
+      } else {
+        if (radarDot) {
+          radarDot.style.background = '#f59e0b';
+          radarDot.style.boxShadow = '0 0 10px rgba(245, 158, 11, 0.6)';
+        }
+        if (radarTitle) radarTitle.innerHTML = '⏸️ Radar Autónomo en Pausa (Modo Seguro)';
+        if (radarSub) radarSub.innerText = 'Filtros estrictos: 100% Remoto • Solo Páginas Web, Sistemas, Bots y Diseño';
+        if (radarCd) radarCd.innerText = '⏱️ En espera';
+        if (btnToggleInline) {
+          btnToggleInline.innerText = '⚡ Activar Auto-Postulación';
+          btnToggleInline.style.background = '#059669';
+          btnToggleInline.style.borderColor = '#047857';
         }
       }
     }
+
+    // Ticker en tiempo real para la cuenta regresiva del siguiente ciclo de escaneo
+    setInterval(() => {
+      const radarCd = document.getElementById('radarCountdownText');
+      if (radarCd && autoBidState && autoBidState.next_check) {
+        try {
+          const parts = autoBidState.next_check.split(/[- :]/);
+          if (parts.length >= 6) {
+            const nextDate = new Date(parts[0], parts[1]-1, parts[2], parts[3], parts[4], parts[5]);
+            const diffSec = Math.max(0, Math.round((nextDate.getTime() - Date.now()) / 1000));
+            if (diffSec > 0) {
+              radarCd.innerText = `Próximo escaneo en ${diffSec}s`;
+            } else {
+              radarCd.innerText = `Escaneando Freelancer en vivo...`;
+            }
+          }
+        } catch (e) {}
+      }
+    }, 1000);
 
     async function toggleAutoBidMode() {
       const btn = document.getElementById('btnToggleAutoBid');
@@ -4417,7 +4781,7 @@
         if (data.details) autoBidState = data.details;
         updateAutoBidUI();
         if (data.is_enabled) {
-          showToast('⚡ ¡Modo 2 (Auto-Bid) ACTIVADO! El agente ahora ofertará automáticamente como uno de los primeros en cada nueva publicación.');
+          showToast('⚡ ¡Modo 2 (Meta $1,500) ACTIVADO! Monitoreando ofertas de alto valor en sus primeros minutos.');
         } else {
           showToast('⏸️ Modo Auto-Bid pausado. Las ofertas volverán a requerir tu confirmación manual.');
         }
@@ -4429,9 +4793,10 @@
     }
 
     function openAutoBidConfigModal() {
-      document.getElementById('cfgMinHourly').value = autoBidState.min_hourly_rate || 15;
-      document.getElementById('cfgMinFixed').value = autoBidState.min_fixed_budget || 50;
+      document.getElementById('cfgMinHourly').value = autoBidState.min_hourly_rate || 20;
+      document.getElementById('cfgMinFixed').value = autoBidState.min_fixed_budget || 150;
       document.getElementById('cfgMaxDailyBids').value = autoBidState.max_daily_bids || 4;
+      document.getElementById('cfgMaxCompetition').value = autoBidState.max_competition_bids || 12;
       document.getElementById('cfgCheckInterval').value = autoBidState.check_interval_seconds || 75;
 
       const cats = autoBidState.target_categories || [];
@@ -4443,8 +4808,7 @@
         'qa_testing': 'cat_qa',
         'sql_database': 'cat_sql',
         'web_dev': 'cat_web',
-        'python_automation': 'cat_python',
-        'graphic_design_creative': 'cat_design'
+        'python_automation_scraping': 'cat_python'
       };
       for (const [catVal, elemId] of Object.entries(mapping)) {
         const el = document.getElementById(elemId);
@@ -4468,8 +4832,7 @@
         'qa_testing': 'cat_qa',
         'sql_database': 'cat_sql',
         'web_dev': 'cat_web',
-        'python_automation': 'cat_python',
-        'graphic_design_creative': 'cat_design'
+        'python_automation_scraping': 'cat_python'
       };
       for (const [catVal, elemId] of Object.entries(mapping)) {
         const el = document.getElementById(elemId);
@@ -4477,9 +4840,10 @@
       }
 
       const body = {
-        min_hourly_rate: parseFloat(document.getElementById('cfgMinHourly').value) || 15.0,
-        min_fixed_budget: parseFloat(document.getElementById('cfgMinFixed').value) || 50.0,
+        min_hourly_rate: parseFloat(document.getElementById('cfgMinHourly').value) || 20.0,
+        min_fixed_budget: parseFloat(document.getElementById('cfgMinFixed').value) || 150.0,
         max_daily_bids: parseInt(document.getElementById('cfgMaxDailyBids').value) || 4,
+        max_competition_bids: parseInt(document.getElementById('cfgMaxCompetition').value) || 12,
         check_interval_seconds: parseInt(document.getElementById('cfgCheckInterval').value) || 75,
         target_categories: selectedCats
       };
@@ -4498,12 +4862,13 @@
           autoBidState.min_hourly_rate = data.settings.min_hourly_rate;
           autoBidState.min_fixed_budget = data.settings.min_fixed_budget;
           autoBidState.max_daily_bids = data.settings.max_daily_bids;
+          autoBidState.max_competition_bids = data.settings.max_competition_bids;
           autoBidState.check_interval_seconds = data.settings.check_interval_seconds;
           autoBidState.target_categories = data.settings.target_categories;
         }
         updateAutoBidUI();
         closeAutoBidConfigModal();
-        showToast('💾 Reglas de Auto-Bid actualizadas correctamente.');
+        showToast('💾 Reglas de la Meta $1,500 guardadas correctamente.');
       } catch (err) {
         alert('Error al guardar configuración: ' + err);
       }
