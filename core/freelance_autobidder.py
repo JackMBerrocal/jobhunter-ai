@@ -760,14 +760,24 @@ class FreelanceAutoBidder:
         # Prioridad 2: Mayor frescura (time_submitted descendente)
         new_projects.sort(key=lambda x: (x.get("bid_count", 999), -x.get("time_submitted", 0)))
 
-        # 3. Evaluar y postular automáticamente según cupo diario
+        # 3. Evaluar y postular automáticamente según cupo diario (Ritmo suave con protección térmica)
+        evaluated_count = 0
         for p in new_projects:
             bids_today = self.get_bids_today_count()
             if bids_today >= cfg.get("max_daily_bids", 4):
                 self.log("🛑 Cupo diario completado durante el ciclo. Pausando auto-bids por hoy.")
                 break
 
-            await self._evaluate_and_place_bid(p, cfg)
+            if evaluated_count >= 2:
+                # Máximo 2 evaluaciones por ciclo para mantener la máquina en reposo térmico frío
+                break
+
+            success = await self._evaluate_and_place_bid(p, cfg)
+            evaluated_count += 1
+            if success:
+                # Si una oferta fue enviada con éxito, pausamos el ciclo para dar respiro
+                break
+            await asyncio.sleep(2)
 
     def _fetch_recent_projects(self) -> List[Dict[str, Any]]:
         """
@@ -1047,7 +1057,7 @@ class FreelanceAutoBidder:
         # 5. FILTRO DE HABILIDADES DEL PERFIL (Garantiza aceptación por Freelancer API)
         user_skills = self.get_user_skill_ids()
         proj_jobs = proj_data.get("job_ids", [])
-        if proj_jobs and user_skills and category not in ALLOWED_STRICT_CATEGORIES:
+        if proj_jobs and user_skills:
             if not any(jid in user_skills for jid in proj_jobs):
                 self.log(f"🛡️ [Habilidades Perfil] Proyecto descartado '{title[:32]}...': Requiere habilidades no presentes en tu perfil de Freelancer.")
                 return False
@@ -1172,12 +1182,14 @@ class FreelanceAutoBidder:
                         generated_proposal=proposal_text,
                         suggested_bid=suggested_bid,
                         suggested_timeline=suggested_time,
-                        status="pending",
+                        status="dismissed" if ("error" in response_note.lower() or "must have" in response_note.lower()) else "pending",
                         auto_applied=False,
                         bid_response_log=response_note
                     )
                     db.add(new_proj)
                 else:
+                    if "error" in response_note.lower() or "must have" in response_note.lower():
+                        existing.status = "dismissed"
                     existing.generated_proposal = proposal_text
                     existing.suggested_bid = suggested_bid
                     existing.suggested_timeline = suggested_time

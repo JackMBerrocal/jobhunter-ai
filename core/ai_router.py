@@ -463,12 +463,10 @@ class AiRouter:
         messages.append({"role": "user", "content": user_message})
 
         # ----------------------------------------------------------------------
-        # TIER 0: MOTOR NEURONAL LOCAL OLLAMA (Pensamiento Autónomo en GPU GTX 1660 Super)
+        # PROTECCIÓN TÉRMICA: El motor local Ollama no se ejecuta por defecto
+        # para evitar sobrecalentamiento de CPU y mantener ventiladores silenciosos.
+        # Se prioriza la nube (Vercel Cloud / Groq / OpenRouter / Gemini).
         # ----------------------------------------------------------------------
-        if self.is_ollama_online():
-            local_res = self._call_local_ollama(messages, model_name="qwen2.5:7b")
-            if local_res and local_res.get("content"):
-                return local_res
 
         # ----------------------------------------------------------------------
         # TIER 1: PUENTE DIRECTO A VERCEL CLOUD (Apoyo en la nube cuando no hay llaves locales)
