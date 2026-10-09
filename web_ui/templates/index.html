@@ -335,7 +335,7 @@
       display: none;
     }
     .tab-content.active {
-      display: block;
+      display: block !important;
     }
 
     /* Switch Toggle Styles */
@@ -546,6 +546,8 @@
     .platform-torre { background: #f3e8ff; color: #7e22ce; }
     .platform-laborum { background: #ccfbf1; color: #0f766e; }
     .platform-freelancer { background: #e0f2fe; color: #0369a1; }
+    .platform-workana { background: #ffedd5; color: #c2410c; font-weight: 700; }
+    .platform-upwork { background: #dcfce7; color: #15803d; font-weight: 700; }
 
     /* Estilos del Módulo Freelance & Gigs */
     .freelance-header-card {
@@ -1233,6 +1235,35 @@
           <button id="btnToggleAutoBid" onclick="toggleAutoBidMode()" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.75rem; font-weight: 700; background: #dc2626; border-color: #b91c1c; color: #ffffff; border-radius: 6px;" title="Pausar o reanudar el auto-bidder">
             ⏸️ Pausar
           </button>
+      </div>
+
+      <!-- BARRA DE NAVEGACIÓN MULTI-PLATAFORMA -->
+      <div style="width: 100%; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 10px; margin-top: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+        <div class="nav-tabs" style="display: flex; gap: 6px; border: none; padding: 0; margin: 0; flex-wrap: wrap;">
+          <button class="tab-btn active" id="btnTabFreelance" onclick="switchTab('freelanceTab', this)" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.84rem; padding: 7px 13px; border-radius: 8px; color: #f8fafc; background: rgba(99, 102, 241, 0.25); border: 1px solid #6366f1;">
+            ⚡ Freelance (Upwork / Workana / Freelancer) <span class="tab-counter" id="tabFreelanceCount">0</span>
+          </button>
+          <button class="tab-btn" id="btnTabJobs" onclick="switchTab('jobsTab', this)" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.84rem; padding: 7px 13px; border-radius: 8px; color: #cbd5e1; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1);">
+            💼 Vacantes Remotas (LinkedIn / Computrabajo) <span class="tab-counter" id="tabJobsCount">0</span>
+          </button>
+          <button class="tab-btn" id="btnTabApplied" onclick="switchTab('appliedTab', this)" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.84rem; padding: 7px 13px; border-radius: 8px; color: #cbd5e1; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1);">
+            🚀 Postulaciones Realizadas <span class="tab-counter" id="tabAppliedCount">0</span>
+          </button>
+          <button class="tab-btn" id="btnTabEmails" onclick="switchTab('emailsTab', this)" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.84rem; padding: 7px 13px; border-radius: 8px; color: #cbd5e1; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1);">
+            📬 Respuestas Reclutadores <span class="tab-counter" id="tabEmailCount">0</span>
+          </button>
+          <button class="tab-btn" id="btnTabRoles" onclick="switchTab('targetRolesTab', this)" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.84rem; padding: 7px 13px; border-radius: 8px; color: #cbd5e1; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1);">
+            🎯 Puestos Objetivo <span class="tab-counter" id="tabRolesCount">6</span>
+          </button>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+          <button class="btn btn-secondary btn-sm" onclick="openCloudModal()" style="font-weight: 700; font-size: 0.82rem; padding: 6px 14px; border-radius: 8px; border: 1px solid #38bdf8; color: #bae6fd; background: rgba(56, 189, 248, 0.15);" title="Ejecuta JobHunter en la nube 24/7 sin dejar tu PC encendida">
+            ☁️ Modo Nube 24/7 (PC Apagada)
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="openConnectModal()" style="font-weight: 700; font-size: 0.82rem; padding: 6px 14px; border-radius: 8px; border: 1px solid #10b981; color: #a7f3d0; background: rgba(16, 185, 129, 0.15);" title="Ver estado de sesiones en los 12 portales">
+            🔑 Portales Conectados (12)
+          </button>
         </div>
       </div>
 
@@ -1243,7 +1274,7 @@
   <main class="container" style="max-width: 1440px; margin: 16px auto; padding: 0 16px;">
 
     <!-- TAB FREELANCE PRINCIPAL ACTIVO -->
-    <div id="freelanceTab" class="tab-content active" style="display: block;">
+    <div id="freelanceTab" class="tab-content active">
 
       <!-- 1. TIRA DE MÉTRICAS CLAVE (4 Tarjetas Limpias en 1 Sola Fila - Sin Duplicados) -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 16px;">
@@ -1427,6 +1458,16 @@
           <button class="badge-filter" onclick="filterFreelanceCategory('graphic_design_creative', this)">🎨 Diseño Gráfico (Esposa)</button>
         </div>
 
+        <!-- Fila 3: Plataformas Directas -->
+        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; border-top: 1px solid #f1f5f9; padding-top: 8px;">
+          <span style="font-size: 0.78rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-right: 4px;">Plataforma:</span>
+          <button class="badge-filter active" onclick="filterFreelancePlatform('all', this)">🌐 Todas</button>
+          <button class="badge-filter" onclick="filterFreelancePlatform('workana', this)">⚡ Workana LatAm</button>
+          <button class="badge-filter" onclick="filterFreelancePlatform('upwork', this)">🟢 Upwork Global</button>
+          <button class="badge-filter" onclick="filterFreelancePlatform('freelancer', this)">🔵 Freelancer.com</button>
+          <button class="badge-filter" onclick="filterFreelancePlatform('getonbrd', this)">🚀 Get on Board</button>
+        </div>
+
       </div>
 
       <!-- 4. GRID DE RESULTADOS FRONT AND CENTER (¡Aquí se ven todos los proyectos de inmediato sin scroll previo!) -->
@@ -1436,6 +1477,175 @@
         </div>
       </div>
 
+    </div>
+
+    <!-- Pestaña 1: Vacantes Remotas Analizadas -->
+    <div id="jobsTab" class="tab-content">
+      <div class="toolbar" style="flex-direction: column; align-items: stretch; gap: 10px; background: #ffffff; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <div class="filter-group">
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Plataforma:</span>
+            <div class="badge-filter active" onclick="filterPlatform('all', this)">Todas</div>
+            <div class="badge-filter" onclick="filterPlatform('linkedin', this)">LinkedIn</div>
+            <div class="badge-filter" onclick="filterPlatform('computrabajo', this)">Computrabajo</div>
+            <div class="badge-filter" onclick="filterPlatform('bumeran', this)">Bumeran</div>
+            <div class="badge-filter" onclick="filterPlatform('laborum', this)">Laborum</div>
+            <div class="badge-filter" onclick="filterPlatform('remotetech', this)">Remote Tech (USD)</div>
+            <div class="badge-filter" onclick="filterPlatform('getonbrd', this)">Get on Board</div>
+            <div class="badge-filter" onclick="filterPlatform('torre', this)">Torre.co</div>
+          </div>
+
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary btn-sm" onclick="cleanExpiredJobs()" title="Comprueba que los enlaces sigan abiertos en los portales">
+              🛡️ Auditar Expiradas
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="triggerImmediateHuntingCycle()" title="Ejecuta una ronda de búsqueda y análisis inmediato">
+              🔍 Explorar Vacantes Ahora
+            </button>
+          </div>
+        </div>
+
+        <!-- Filtro Dinámico de Puestos Laborales Objetivo -->
+        <div class="filter-group" style="padding-top: 8px; border-top: 1px solid #e2e8f0; flex-wrap: wrap; gap: 6px;">
+          <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-right: 4px;">Puesto Objetivo:</span>
+          <div class="badge-filter active" onclick="filterRole('all', this)">Todos los Puestos</div>
+          <div class="badge-filter" onclick="filterRole('qa_tester', this)">🧪 QA / Calidad</div>
+          <div class="badge-filter" onclick="filterRole('desarrollador_jr', this)">💻 Desarrollo</div>
+          <div class="badge-filter" onclick="filterRole('soporte_ti', this)">🛠️ Soporte TI</div>
+          <div class="badge-filter" onclick="filterRole('practicante_sistemas', this)">🎓 Practicante</div>
+          <div class="badge-filter" onclick="filterRole('analista_datos', this)">📊 Datos</div>
+          <div class="badge-filter" onclick="filterRole('ingeniero_sistemas', this)">⚙️ Sistemas</div>
+        </div>
+      </div>
+
+      <div class="jobs-list" id="jobsList">
+        <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+          Cargando vacantes analizadas...
+        </div>
+      </div>
+    </div>
+
+    <!-- Pestaña: Mis Postulaciones y Registros Realizados -->
+    <div id="appliedTab" class="tab-content">
+      <!-- HERO: RASTREADOR UNIVERSAL DE ORIGEN & CORREOS -->
+      <div class="tracer-hero" style="background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%); border-radius: 12px; padding: 18px 20px; color: #f8fafc; margin-bottom: 16px; border: 1px solid #312e81;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 0.8rem;">
+          <div>
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); padding: 3px 10px; border-radius: 20px; font-size: 0.76rem; color: #a5b4fc; font-weight: 600; margin-bottom: 8px;">
+              <span>⚡</span> Trazabilidad de Postulaciones y Reclutadores
+            </div>
+            <h3 style="font-size: 1.25rem; font-weight: 700; margin: 0 0 6px 0; display: flex; align-items: center; gap: 8px;">
+              <span>🔍</span> ¿De dónde vino ese contacto, prueba técnica o correo?
+            </h3>
+            <p style="font-size: 0.85rem; color: #94a3b8; margin: 0; max-width: 800px; line-height: 1.45;">
+              Rastreo automático: Escribe la empresa o portal para ver de inmediato cuándo se postuló, la oferta original y la propuesta enviada.
+            </p>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+          <input type="text" id="tracerInput" placeholder="Pega el nombre de la empresa o remitente..." style="flex: 1; min-width: 260px; padding: 0.65rem 1rem; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #f8fafc; font-size: 0.88rem; font-family: inherit;" onkeydown="if(event.key==='Enter') executeTracerLookup()">
+          <button class="btn btn-primary" onclick="executeTracerLookup()" style="padding: 0.65rem 1.2rem; background: #4f46e5; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <span>🔎</span> Rastrear Vacante
+          </button>
+          <button class="btn btn-secondary" onclick="clearTracerLookup()" id="btnClearTracer" style="display: none; padding: 0.65rem 1rem; border-radius: 8px; border: 1px solid #475569; color: #cbd5e1; background: #1e293b; cursor: pointer;">
+            Limpiar
+          </button>
+        </div>
+        <div id="tracerResultsContainer" style="display: none;"></div>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 1.2rem;">
+          <div>
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
+              <span>🚀</span> Registro Oficial de Postulaciones Enviadas
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+              Auditoría en tiempo real: Dónde se registró el agente, con qué oferta laboral exacta fue y el anuncio de la propuesta.
+            </p>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <button class="btn btn-secondary btn-sm" onclick="fetchAppliedJobs()">
+              🔄 Actualizar Registro
+            </button>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="badge-filter active" id="appFilterAll" onclick="filterApplications('all', this)">
+              Todas (<span id="countAppAll">0</span>)
+            </button>
+            <button class="badge-filter" id="appFilterSuccess" onclick="filterApplications('success', this)">
+              🟢 Exitosas (<span id="countAppSuccess">0</span>)
+            </button>
+            <button class="badge-filter" id="appFilterReview" onclick="filterApplications('requires_manual_action', this)">
+              🟡 Requieren Revisión (<span id="countAppReview">0</span>)
+            </button>
+            <button class="badge-filter" id="appFilterEmails" onclick="filterApplications('with_emails', this)" style="background:#f0fdf4; border-color:#86efac; color:#166534;">
+              📬 Con Respuestas (<span id="countAppEmails">0</span>)
+            </button>
+          </div>
+          <div style="min-width: 250px; flex: 1; max-width: 380px;">
+            <input type="text" id="appSearchInput" placeholder="🔍 Filtrar postulaciones por empresa, título o portal..." oninput="filterApplicationsByText(this.value)" style="width: 100%; padding: 0.45rem 0.8rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.82rem; font-family: inherit;">
+          </div>
+        </div>
+
+        <div class="jobs-list" id="appliedJobsList">
+          <div style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+            Cargando historial de postulaciones y registros...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pestaña: Correos de Reclutadores -->
+    <div id="emailsTab" class="tab-content">
+      <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
+              <span>📬</span> Mensajes Detectados en Gmail
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+              Respuestas automáticas de procesos de selección, invitaciones a entrevistas y pruebas técnicas.
+            </p>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="scanEmails()">🔄 Actualizar Bandeja</button>
+        </div>
+        <div class="jobs-list" id="emailsList">
+          <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+            No hay mensajes de reclutadores pendientes por ahora. Presiona 'Actualizar Bandeja'.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pestaña: Puestos a Postular (Gestor de Roles Objetivo) -->
+    <div id="targetRolesTab" class="tab-content">
+      <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 1rem;">
+          <div>
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
+              <span>🎯</span> Puestos Laborales a los que Postula el Agente
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+              Activa o pausa los puestos a los que deseas que el agente busque y postule automáticamente 24/7.
+            </p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="badge" id="badgeActiveRolesCount" style="background: #dcfce7; color: #15803d; font-weight: 700; font-size: 0.82rem; padding: 6px 12px; border: 1px solid #bbf7d0;">
+              🟢 6 Puestos Activos
+            </span>
+          </div>
+        </div>
+        <div id="targetRolesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; margin-bottom: 1.5rem;">
+          <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+            Cargando puestos objetivo...
+          </div>
+        </div>
+      </div>
     </div>
 
   </main>
@@ -1459,15 +1669,6 @@
 
   <!-- ELEMENTOS OCULTOS PARA RETROCOMPATIBILIDAD CON FUNCIONES JS -->
   <div style="display: none;" id="legacyHiddenElements">
-    <div id="jobsList"></div>
-    <div id="targetRolesGrid"></div>
-    <div id="appliedJobsList"></div>
-    <div id="emailsList"></div>
-    <span id="tabJobsCount">0</span>
-    <span id="tabRolesCount">0</span>
-    <span id="tabAppliedCount">0</span>
-    <span id="tabEmailCount">0</span>
-    <span id="tabFreelanceCount">0</span>
     <span id="statTotalJobs">0</span>
     <span id="statAppliedJobs">0</span>
     <span id="statExpiredJobs">0</span>
@@ -1486,11 +1687,6 @@
     <span id="healthAgentStatus"></span>
     <span id="healthUser"></span>
     <input type="checkbox" id="chkHeadless">
-    <button id="btnTabFreelance"></button>
-    <button id="btnTabJobs"></button>
-    <button id="btnTabRoles"></button>
-    <button id="btnTabApplied"></button>
-    <button id="btnTabEmails"></button>
     <button id="btnTabProfile"></button>
     <button id="btnCleanClosedFreelance"></button>
     <button id="btnToggleContinuous"></button>
@@ -1498,10 +1694,6 @@
     <button id="btnToggleAutoBidInline"></button>
     <span id="countTabCompleted">0</span>
     <div id="pipeTabCompleted"></div>
-    <div id="jobsTab"></div>
-    <div id="targetRolesTab"></div>
-    <div id="appliedTab"></div>
-    <div id="emailsTab"></div>
     <div id="profileTab"></div>
   </div>
 
@@ -1542,6 +1734,73 @@
 
       <div class="modal-actions" style="margin-top:12px; border-top:1px solid #f1f5f9; padding-top:12px;">
         <button class="btn btn-secondary" onclick="closeConnectModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Centro de Ejecución en la Nube 24/7 (Sin Dejar Tu PC Encendida) -->
+  <div class="modal-overlay" id="cloudModal" style="display:none;">
+    <div class="modal-box modal-large" style="max-width:850px;">
+      <div class="portal-modal-header">
+        <div>
+          <h3 style="margin-bottom:4px; font-size:1.35rem; color:#0f172a;">☁️ Centro de Ejecución en la Nube 24/7</h3>
+          <p style="margin-bottom:0; font-size:0.88rem; color:var(--text-secondary);">
+            Ejecuta JobHunter AI de forma perpetua sin tener que dejar tu computadora encendida.
+          </p>
+        </div>
+        <button class="portal-close-btn" onclick="closeCloudModal()" title="Cerrar">&times;</button>
+      </div>
+
+      <!-- Banner Informativo -->
+      <div style="background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%); color: #ffffff; border-radius: 10px; padding: 14px 18px; margin-bottom: 16px;">
+        <strong style="font-size: 1rem; display: block; margin-bottom: 4px;">🚀 Despliegue Autónomo en la Nube</strong>
+        <p style="font-size: 0.84rem; margin: 0; opacity: 0.95; line-height: 1.45;">
+          El paquete exportado contiene todo tu sistema: base de datos con 1,740+ proyectos y 184+ postulaciones, 
+          y las cookies activas de tus 12 portales (Upwork, Workana, LinkedIn, Freelancer, etc.) para correr sin interrupciones.
+        </p>
+      </div>
+
+      <!-- Acciones de Descarga -->
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <strong style="font-size: 0.95rem; color: #1e293b; display: block;">📦 Paquete Autónomo Docker (Listo para Subir)</strong>
+          <span style="font-size: 0.82rem; color: #64748b;" id="cloudBundleStatus">Genera un archivo comprimido .tar.gz con el código, base de datos y sesiones.</span>
+        </div>
+        <button class="btn btn-primary" onclick="exportCloudBundle()" id="btnGenerateCloudBundle" style="background: #0284c7; border: none; font-weight: 700; padding: 9px 18px;">
+          ⚡ Generar y Descargar Paquete (.tar.gz)
+        </button>
+      </div>
+
+      <!-- Métodos de Ejecución Cloud -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 16px;">
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px;">
+          <strong style="color: #047857; font-size: 0.9rem; display: block; margin-bottom: 6px;">🟢 Opción 1: Oracle Cloud (100% Gratis)</strong>
+          <p style="font-size: 0.8rem; color: #475569; margin: 0 0 8px 0; line-height: 1.4;">
+            Servidor gratuito de por vida (Always Free). Solo subes el paquete y ejecutas:
+          </p>
+          <code style="display: block; background: #0f172a; color: #38bdf8; padding: 6px 8px; border-radius: 4px; font-size: 0.74rem;">docker-compose up -d --build</code>
+        </div>
+
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px;">
+          <strong style="color: #6366f1; font-size: 0.9rem; display: block; margin-bottom: 6px;">🟣 Opción 2: Railway / Render</strong>
+          <p style="font-size: 0.8rem; color: #475569; margin: 0 0 8px 0; line-height: 1.4;">
+            Despliegue en 1 clic subiendo este repositorio con Docker. Te da una URL pública segura.
+          </p>
+          <span style="font-size: 0.76rem; background: #ede9fe; color: #6d28d9; padding: 2px 6px; border-radius: 4px; font-weight: 600;">PORT=8000 • HEADLESS=true</span>
+        </div>
+
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px;">
+          <strong style="color: #d97706; font-size: 0.9rem; display: block; margin-bottom: 6px;">🟠 Opción 3: Cualquier Servidor VPS</strong>
+          <p style="font-size: 0.8rem; color: #475569; margin: 0 0 8px 0; line-height: 1.4;">
+            Cualquier Linux VPS económico (DigitalOcean, Hetzner, etc.). Corre 24/7 sin tocar tu PC.
+          </p>
+          <code style="display: block; background: #0f172a; color: #38bdf8; padding: 6px 8px; border-radius: 4px; font-size: 0.74rem;">tar -xzf bundle.tar.gz && docker-compose up -d</code>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top:12px; border-top:1px solid #f1f5f9; padding-top:12px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.8rem; color: #64748b;">Guía completa detallada disponible en el archivo <code>README_CLOUD.md</code></span>
+        <button class="btn btn-secondary" onclick="closeCloudModal()">Cerrar</button>
       </div>
     </div>
   </div>
@@ -3494,11 +3753,27 @@
     }
 
     function switchTab(tabId, btn) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(el => {
+        el.classList.remove('active');
+        el.style.display = 'none';
+      });
+      document.querySelectorAll('.tab-btn').forEach(el => {
+        el.classList.remove('active');
+        el.style.color = '#cbd5e1';
+        el.style.background = 'rgba(255, 255, 255, 0.06)';
+        el.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+      });
       const targetContent = document.getElementById(tabId);
-      if (targetContent) targetContent.classList.add('active');
-      if (btn) btn.classList.add('active');
+      if (targetContent) {
+        targetContent.classList.add('active');
+        targetContent.style.display = 'block';
+      }
+      if (btn) {
+        btn.classList.add('active');
+        btn.style.color = '#f8fafc';
+        btn.style.background = 'rgba(99, 102, 241, 0.25)';
+        btn.style.borderColor = '#6366f1';
+      }
       if (tabId === 'emailsTab') fetchEmails();
       if (tabId === 'targetRolesTab') fetchTargetRoles();
       if (tabId === 'appliedTab') fetchAppliedJobs();
@@ -3715,7 +3990,7 @@
       };
 
       container.innerHTML = projects.map(p => {
-        const platformClass = p.platform === 'freelancer' ? 'platform-freelancer' : (p.platform === 'getonbrd' ? 'platform-getonbrd' : 'platform-remotetech');
+        const platformClass = p.platform === 'freelancer' ? 'platform-freelancer' : (p.platform === 'workana' ? 'platform-workana' : (p.platform === 'upwork' ? 'platform-upwork' : (p.platform === 'getonbrd' ? 'platform-getonbrd' : 'platform-remotetech')));
         const catName = catLabels[p.category] || p.category || 'General';
         const catBadge = `<span style="background: #e0e7ff; color: #3730a3; font-size: 0.72rem; font-weight: 600; padding: 2px 7px; border-radius: 4px;">${escapeHtml(catName)}</span>`;
 
@@ -3859,8 +4134,8 @@
             <button class="btn btn-secondary btn-sm btn-quick-copy" onclick="quickCopyFreelanceProposal(${p.id}, this)" title="Copiar propuesta al portapapeles con 1 click" style="font-weight: 700; font-size: 0.8rem; padding: 5px 10px; background: #ecfdf5; border-color: #6ee7b7; color: #065f46;">
               📋 Copiar Propuesta
             </button>
-            <a href="${p.url}" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 5px 10px; text-decoration: none;" title="Abre directamente en LibreWolf">
-              🦊 LibreWolf ↗
+            <a href="${p.url}" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 5px 10px; text-decoration: none;" title="Abre directamente la oferta">
+              ${p.platform === 'workana' ? '⚡ Workana ↗' : (p.platform === 'upwork' ? '🟢 Upwork ↗' : (p.platform === 'freelancer' ? '🔵 Freelancer ↗' : '🦊 Abrir ↗'))}
             </a>
             <button class="btn btn-secondary btn-sm" onclick="triggerTestAutoBid(${p.id})" style="font-size: 0.76rem; padding: 5px 8px; background: #f8fafc; border-color: #cbd5e1; color: #334155; font-weight: 600;" title="Dispara una postulación de prueba para este proyecto">
               ⚡ Auto-Bid
@@ -4475,7 +4750,8 @@
         const res = await fetch('/api/freelance/sync_freelancer_api', { method: 'POST' });
         const data = await res.json();
         if (data.status === 'success') {
-          showToast(`✅ Sincronizado: ${data.bids_synced} ofertas activas revisadas. ${data.unread_threads} mensajes en chat.`);
+          const syncedCount = data.synced_bids !== undefined ? data.synced_bids : (data.bids_synced || 0);
+          showToast(`✅ Sincronizado: ${syncedCount} ofertas activas revisadas. ${data.unread_threads || 0} mensajes en chat.`);
           fetchFreelanceProjects();
           fetchAutoBidStatus();
         } else {
@@ -4914,6 +5190,46 @@
 
     function closeConnectModal() {
       document.getElementById('connectModal').style.display = 'none';
+    }
+
+    function openCloudModal() {
+      const modal = document.getElementById('cloudModal');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeCloudModal() {
+      const modal = document.getElementById('cloudModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    async function exportCloudBundle() {
+      const btn = document.getElementById('btnGenerateCloudBundle');
+      const statusEl = document.getElementById('cloudBundleStatus');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = '⏳ Empaquetando sistema y sesiones...';
+      }
+      showToast('📦 Generando paquete para la nube con todas tus sesiones activas...');
+      try {
+        const res = await fetch('/api/cloud/export_bundle', { method: 'POST' });
+        const data = await res.json();
+        if (data.status === 'success') {
+          if (statusEl) {
+            statusEl.innerHTML = `✅ Paquete generado exitosamente (${data.size_mb} MB). Descarga iniciada.`;
+          }
+          showToast(`🚀 ¡Paquete generado! (${data.size_mb} MB). Descargando...`);
+          window.location.href = data.download_url;
+        } else {
+          showToast(`❌ Error: ${data.error || 'No se pudo generar el paquete'}`);
+        }
+      } catch (err) {
+        showToast('Error al empaquetar: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = '⚡ Generar y Descargar Paquete (.tar.gz)';
+        }
+      }
     }
 
     async function loadPortalStatuses() {

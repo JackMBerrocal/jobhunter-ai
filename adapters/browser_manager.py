@@ -61,7 +61,50 @@ class BrowserManager:
             timezone_id="America/Lima"
         )
 
+        # Sincronizar automáticamente sesiones activas desde LibreWolf (Upwork, Workana, Fiverr, etc.)
+        await self._sync_librewolf_cookies()
+
         return self.context
+
+    async def _sync_librewolf_cookies(self):
+        """Sincroniza cookies de sesión desde LibreWolf (Flatpak) para Upwork, Workana, Fiverr, etc."""
+        librewolf_db = Path('/home/jack/.var/app/io.gitlab.librewolf-community/config/librewolf/librewolf/6um5vgeg.default-default/cookies.sqlite')
+        if not librewolf_db.exists():
+            return
+        try:
+            import sqlite3
+            con = sqlite3.connect(f'file:{librewolf_db}?immutable=1', uri=True)
+            cur = con.cursor()
+            cur.execute('SELECT name, value, host, path, expiry, isHttpOnly, isSecure, sameSite FROM moz_cookies;')
+            rows = cur.fetchall()
+            con.close()
+
+            for r in rows:
+                name, value, host, path, expiry, is_http_only, is_secure, same_site = r
+                if expiry and expiry > 10000000000:
+                    exp_sec = expiry // 1000
+                elif expiry and expiry > 0:
+                    exp_sec = expiry
+                else:
+                    exp_sec = -1
+
+                ss_map = {0: 'None', 1: 'Lax', 2: 'Strict'}
+                ss = ss_map.get(same_site, 'Lax')
+                try:
+                    await self.context.add_cookies([{
+                        'name': name,
+                        'value': value,
+                        'domain': host,
+                        'path': path or '/',
+                        'expires': exp_sec,
+                        'httpOnly': bool(is_http_only),
+                        'secure': bool(is_secure),
+                        'sameSite': ss
+                    }])
+                except Exception:
+                    pass
+        except Exception as e:
+            print(f"[BrowserManager] Nota en sync de cookies: {e}")
 
     async def new_page_with_stealth(self) -> Page:
         """Crea una nueva pestaña aplicando evasiones stealth contra antibots."""

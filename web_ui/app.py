@@ -88,14 +88,14 @@ browser_bidder = BrowserBidder()
 
 @app.on_event("startup")
 async def startup_event():
-    """Inicia con prioridad el motor freelance (por horas y entregables). Empleo corporativo desactivado (100% Freelancer)."""
-    # 1. Prioridad Exclusiva: Motor Freelance & Oportunidades 100% Remotas
+    """Inicia en simultáneo el motor freelance y el explorador autónomo de vacantes remotas 24/7."""
+    # 1. Motor Freelance 24/7 en Freelancer.com
     freelance_autobidder.start()
-    log_event("⚡ FREELANCE AUTO-BIDDER 24/7 ACTIVO: Monitoreo exclusivo de contratos en Freelancer.com.")
+    log_event("⚡ FREELANCE AUTO-BIDDER 24/7 ACTIVO: Monitoreo continuo y auto-bids en Freelancer.com.")
 
-    # 2. Motor de Empleo Remoto Continuo (Computrabajo, Laborum, Bumeran, GetOnBrd, RemoteTech, LinkedIn)
-    autonomous_hunter.start(interval_minutes=45)
-    log_event("🚀 AUTONOMOUS HUNTER ACTIVO: Rastreo continuo y postulación automática en portales laborales cada 45 min.")
+    # 2. Guardián Autónomo Multi-Plataforma 24/7 (LinkedIn, Computrabajo, Get on Board, Remote Tech, etc.)
+    autonomous_hunter.start(interval_minutes=30)
+    log_event("🚀 GUARDIÁN AUTÓNOMO 24/7 ACTIVO: Exploración y postulación continua multi-plataforma cada 30 min.")
 
 
 @app.on_event("shutdown")
@@ -240,6 +240,42 @@ async def execute_email_scan_cycle():
 
 
 PORTAL_AUTH_MAP = {
+    "freelancer": {
+        "id": "freelancer",
+        "name": "Freelancer.com",
+        "url": "https://www.freelancer.com/dashboard",
+        "domain": "freelancer.com",
+        "description": "Auto-bidder 24/7 activo con contraofertas inteligentes por IA",
+        "icon": "⚡",
+        "category": "Freelance 24/7"
+    },
+    "upwork": {
+        "id": "upwork",
+        "name": "Upwork Global",
+        "url": "https://www.upwork.com/nx/find-work/",
+        "domain": "upwork.com",
+        "description": "El marketplace freelance en USD más grande del mundo",
+        "icon": "🟢",
+        "category": "Freelance Global"
+    },
+    "workana": {
+        "id": "workana",
+        "name": "Workana LatAm",
+        "url": "https://www.workana.com/jobs",
+        "domain": "workana.com",
+        "description": "Plataforma líder en proyectos freelance en español en LatAm y España",
+        "icon": "🟣",
+        "category": "Freelance LatAm"
+    },
+    "fiverr": {
+        "id": "fiverr",
+        "name": "Fiverr Pro & Gigs",
+        "url": "https://www.fiverr.com/seller_dashboard",
+        "domain": "fiverr.com",
+        "description": "Servicios publicados y ventas directas de páginas web ($250-$1500)",
+        "icon": "❇️",
+        "category": "Servicios Digitales"
+    },
     "linkedin": {
         "id": "linkedin",
         "name": "LinkedIn",
@@ -316,8 +352,9 @@ PORTAL_AUTH_MAP = {
 
 
 def get_portal_connection_status() -> List[Dict[str, Any]]:
-    """Verifica qué portales tienen cookies / sesión activa en data/browser_profile."""
+    """Verifica qué portales tienen cookies / sesión activa en browser_profile o LibreWolf."""
     cookie_db = Path("data/browser_profile/Default/Cookies")
+    librewolf_db = Path("/home/jack/.var/app/io.gitlab.librewolf-community/config/librewolf/librewolf/6um5vgeg.default-default/cookies.sqlite")
     hosts = []
     if cookie_db.exists():
         try:
@@ -325,7 +362,18 @@ def get_portal_connection_status() -> List[Dict[str, Any]]:
             con = sqlite3.connect(f"file:{cookie_db}?immutable=1", uri=True)
             cur = con.cursor()
             cur.execute("SELECT DISTINCT host_key FROM cookies;")
-            hosts = [r[0] for r in cur.fetchall()]
+            hosts += [r[0] for r in cur.fetchall()]
+            con.close()
+        except Exception:
+            pass
+
+    if librewolf_db.exists():
+        try:
+            import sqlite3
+            con = sqlite3.connect(f"file:{librewolf_db}?immutable=1", uri=True)
+            cur = con.cursor()
+            cur.execute("SELECT DISTINCT host FROM moz_cookies;")
+            hosts += [r[0] for r in cur.fetchall()]
             con.close()
         except Exception:
             pass
@@ -1649,7 +1697,7 @@ async def get_freelance_projects(
         results.append({
             "id": p.id,
             "platform": p.platform,
-            "platform_name": "Freelancer.com" if p.platform == "freelancer" else ("Get on Board" if p.platform == "getonbrd" else p.platform.capitalize()),
+            "platform_name": "Freelancer.com" if p.platform == "freelancer" else ("Workana LatAm" if p.platform == "workana" else ("Upwork Global" if p.platform == "upwork" else ("Get on Board" if p.platform == "getonbrd" else p.platform.capitalize()))),
             "external_id": p.external_id,
             "title": p.title,
             "client_name": p.client_name or "Cliente Directo",
@@ -2328,6 +2376,45 @@ async def get_auth_credentials():
         "use_google_first": auth.get("use_google_first", True),
         "auto_register_enabled": auth.get("auto_register_enabled", True)
     }
+
+
+@app.post("/api/cloud/export_bundle")
+async def export_cloud_bundle():
+    """Genera un paquete .tar.gz completo con el código, base de datos y sesiones para correr en la nube 24/7."""
+    try:
+        import subprocess
+        script = Path("scripts/export_cloud_bundle.sh")
+        if not script.exists():
+            return JSONResponse(status_code=500, content={"error": "Script de empaquetado no encontrado"})
+        res = subprocess.run(["bash", str(script)], capture_output=True, text=True, timeout=60)
+        bundle_file = Path("data/jobhunter_cloud_bundle.tar.gz")
+        if bundle_file.exists():
+            size_mb = round(bundle_file.stat().st_size / (1024 * 1024), 2)
+            log_event(f"☁️ Paquete para despliegue en la nube generado ({size_mb} MB). Listo para descargar.")
+            return {
+                "status": "success",
+                "download_url": "/api/cloud/download_bundle",
+                "filename": "jobhunter_cloud_bundle.tar.gz",
+                "size_mb": size_mb,
+                "message": f"Paquete autónomo generado con éxito ({size_mb} MB). Contiene todas tus sesiones activas y base de datos."
+            }
+        else:
+            return JSONResponse(status_code=500, content={"error": f"Error generando archivo: {res.stderr}"})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": f"Error en empaquetado: {str(e)}"})
+
+
+@app.get("/api/cloud/download_bundle")
+async def download_cloud_bundle():
+    """Descarga el paquete .tar.gz generado para ejecutar en servidores Cloud/VPS."""
+    bundle_file = Path("data/jobhunter_cloud_bundle.tar.gz")
+    if bundle_file.exists():
+        return FileResponse(
+            path=str(bundle_file),
+            filename="jobhunter_cloud_bundle.tar.gz",
+            media_type="application/gzip"
+        )
+    return JSONResponse(status_code=404, content={"error": "Paquete de nube no encontrado. Por favor genéralo primero."})
 
 
 @app.post("/api/profile/credentials")

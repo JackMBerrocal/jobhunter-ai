@@ -27,3 +27,9 @@ data/*.sqlite
 data/chrome_scrapy_profile/
 data/tts_cache/
 data/vercel_session_cache.json
+
+# Sensitive and bundle data
+.env
+data/*.tar.gz
+data/storage_state.json
+data/replied_message_ids.json

@@ -241,6 +241,16 @@ class AutonomousHunterDaemon:
             await bm.close()
             db.close()
 
+        # Escaneo complementario de plataformas Freelance (Workana, Upwork, Freelancer, Get on Board)
+        try:
+            from adapters.freelance_hunter import FreelanceHunter
+            fl_hunter = FreelanceHunter()
+            fl_new = fl_hunter.scan_and_sync()
+            if fl_new > 0:
+                self.log(f"⚡ Sincronizados {fl_new} nuevos proyectos freelance en Workana, Upwork y Freelancer.")
+        except Exception as fl_err:
+            self.log(f"⚠️ Nota en escaneo freelance: {fl_err}")
+
         self.log(f"🎯 Total de nuevas vacantes 100% remotas registradas en este ciclo: {total_new}")
         return total_new
 
@@ -249,12 +259,17 @@ class AutonomousHunterDaemon:
         self.log("⚡ [Paso 3/3] Evaluando vacantes para postulación automática en cola...")
         db = SessionLocal()
         try:
-            # Buscar hasta 3 vacantes descubiertas con match_score >= 0.80
+            # Umbral de afinidad para postulación automática (>= 75% de coincidencia técnica)
+            threshold = float(self.llm.profile.get("safety_limits", {}).get("auto_apply_confidence_threshold", 0.75))
+            if threshold > 0.75:
+                threshold = 0.75
+
+            # Buscar hasta 5 vacantes descubiertas con alta afinidad
             candidates = db.query(Job).filter(
                 Job.status == "discovered",
                 Job.is_recommended == True,
-                Job.match_score >= 0.80
-            ).order_by(Job.match_score.desc(), Job.created_at.desc()).limit(3).all()
+                Job.match_score >= threshold
+            ).order_by(Job.match_score.desc(), Job.created_at.desc()).limit(5).all()
 
             # Filtrar candidatos que pertenezcan a roles autorizados por el usuario
             valid_candidates = []

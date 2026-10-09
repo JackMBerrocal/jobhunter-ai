@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  jobhunter:
+    build: .
+    container_name: jobhunter-ai-cloud
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - HOST=0.0.0.0
+      - HEADLESS=true
+    volumes:
+      # Persistencia de la base de datos de postulaciones y sesiones de navegación
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s

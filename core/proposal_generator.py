@@ -485,30 +485,61 @@ class ProposalGenerator:
 
         return "general_tech"
 
-    def estimate_bid_and_time(self, budget_str: str, category: str, full_text: str = "") -> Dict[str, Any]:
+    def estimate_bid_and_time(
+        self,
+        budget_str: str,
+        category: str,
+        full_text: str = "",
+        currency: Optional[str] = None,
+        curr_symbol: Optional[str] = None,
+        is_english: bool = False
+    ) -> Dict[str, Any]:
         """
         Calcula el presupuesto óptimo y el tiempo/disponibilidad.
         Detecta estrictamente si es por hora (Hourly) o precio fijo (Fixed).
-        NUNCA confunde un rango de precio fijo (ej: EUR 50 - 250) con una tarifa por hora.
+        Respeta fielmente la divisa nativa del proyecto (INR, EUR, USD, GBP, AUD, CAD, PEN, etc.).
         """
         b_low = (budget_str or "").lower()
         t_low = (full_text or "").lower()
 
-        # Detección de moneda
-        currency = "USD"
-        curr_symbol = "$"
-        if "eur" in b_low or "€" in b_low or "eur" in t_low or "€" in t_low:
-            currency = "EUR"
-            curr_symbol = "€"
-        elif "pen" in b_low or "s/" in b_low or "soles" in b_low:
-            currency = "PEN"
-            curr_symbol = "S/"
-        elif "cop" in b_low:
-            currency = "COP"
-            curr_symbol = "COP $"
-        elif "mxn" in b_low:
-            currency = "MXN"
-            curr_symbol = "MXN $"
+        # Detección exhaustiva de moneda si no viene especificada directamente
+        if not currency or not curr_symbol:
+            if "inr" in b_low or "₹" in b_low or "rupee" in b_low or "inr" in t_low:
+                currency = currency or "INR"
+                curr_symbol = curr_symbol or "₹"
+            elif "eur" in b_low or "€" in b_low or "eur" in t_low or "€" in t_low:
+                currency = currency or "EUR"
+                curr_symbol = curr_symbol or "€"
+            elif "gbp" in b_low or "£" in b_low or "pound" in b_low or "gbp" in t_low:
+                currency = currency or "GBP"
+                curr_symbol = curr_symbol or "£"
+            elif "aud" in b_low or "a$" in b_low or "aud" in t_low:
+                currency = currency or "AUD"
+                curr_symbol = curr_symbol or "A$"
+            elif "cad" in b_low or "c$" in b_low or "cad" in t_low:
+                currency = currency or "CAD"
+                curr_symbol = curr_symbol or "C$"
+            elif "nzd" in b_low or "nz$" in b_low:
+                currency = currency or "NZD"
+                curr_symbol = curr_symbol or "NZ$"
+            elif "pen" in b_low or "s/" in b_low or "soles" in b_low or "pen" in t_low:
+                currency = currency or "PEN"
+                curr_symbol = curr_symbol or "S/"
+            elif "sgd" in b_low or "s$" in b_low:
+                currency = currency or "SGD"
+                curr_symbol = curr_symbol or "S$"
+            elif "cop" in b_low:
+                currency = currency or "COP"
+                curr_symbol = curr_symbol or "COP $"
+            elif "mxn" in b_low:
+                currency = currency or "MXN"
+                curr_symbol = curr_symbol or "MXN $"
+            elif "brl" in b_low or "r$" in b_low:
+                currency = currency or "BRL"
+                curr_symbol = curr_symbol or "R$"
+            else:
+                currency = currency or "USD"
+                curr_symbol = curr_symbol or "$"
 
         # Verificación estricta de Por Hora en el presupuesto (soporta '/ hora', '/hora', '/ hr', etc.)
         has_hourly_in_budget = bool(re.search(r'(?:/\s*(?:hr|hora|hour|h)\b|\b(?:por hora|por horas|hourly|x hora|x hr)\b)', b_low))
@@ -517,7 +548,7 @@ class ProposalGenerator:
         if has_hourly_in_budget:
             is_hourly = True
         elif has_fixed_range:
-            # Un rango numérico como "EUR 50 - 250" sin mención horaria es 100% PRECIO FIJO
+            # Un rango numérico como "EUR 50 - 250" o "INR 1500 - 12500" sin mención horaria es 100% PRECIO FIJO
             is_hourly = False
         else:
             # Si el presupuesto no tiene rango fijo ("A convenir" o vacío), verificar descripción con regex estricto
@@ -549,13 +580,19 @@ class ProposalGenerator:
                 }
                 suggested_rate = defaults_hourly.get(category, 25)
 
-            suggested_bid = f"{curr_symbol}{suggested_rate} {currency} / hora"
-            suggested_timeline = "Disponibilidad inmediata: 4 a 6 horas diarias (o turno asignado)"
+            if is_english:
+                suggested_bid = f"{curr_symbol}{suggested_rate} {currency} / hour"
+                suggested_timeline = "Immediate availability: 4 to 6 hours daily (or assigned schedule)"
+            else:
+                suggested_bid = f"{curr_symbol}{suggested_rate} {currency} / hora"
+                suggested_timeline = "Disponibilidad inmediata: 4 a 6 horas diarias (o turno asignado)"
+
             return {
                 "suggested_bid": suggested_bid,
                 "suggested_timeline": suggested_timeline,
                 "is_hourly": True,
-                "currency": currency
+                "currency": currency,
+                "curr_symbol": curr_symbol
             }
 
         # ---------------- CASO 2: PRECIO FIJO / POR TRABAJO REALIZADO ----------------
@@ -575,50 +612,88 @@ class ProposalGenerator:
                 else:
                     target = int(round(min_v + (max_v - min_v) * 0.65))
 
-            # Plazo de entrega según envergadura
-            if max_v <= 100:
-                timeline = "24 a 48 horas"
-            elif max_v <= 300:
-                timeline = "3 a 4 días hábiles"
-            elif max_v <= 800:
-                timeline = "4 a 6 días hábiles"
+            # Plazo de entrega según envergadura e idioma
+            if is_english:
+                if max_v <= 100:
+                    timeline = "24 to 48 hours"
+                elif max_v <= 300:
+                    timeline = "3 to 4 business days"
+                elif max_v <= 800:
+                    timeline = "4 to 6 business days"
+                else:
+                    timeline = "1 to 2 weeks"
             else:
-                timeline = "1 a 2 semanas"
+                if max_v <= 100:
+                    timeline = "24 a 48 horas"
+                elif max_v <= 300:
+                    timeline = "3 a 4 días hábiles"
+                elif max_v <= 800:
+                    timeline = "4 a 6 días hábiles"
+                else:
+                    timeline = "1 a 2 semanas"
 
             suggested_bid = f"{curr_symbol}{target} {currency}"
             suggested_timeline = timeline
         else:
             defaults_fixed = {
-                "web_dev": (f"{curr_symbol}220 {currency}", "3 a 5 días hábiles"),
-                "ecommerce_stores": (f"{curr_symbol}240 {currency}", "4 a 6 días hábiles"),
-                "python_automation_scraping": (f"{curr_symbol}140 {currency}", "48 horas"),
-                "sql_database": (f"{curr_symbol}120 {currency}", "48 horas"),
-                "ai_chatbot_system": (f"{curr_symbol}320 {currency}", "5 a 7 días"),
-                "graphic_design_creative": (f"{curr_symbol}120 {currency}", "24 a 48 horas"),
-                "power_bi_data": (f"{curr_symbol}160 {currency}", "3 días hábiles"),
-                "qa_testing": (f"{curr_symbol}110 {currency}", "48 horas")
+                "web_dev": (f"{curr_symbol}220 {currency}", "3 to 5 business days" if is_english else "3 a 5 días hábiles"),
+                "ecommerce_stores": (f"{curr_symbol}240 {currency}", "4 to 6 business days" if is_english else "4 a 6 días hábiles"),
+                "python_automation_scraping": (f"{curr_symbol}140 {currency}", "48 hours" if is_english else "48 horas"),
+                "sql_database": (f"{curr_symbol}120 {currency}", "48 hours" if is_english else "48 horas"),
+                "ai_chatbot_system": (f"{curr_symbol}320 {currency}", "5 to 7 days" if is_english else "5 a 7 días"),
+                "graphic_design_creative": (f"{curr_symbol}120 {currency}", "24 to 48 hours" if is_english else "24 a 48 horas"),
+                "power_bi_data": (f"{curr_symbol}160 {currency}", "3 business days" if is_english else "3 días hábiles"),
+                "qa_testing": (f"{curr_symbol}110 {currency}", "48 hours" if is_english else "48 horas")
             }
-            suggested_bid, suggested_timeline = defaults_fixed.get(category, (f"{curr_symbol}180 {currency}", "3 a 4 días"))
+            default_bid, default_time = defaults_fixed.get(category, (f"{curr_symbol}180 {currency}", "3 to 4 business days" if is_english else "3 a 4 días"))
+            suggested_bid = default_bid
+            suggested_timeline = default_time
 
         return {
             "suggested_bid": suggested_bid,
             "suggested_timeline": suggested_timeline,
             "is_hourly": False,
-            "currency": currency
+            "currency": currency,
+            "curr_symbol": curr_symbol
         }
 
     def _call_external_llm(self, prompt: str, system_instructions: str = None) -> Optional[str]:
         """
-        Invoca APIs en la nube de ultra baja latencia y CERO consumo de CPU local:
-        1. Groq Cloud (Llama 3.3 70B Versatile en LPUs ultra veloces: 0.3s, 0% CPU local).
-        2. Google Gemini 2.5 Flash (Cloud API: 0.8s, 0% CPU local).
-        3. OpenRouter Cloud (DeepSeek / Qwen en la nube: 0% CPU local).
-        4. Fallback directo a plantillas cognitivas determinísticas de alta fidelidad (0% CPU).
-
-        PROTECCIÓN TÉRMICA Y SILENCIO TOTAL:
-        Cero llamadas a Ollama local en CPU para garantizar ventiladores silenciosos y cero recalentamiento.
+        Invoca el motor de IA para redactar propuestas 100% personalizadas:
+        1. Ollama local qwen2.5:3b (Ultra ligero, ~0.8s, responde leyendo el brief real del cliente).
+        2. Groq Cloud (si está disponible).
+        3. Google Gemini (si está disponible).
+        4. OpenRouter Cloud.
         """
-        # 1. Intentar con Groq Cloud (Ultra veloz: ~0.3s, 0% CPU local)
+        # 1. Intentar con Ollama local qwen2.5:3b (Cero costo, instantáneo, lee el brief real)
+        try:
+            full_prompt = f"{system_instructions}\n\n{prompt}" if system_instructions else prompt
+            req_data = json.dumps({
+                "model": "qwen2.5:3b",
+                "prompt": full_prompt,
+                "stream": False,
+                "options": {
+                    "temperature": 0.3,
+                    "num_predict": 400
+                }
+            }).encode("utf-8")
+            req = urllib.request.Request(
+                "http://localhost:11434/api/generate",
+                data=req_data,
+                headers={"Content-Type": "application/json"}
+            )
+            with urllib.request.urlopen(req, timeout=12) as resp:
+                data = json.loads(resp.read().decode())
+                text = (data.get("response") or "").strip()
+                if len(text) > 80:
+                    # Limpiar markdown de encabezados para Freelancer.com
+                    text = re.sub(r'#+\s*', '', text)
+                    text = text.replace('**', '').replace('__', '')
+                    return text
+        except Exception:
+            pass
+
+        # 2. Intentar con Groq Cloud (Ultra veloz: ~0.3s)
         if self.groq_key:
             try:
                 messages = []
@@ -645,7 +720,7 @@ class ProposalGenerator:
                     text = res_json["choices"][0]["message"]["content"].strip()
                     if len(text) > 80:
                         return text
-            except Exception as e:
+            except Exception:
                 pass
 
         # 2. Intentar con Gemini Cloud (~0.8s, 0% CPU local)
@@ -695,7 +770,16 @@ class ProposalGenerator:
 
         return None
 
-    def generate_proposal(self, title: str, description: str, client_name: str = "Estimado cliente", budget: str = "", language: str = "auto") -> Dict[str, Any]:
+    def generate_proposal(
+        self,
+        title: str,
+        description: str,
+        client_name: str = "Estimado cliente",
+        budget: str = "",
+        language: str = "auto",
+        currency: Optional[str] = None,
+        currency_symbol: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
         Genera una propuesta comercial personalizada, detallada y de alto impacto en ESPAÑOL o INGLÉS.
         Cumple estrictamente las Reglas de Oro:
@@ -703,17 +787,13 @@ class ProposalGenerator:
         2. Si el cliente pide cotizar escenarios específicos (Escenario 1, Escenario 2), los responde directamente.
         3. Nunca pregunta por cosas que el cliente ya aclaró en el brief.
         4. No usa clichés de IA ni textos genéricos.
-        5. Cierre 100% dentro del chat de la plataforma.
+        5. Cierre 100% dentro del chat de la plataforma sin ofrecer trabajo gratis ni muestras impagas.
+        6. Coherencia 100% con el perfil de Jack en Freelancer ('Ingeniero de Sistemas').
+        7. Moneda 100% idéntica a la divisa del proyecto (INR, EUR, GBP, USD, etc.).
         """
         category = self.categorize_project(title, description)
-        estimates = self.estimate_bid_and_time(budget, category, f"{title} {description}")
 
-        suggested_bid = estimates["suggested_bid"]
-        timeline = estimates["suggested_timeline"]
-        is_hourly = estimates.get("is_hourly", False)
-        github_url = "https://github.com/JackMBerrocal"
-
-        # Detección de idioma
+        # Detección de idioma temprana para alinear plazos
         is_english = False
         if language == "en":
             is_english = True
@@ -727,6 +807,22 @@ class ProposalGenerator:
             es_c = sum(1 for w in es_words if w in detect_text)
             is_english = en_c > es_c
 
+        estimates = self.estimate_bid_and_time(
+            budget_str=budget,
+            category=category,
+            full_text=f"{title} {description}",
+            currency=currency,
+            curr_symbol=currency_symbol,
+            is_english=is_english
+        )
+
+        suggested_bid = estimates["suggested_bid"]
+        timeline = estimates["suggested_timeline"]
+        is_hourly = estimates.get("is_hourly", False)
+        proj_curr = estimates.get("currency", "USD")
+        proj_sym = estimates.get("curr_symbol", "$")
+        github_url = "https://github.com/JackMBerrocal"
+
         # Detección de palabra clave obligatoria (ej: "escribe al inicio FIT" / "write FIT at the start")
         codeword_prefix = ""
         cw_match = re.search(r'(?:escribe|incluye|pon|palabra|write|include|start with|keyword)\s+(?:al inicio|al principio|en tu propuesta|the word)?\s*[\“\"\'\‘]([a-zA-Z0-9_\-]+)[\”\"\'\’]', description, re.IGNORECASE)
@@ -738,34 +834,40 @@ class ProposalGenerator:
         if is_english:
             if is_design:
                 sys_inst = (
-                    "You are a Senior Creative Graphic Designer (Adobe Illustrator, Photoshop, Branding, Visual Identity, Vector Art, Print & Digital). "
-                    "Your objective is to write compelling, human, and professional proposals for design clients on Freelancer.com.\n\n"
+                    "You are Jack Berrocal (@jmberrocale), Systems Engineer leading our technical and digital design studio alongside our Senior Graphic Designer (expert in Adobe Illustrator, Photoshop, vector branding, logos, and print & digital assets).\n\n"
+                    "CRITICAL PROFILE CONSISTENCY RULE:\n"
+                    "Jack's profile headline on Freelancer.com is 'Ingeniero de Sistemas'. To prevent Freelancer from flagging the proposal as inconsistent with the profile, ALWAYS start by introducing the studio and team: "
+                    "'Hi there! I am Jack Berrocal, Systems Engineer leading our tech and creative digital studio (@jmberrocale) alongside our Senior Graphic Designer (specialized in Adobe Illustrator, Photoshop, vector branding, and print-ready production).' "
+                    "Then outline the deliverables with creative and technical excellence.\n\n"
                     "CRITICAL WRITING RULES:\n"
-                    "1. MANDATORY GRAMMAR: Always write in FIRST PERSON SINGULAR ('I will design...', 'I will create...', 'I have extensive experience in...'). NEVER write in second person ('You will...').\n"
+                    "1. MANDATORY GRAMMAR: Write in clear, professional first-person ('We will create...', 'Our team will deliver...', 'I will ensure...').\n"
                     "2. FORMAT: Freelancer.com DOES NOT support Markdown. STRICTLY FORBIDDEN to use asterisks (** or *). Use clean plain text with clear paragraphs and simple dashes (-) for lists.\n"
                     "3. GREETING: Natural, direct and warm ('Hi there', 'Hello!'). NEVER use robotic AI clichés like 'I hope this finds you well' or 'I am thrilled to apply'.\n"
-                    "4. MANDATORY CONSULTATIVE QUESTIONS: Include at least 2 creative/design questions before closing to start the chat discussion.\n"
-                    "5. STRICT PLATFORM CLOSE: Invite the client to share details and references through the Freelancer.com chat. All project coordination is 100% via chat without external calls.\n"
-                    "6. MANDATORY NO FREE WORK RULE: NEVER offer free samples, unpaid drafts, test tasks, or work for free. All work requires formal project award and funded milestone. Strictly forbidden to write 'I can provide a sample first', 'free trial', 'at no cost', or similar."
+                    "4. MANDATORY CONSULTATIVE QUESTIONS: Include at least 2 sharp creative/design questions before closing to start the chat discussion.\n"
+                    "5. STRICT PLATFORM CLOSE: Invite the client to share details through the Freelancer.com chat. All project coordination is 100% via chat without external calls.\n"
+                    "6. MANDATORY NO FREE WORK RULE: NEVER offer free samples, unpaid drafts, test tasks, or work for free. All work requires formal project award and funded milestone. Strictly forbidden to write 'I can provide a sample first', 'free trial', 'at no cost', or similar.\n"
+                    f"7. MANDATORY EXACT CURRENCY: Always quote in the client's native project currency ({proj_curr} / {proj_sym}). NEVER convert or confuse currency with USD if the project is in another currency!"
                 )
             else:
                 sys_inst = (
-                    "You are Jack Michael Berrocal (@jmberrocale), a Systems Engineer and Senior Full-Stack Developer (Python, JavaScript, React, Node.js, FastAPI, APIs, SQL, QA Testing, Automation). "
+                    "You are Jack Michael Berrocal (@jmberrocale), a Systems Engineer and Senior Full-Stack Developer (Python, JavaScript, React, Node.js, FastAPI, APIs, SQL, QA Testing, Automation).\n"
                     "Your objective is to write compelling, technically rigorous, natural, and human proposals for clients on Freelancer.com.\n\n"
                     "CRITICAL WRITING RULES:\n"
-                    "1. MANDATORY GRAMMAR: Always write in FIRST PERSON SINGULAR ('I will...', 'I have built...', 'I specialize in...', 'I can implement...'). NEVER write in second person ('You will create...', 'You should...').\n"
-                    "2. FORMAT: Freelancer.com DOES NOT support Markdown. STRICTLY FORBIDDEN to use asterisks (** or *). DO NOT use hashtags (#). Use clean plain text with clear, readable paragraphs and simple dashes (-) for bullet points.\n"
-                    "3. GREETING: Natural, direct and professional ('Hi [Name]', 'Hello there', or straight to the technical solution). NEVER use robotic AI clichés like 'I hope this proposal finds you well', 'I am thrilled to apply', or 'Dear client'.\n"
-                    "4. MANDATORY CONSULTATIVE QUESTIONS: ALWAYS include a dedicated section before closing with at least 2 sharp, direct technical questions to invite the client to reply in the chat.\n"
-                    "5. BUDGET & VALUE: Justify the reference quote ({suggested_bid}) by demonstrating solid technical competence and clear deliverables.\n"
-                    "6. STRICT PLATFORM CLOSE: Invite the client to coordinate all technical details directly through the Freelancer.com chat. 100% chat-based delivery with no external meetings required.\n"
-                    "7. MANDATORY NO FREE WORK RULE: NEVER offer free samples, unpaid previews, test tasks, or work for free. All work is paid under formal project award and milestone funding. Strictly forbidden to write 'I can do a sample first', 'free test', 'at no cost', or similar."
+                    "1. THE FOLD RULE (FIRST 160 CHARACTERS): Freelancer collapses proposals in the client view showing only the first 2 lines. The very first sentence MUST be an immediate, punchy solution hook addressing the client's problem directly (e.g. 'I can build and deploy your solution for \"{title}\" within the agreed timeline using robust architecture. Here is the technical approach:'). NEVER waste the first sentence on greetings or self-introductions.\n"
+                    "2. MANDATORY GRAMMAR: Always write in FIRST PERSON SINGULAR ('I will...', 'I have built...', 'I specialize in...', 'I can implement...'). NEVER write in second person ('You will create...', 'You should...').\n"
+                    "3. FORMAT: Freelancer.com DOES NOT support Markdown. STRICTLY FORBIDDEN to use asterisks (** or *). DO NOT use hashtags (#). Use clean plain text with clear, readable paragraphs and simple dashes (-) for bullet points.\n"
+                    "4. GREETING: Keep it ultra brief or jump straight to the technical hook. NEVER use robotic AI clichés like 'I hope this proposal finds you well', 'I am thrilled to apply', or 'Dear client'.\n"
+                    "5. MANDATORY CONSULTATIVE QUESTIONS: ALWAYS include a dedicated section before closing with at least 2 sharp, direct technical questions to invite the client to reply in the chat.\n"
+                    f"6. BUDGET & VALUE: Quote strictly in the project's native currency ({proj_curr} / {proj_sym}). The reference quote is {suggested_bid}. Justify it with solid technical competence.\n"
+                    "7. STRICT PLATFORM CLOSE: Invite the client to coordinate all technical details directly through the Freelancer.com chat. 100% chat-based delivery with no external meetings required.\n"
+                    "8. MANDATORY NO FREE WORK RULE: NEVER offer free samples, unpaid previews, test tasks, or work for free. All work is paid under formal project award and milestone funding. Strictly forbidden to write 'I can do a sample first', 'free test', 'at no cost', or similar.\n"
+                    f"9. MANDATORY EXACT CURRENCY: Always quote in {proj_curr} ({proj_sym}). NEVER mention USD if the project currency is {proj_curr}!"
                 )
 
             ai_prompt = f"""FREELANCER.COM PROJECT:
 Title: {title}
 Client Budget: {budget or "To be discussed"}
-Reference Estimate: {suggested_bid}
+Reference Estimate: {suggested_bid} (Currency: {proj_curr})
 Delivery Timeline: {timeline}
 
 CLIENT BRIEF:
@@ -773,39 +875,47 @@ CLIENT BRIEF:
 
 INSTRUCTIONS:
 Write a winning technical proposal for this project in ENGLISH.
-- Write STRICTLY in FIRST PERSON singular ('I will handle...', 'I will build...').
-- Include at least 2 sharp consultative technical questions at the end to prompt a chat response.
+- LINE 1 HOOK: Start with an immediate, high-impact solution hook addressing "{title}" (under 160 characters).
+- Write in clean, professional tone matching Jack's profile (Systems Engineer @jmberrocale).
+- Include at least 2 sharp consultative questions at the end to prompt a chat response.
 - Plain text only, NO markdown asterisks (**).
 - Concise (3-4 short paragraphs), human, technically sharp, focused on solving the client requirement.
 - STRICTLY FORBIDDEN to offer free samples, unpaid work, or previews without payment.
+- Quote exclusively in {proj_curr} ({proj_sym}). NEVER put USD if project is in {proj_curr}.
 """
         else:
             if is_design:
                 sys_inst = (
-                    "Eres una Diseñadora Gráfica Profesional y Creativa Senior (Adobe Illustrator, Photoshop, Branding, Identidad Visual y Editorial). "
-                    "Tu objetivo es redactar propuestas comerciales impecables, directas, criteriosas y humanas para clientes en Freelancer.com.\n\n"
+                    "Eres Jack Berrocal (@jmberrocale), Ingeniero de Sistemas al frente de nuestro estudio digital y multidisciplinario junto a nuestra Diseñadora Gráfica Senior (Adobe Illustrator, Photoshop, Branding, Identidad Visual y Editorial).\n\n"
+                    "REGLA CRÍTICA DE CONSISTENCIA DE PERFIL:\n"
+                    "El titular del perfil de Jack en Freelancer.com es 'Ingeniero de Sistemas'. Para evitar que el sistema de Freelancer marque la oferta como inconsistente, abre SIEMPRE presentando formalmente al equipo: "
+                    "'¡Hola! Soy Jack Berrocal, Ingeniero de Sistemas al frente de nuestro estudio digital (@jmberrocale) junto a nuestra Diseñadora Gráfica Senior (especialista en Adobe Illustrator, Photoshop, identidad visual y diseño vectorial).' "
+                    "Luego detalla los entregables de diseño con máxima calidad y criterio profesional.\n\n"
                     "REGLAS CRÍTICAS DE REDACCIÓN:\n"
-                    "1. GRAMÁTICA OBLIGATORIA: Escribe SIEMPRE en PRIMERA PERSONA DEL SINGULAR ('Me encargaré de...', 'Desarrollaré...', 'Diseñaré...', 'Puedo crear...', 'Cuento con experiencia en...'). NUNCA escribas en segunda persona ('Crearás...', 'Diseñarás...') ni le des órdenes al cliente.\n"
+                    "1. GRAMÁTICA OBLIGATORIA: Escribe en tono profesional y colaborativo ('Nos encargaremos de...', 'Entregaremos...', 'Diseñaremos...'). NUNCA escribas en segunda persona ('Crearás...', 'Diseñarás...') ni le des órdenes al cliente.\n"
                     "2. FORMATO: Freelancer.com NO soporta Markdown. TOTALMENTE PROHIBIDO usar asteriscos (** ni *). NO uses almohadillas (#). Escribe en texto plano limpio con párrafos legibles y viñetas simples con guion (-).\n"
                     "3. SALUDO: Saluda de forma natural y cercana ('Hola, qué tal', 'Hola [Nombre]' o entra directo al grano). NUNCA uses clichés robóticos como 'Gracias por tu interés en mi perfil', 'Entiendo completamente tu requerimiento', 'Me complace escuchar...' ni 'Estimado cliente'.\n"
-                    "4. PREGUNTAS CONSULTIVAS OBLIGATORIAS: Incluye SIEMPRE antes del cierre un apartado con al menos 2 preguntas técnicas o creativas directas para invitar al cliente a responder por el chat.\n"
+                    "4. PREGUNTAS CONSULTIVAS OBLIGATORIAS: Incluye SIEMPRE antes del cierre un apartado con al menos 2 preguntas creativas directas para invitar al cliente a responder por el chat.\n"
                     "5. NUNCA inventes 'Escenario 1' ni 'Escenario 2' salvo que el cliente haya pedido explícitamente cotizar escenarios en su anuncio.\n"
-                    "6. Cierre profesional invitando a coordinar por el chat de la plataforma Freelancer.com.\n"
-                    "7. PROHIBICIÓN TOTAL DE TRABAJO GRATIS: NUNCA ofrezcas muestras gratuitas, pruebas sin costo ni adelantos gratis. Todo trabajo se ejecuta con pago de por medio bajo adjudicación formal del proyecto e hito de pago (Milestone). ESTÁ ESTRICTAMENTE PROHIBIDO escribir 'puedo hacer una muestra primero', 'prueba gratis' o 'sin costo'."
+                    "6. Cierre profesional invitando a coordinar por el chat de la plataforma Freelancer.com sin llamadas externas.\n"
+                    "7. PROHIBICIÓN TOTAL DE TRABAJO GRATIS: NUNCA ofrezcas muestras gratuitas, pruebas sin costo ni adelantos gratis. Todo trabajo se ejecuta con pago de por medio bajo adjudicación formal del proyecto e hito de pago (Milestone). ESTÁ ESTRICTAMENTE PROHIBIDO escribir 'puedo hacer una muestra primero', 'prueba gratis' o 'sin costo'.\n"
+                    f"8. MONEDA EXACTA OBLIGATORIA: Respeta siempre la moneda exacta del proyecto ({proj_curr} / {proj_sym}). NUNCA confundas ni conviertas a USD si el proyecto está en otra divisa."
                 )
             else:
                 sys_inst = (
-                    "Eres Jack Michael Berrocal (@jmberrocale), Ingeniero de Sistemas y Desarrollador Full-Stack (Python, JavaScript, React, WordPress, APIs, SQL). "
+                    "Eres Jack Michael Berrocal (@jmberrocale), Ingeniero de Sistemas y Desarrollador Full-Stack (Python, JavaScript, React, WordPress, APIs, SQL).\n"
                     "Tu objetivo es redactar propuestas técnicas directas, profesionales y de alto valor para clientes en Freelancer.com.\n\n"
-                    "REGLAS CRÍTICAS DE REDACCIÓN:\n"
-                    "1. GRAMÁTICA OBLIGATORIA: Escribe SIEMPRE en PRIMERA PERSONA DEL SINGULAR ('Me encargaré de...', 'Desarrollaré...', 'Implementaré...', 'Configuraré...', 'Tengo experiencia en...'). ESTÁ TOTALMENTE PROHIBIDO conjugar en segunda persona ('Conectarás...', 'Redactarás...', 'Publicarás...', 'Harás...') porque suena a darle órdenes al cliente.\n"
-                    "2. FORMATO: Freelancer.com NO soporta Markdown. TOTALMENTE PROHIBIDO usar asteriscos (** ni *). NO uses almohadillas (#). Escribe en texto plano limpio con párrafos legibles y viñetas simples con guion (-).\n"
-                    "3. SALUDO: Saluda de forma natural y profesional ('Hola, qué tal', 'Hola [Nombre]' o directo a la propuesta). NUNCA uses clichés robóticos como 'Gracias por tu interés en mi perfil', 'Entiendo completamente tu requerimiento', 'Me complace escuchar...' ni 'Estimado cliente'.\n"
-                    "4. PREGUNTAS CONSULTIVAS OBLIGATORIAS: Incluye SIEMPRE antes del cierre un apartado con al menos 2 preguntas técnicas o consultivas directas basadas en el proyecto para invitar al cliente a responder en el chat.\n"
-                    "5. PRESUPUESTO Y VALOR: Justifica la cotización de referencia planteada ({suggested_bid}) demostrando alta competencia técnica y entregables concretos.\n"
-                    "6. NUNCA inventes 'Escenario 1' ni 'Escenario 2' salvo que el cliente haya pedido explícitamente cotizar escenarios en su anuncio.\n"
-                    "7. Cierre directo invitando a coordinar los detalles técnicos por el chat de Freelancer.com.\n"
-                    "8. PROHIBICIÓN TOTAL DE TRABAJO GRATIS: NUNCA ofrezcas muestras gratuitas, pruebas sin costo ni trabajo no remunerado. Todo trabajo se ejecuta con pago de por medio bajo adjudicación formal del proyecto e hito de pago (Milestone). ESTÁ ESTRICTAMENTE PROHIBIDO decir 'puedo hacer una muestra primero' o similar."
+                    "CRITICAL WRITING RULES:\n"
+                    "1. REGLA DEL PLIEGUE (PRIMEROS 160 CARACTERES): En Freelancer.com el cliente solo ve las dos primeras líneas colapsadas en la lista antes de hacer clic en 'Ver más'. La primera oración DEBE ser un gancho técnico directo que plantee la solución de inmediato (ej: 'Puedo desarrollar e implementar tu requerimiento de \"{title}\" con arquitectura limpia y entrega rápida. Aquí tienes la estrategia técnica:'). PROHIBIDO quemar la primera línea con presentaciones largas o saludos vacíos.\n"
+                    "2. GRAMÁTICA OBLIGATORIA: Escribe SIEMPRE en PRIMERA PERSONA DEL SINGULAR ('Me encargaré de...', 'Desarrollaré...', 'Implementaré...', 'Configuraré...', 'Tengo experiencia en...'). ESTÁ TOTALMENTE PROHIBIDO conjugar en segunda persona ('Conectarás...', 'Redactarás...', 'Publicarás...', 'Harás...') porque suena a darle órdenes al cliente.\n"
+                    "3. FORMATO: Freelancer.com NO soporta Markdown. TOTALMENTE PROHIBIDO usar asteriscos (** ni *). NO uses almohadillas (#). Escribe en texto plano limpio con párrafos legibles y viñetas simples con guion (-).\n"
+                    "4. SALUDO: Saludo ultra breve o directo al gancho técnico. NUNCA uses clichés robóticos como 'Gracias por tu interés en mi perfil', 'Entiendo completamente tu requerimiento', 'Me complace escuchar...' ni 'Estimado cliente'.\n"
+                    "5. PREGUNTAS CONSULTIVAS OBLIGATORIAS: Incluye SIEMPRE antes del cierre un apartado con al menos 2 preguntas técnicas o consultivas directas basadas en el proyecto para invitar al cliente a responder en el chat.\n"
+                    f"6. PRESUPUESTO Y VALOR: Justifica la cotización de referencia planteada ({suggested_bid}) en la divisa {proj_curr} ({proj_sym}) demostrando alta competencia técnica y entregables concretos.\n"
+                    "7. NUNCA inventes 'Escenario 1' ni 'Escenario 2' salvo que el cliente haya pedido explícitamente cotizar escenarios en su anuncio.\n"
+                    "8. Cierre directo invitando a coordinar los detalles técnicos por el chat de Freelancer.com sin llamadas externas.\n"
+                    "9. PROHIBICIÓN TOTAL DE TRABAJO GRATIS: NUNCA ofrezcas muestras gratuitas, pruebas sin costo ni trabajo no remunerado. Todo trabajo se ejecuta con pago de por medio bajo adjudicación formal del proyecto e hito de pago (Milestone). ESTÁ ESTRICTAMENTE PROHIBIDO decir 'puedo hacer una muestra primero' o similar.\n"
+                    f"10. MONEDA EXACTA OBLIGATORIA: Respeta siempre la moneda exacta del proyecto ({proj_curr} / {proj_sym}). NUNCA menciones USD si la moneda es {proj_curr}."
                 )
 
             scenario_note = ""
@@ -815,7 +925,7 @@ Write a winning technical proposal for this project in ENGLISH.
             ai_prompt = f"""PROYECTO FREELANCER.COM:
 Título: {title}
 Presupuesto del cliente: {budget or "A convenir"}
-Cotización de referencia: {suggested_bid}
+Cotización de referencia: {suggested_bid} (Moneda: {proj_curr})
 Plazo de referencia: {timeline}
 
 ANUNCIO DEL CLIENTE:
@@ -823,11 +933,13 @@ ANUNCIO DEL CLIENTE:
 
 INSTRUCCIÓN:
 Redacta la propuesta para postular a este proyecto.
-- Escribe SIEMPRE en PRIMERA PERSONA del singular ('Me encargaré...', 'Desarrollaré...'). NUNCA en segunda persona ('Conectarás...').
+- GANCHO LÍNEA 1: Inicia con una solución directa y contundente para "{title}" en menos de 160 caracteres.
+- Escribe en tono profesional consistente con el perfil de Jack (Ingeniero de Sistemas @jmberrocale).
 - OBLIGATORIO: Incluye al final MÍNIMO 2 preguntas consultivas específicas para iniciar la conversación por el chat.
 - NO uses asteriscos (** ni *) porque en Freelancer.com se muestran como caracteres rotos.
 - NO uses clichés robóticos ('Gracias por tu interés en mi perfil', 'Entiendo completamente tu requerimiento', 'Me complace escuchar...', 'Estimado cliente', etc.).
 - TOTALMENTE PROHIBIDO ofrecer muestras gratis, pruebas sin costo o trabajo no remunerado.
+- Cotiza estrictamente en {proj_curr} ({proj_sym}). NUNCA pongas USD si el proyecto es en {proj_curr}.
 - Mensaje conciso (3 a 5 párrafos breves), humano, técnico y enfocado en resolver exactamente lo que el cliente pide.{scenario_note}
 """
 
@@ -1073,14 +1185,14 @@ To align on your automation logic:
 {chat_close}"""
 
         elif category == "graphic_design_creative":
-            return f"""Hello! I am a Creative Graphic Designer with extensive experience in Adobe Illustrator, Photoshop, branding, and visual identity.
+            return f"""Hi there! I am Jack Berrocal, Systems Engineer leading our tech and creative digital studio (@jmberrocale) alongside our Senior Graphic Designer (expert in Adobe Illustrator, Photoshop, vector branding, and print-ready production).
 
-For "{title}", I will create clean, high-impact, and original designs that elevate your brand and communicate your message effectively.
+For "{title}", we will deliver clean, high-impact, and original designs tailored to your specific visual identity.
 
 Deliverables:
-- Creative, polished design concepts based on your requirements.
+- Creative, polished design concepts aligned with your specifications.
 - High-resolution, print-ready and web-ready vector files (AI, PSD, PDF, PNG, SVG).
-- Fast turnaround with dedicated revisions until you are 100% satisfied.
+- Dedicated revisions until you are 100% satisfied.
 
 Commercial reference: {commercial_note}
 
@@ -1265,27 +1377,27 @@ Quedo a tu disposición por el chat de la plataforma para coordinar los detalles
             if has_scenarios or is_manual:
                 return f"""¡Hola! Revisé con atención los detalles de tu búsqueda para "{title}".
 
-Como diseñadora gráfica especializada en Branding e Identidad Visual (Adobe Illustrator y Photoshop), me encantaría trabajar en este proyecto y acompañar el crecimiento de tus marcas:
+Soy Jack Berrocal, Ingeniero de Sistemas al frente de nuestro estudio digital (@jmberrocale) junto a nuestra Diseñadora Gráfica Senior (especialista en Branding, Adobe Illustrator y Photoshop). Desarrollamos soluciones creativas integrales para potenciar el crecimiento de tus marcas:
 
-• Cobertura completa: Diseño de logotipo, paleta cromática, combinaciones tipográficas, elementos gráficos y manual de comunicación estructurado con usos correctos e incorrectos.
-• Entregables profesionales: Archivos fuente editables (.AI vector y .PSD en capas), versiones de alta resolución listas para imprenta (PDF 300 DPI) y formatos digitales optimizados (.PNG transparente y .SVG).
-• Compromiso con tus tiempos y flujos: Me adapto con total seriedad a los calendarios de onboarding y entregas que manejan.
+- Cobertura completa: Diseño de logotipo, paleta cromática, combinaciones tipográficas, elementos gráficos y manual de identidad estructurado.
+- Entregables profesionales: Archivos fuente editables (.AI vector y .PSD en capas), versiones de alta resolución listas para imprenta (PDF 300 DPI) y formatos digitales optimizados (.PNG transparente y .SVG).
+- Compromiso con tus tiempos: Nos adaptamos con total seriedad a los calendarios de entregas que manejas.
 
-Mi cotización de referencia es de {budget_txt} con plazo sugerido de {timeline} (ajustable según el escenario o alcance exacto). Cuento con portfolio de manuales e identidades desarrolladas para compartirte de inmediato.
+Mi cotización de referencia es de {budget_txt} con plazo sugerido de {timeline}. 
 
 Para avanzar de forma precisa:
 1. ¿Tienes referencias de estilo, paleta de colores preferida o manual de identidad existente para mantener la coherencia?
 2. ¿En qué dimensiones y formatos específicos necesitas la entrega final para impresión o difusión digital?
 
-Quedo atenta por el chat de la plataforma para enviarte muestras y coordinar."""
+Quedo a tu disposición por el chat de la plataforma para coordinar los detalles e iniciar de inmediato."""
             else:
                 return f"""¡Hola! Revisé tu anuncio para "{title}".
 
-Como diseñadora gráfica con amplia experiencia en Adobe Illustrator y Photoshop, puedo ayudarte a crear una propuesta visual atractiva, moderna y alineada con lo que buscas transmitir:
+Soy Jack Berrocal, Ingeniero de Sistemas al frente de nuestro estudio digital (@jmberrocale) junto a nuestra Diseñadora Gráfica Senior (experta en Adobe Illustrator y Photoshop). Entregamos propuestas visuales de alto impacto, modernas y perfectamente alineadas a lo que buscas transmitir:
 
-- Conceptos creativos originales adaptados a tu identidad.
-- Archivos fuente editables (.AI / .PSD), versiones listas para imprenta (PDF 300 DPI) y formatos digitales (.PNG transparente, .JPG y .SVG).
-- Ajustes y revisiones hasta tu total conformidad.
+- Conceptos creativos originales adaptados a tu identidad de marca.
+- Archivos fuente editables (.AI vector / .PSD), versiones listas para imprenta (PDF 300 DPI) y formatos digitales (.PNG transparente, .JPG y .SVG).
+- Revisiones dedicadas hasta tu total conformidad.
 
 Mi presupuesto de referencia es de {budget_txt} con entrega en {timeline}.
 
@@ -1293,7 +1405,7 @@ Para enfocar el trabajo creativo:
 1. ¿Tienes alguna paleta de colores o referencias visuales que te gusten especialmente para este proyecto?
 2. ¿Requieres los archivos optimizados para formato web/redes, imprenta en alta resolución o ambos?
 
-Si gustas, conversemos por el chat de la plataforma para ver referencias o detalles y comenzar."""
+Conversemos por el chat de la plataforma para coordinar todos los requerimientos y comenzar."""
 
         # -------------------------------------------------------------
         # 6. GENERAL / OTROS PROYECTOS TÉCNICOS

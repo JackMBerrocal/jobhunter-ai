@@ -213,45 +213,53 @@ class RemoteTechAdapter(BaseJobPlatform):
         # 5. We Work Remotely (WWR) RSS
         try:
             import xml.etree.ElementTree as ET
-            wwr_url = "https://weworkremotely.com/categories/remote-programming-jobs.rss"
-            req_wwr = urllib.request.Request(wwr_url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req_wwr, timeout=12) as resp_wwr:
-                root = ET.fromstring(resp_wwr.read())
-            for item in root.findall('./channel/item')[:6]:
+            wwr_feeds = [
+                "https://weworkremotely.com/categories/remote-programming-jobs.rss",
+                "https://weworkremotely.com/categories/remote-devops-sysadmin-jobs.rss",
+                "https://weworkremotely.com/categories/remote-customer-support-jobs.rss"
+            ]
+            for wwr_url in wwr_feeds:
                 try:
-                    w_title_full = item.find('title').text or ""
-                    if ":" in w_title_full:
-                        parts = w_title_full.split(":", 1)
-                        w_comp = parts[0].strip()
-                        w_title = parts[1].strip()
-                    else:
-                        w_comp = "Remote Tech"
-                        w_title = w_title_full.strip()
-                    w_url = item.find('link').text or ""
-                    w_desc = item.find('description').text or ""
+                    req_wwr = urllib.request.Request(wwr_url, headers={"User-Agent": "Mozilla/5.0"})
+                    with urllib.request.urlopen(req_wwr, timeout=10) as resp_wwr:
+                        root = ET.fromstring(resp_wwr.read())
+                    for item in root.findall('./channel/item')[:4]:
+                        try:
+                            w_title_full = item.find('title').text or ""
+                            if ":" in w_title_full:
+                                parts = w_title_full.split(":", 1)
+                                w_comp = parts[0].strip()
+                                w_title = parts[1].strip()
+                            else:
+                                w_comp = "Remote Tech"
+                                w_title = w_title_full.strip()
+                            w_url = item.find('link').text or ""
+                            w_desc = item.find('description').text or ""
 
-                    fit_wwr = self.llm.analyze_requirements_fit(
-                        title=w_title,
-                        description=f"{w_title} at {w_comp}. 100% Remote. {w_desc[:300]}",
-                        company=w_comp,
-                        location="100% Remoto (Worldwide)"
-                    )
-                    if fit_wwr.get("is_recommended", True) and fit_wwr.get("score", 0) >= 0.60:
-                        jobs_found.append({
-                            "platform": self.platform_name,
-                            "external_id": f"wwr_{abs(hash(w_url)) % 10000000}",
-                            "title": w_title,
-                            "company": w_comp,
-                            "location": "100% Remoto (Worldwide)",
-                            "modality": "remote",
-                            "url": w_url,
-                            "salary_snippet": "$1,000 - $2,500 USD",
-                            "description": w_desc[:500],
-                            "match_score": fit_wwr["score"],
-                            "match_reason": fit_wwr["reason"],
-                            "requirements": fit_wwr,
-                            "is_recommended": True
-                        })
+                            fit_wwr = self.llm.analyze_requirements_fit(
+                                title=w_title,
+                                description=f"{w_title} at {w_comp}. 100% Remote. {w_desc[:300]}",
+                                company=w_comp,
+                                location="100% Remoto (Worldwide)"
+                            )
+                            if fit_wwr.get("is_recommended", True) and fit_wwr.get("score", 0) >= 0.60:
+                                jobs_found.append({
+                                    "platform": self.platform_name,
+                                    "external_id": f"wwr_{abs(hash(w_url)) % 10000000}",
+                                    "title": w_title,
+                                    "company": w_comp,
+                                    "location": "100% Remoto (Worldwide)",
+                                    "modality": "remote",
+                                    "url": w_url,
+                                    "salary_snippet": "$1,000 - $2,500 USD",
+                                    "description": w_desc[:500],
+                                    "match_score": fit_wwr["score"],
+                                    "match_reason": fit_wwr["reason"],
+                                    "requirements": fit_wwr,
+                                    "is_recommended": True
+                                })
+                        except Exception:
+                            continue
                 except Exception:
                     continue
         except Exception as e:

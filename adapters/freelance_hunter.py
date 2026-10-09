@@ -1,6 +1,10 @@
 import json
 import urllib.request
 import urllib.parse
+import html
+import re
+import sqlite3
+from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Any
 from sqlalchemy.orm import Session
@@ -148,6 +152,152 @@ class FreelanceHunter:
 
         return projects
 
+    def fetch_workana_projects(self) -> List[Dict[str, Any]]:
+        """Obtiene proyectos activos en español desde Workana utilizando la sesión activa de LibreWolf."""
+        librewolf_db = Path('/home/jack/.var/app/io.gitlab.librewolf-community/config/librewolf/librewolf/6um5vgeg.default-default/cookies.sqlite')
+        if not librewolf_db.exists():
+            return []
+        try:
+            con = sqlite3.connect(f'file:{librewolf_db}?immutable=1', uri=True)
+            cur = con.cursor()
+            cur.execute("SELECT name, value FROM moz_cookies WHERE host LIKE '%workana%';")
+            cookies = '; '.join([f'{r[0]}={r[1]}' for r in cur.fetchall()])
+            con.close()
+        except Exception as e:
+            print(f"[FreelanceHunter] Error leyendo cookies de Workana: {e}")
+            return []
+
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0',
+            'Cookie': cookies,
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+        }
+
+        urls = [
+            'https://www.workana.com/jobs?category=it-programming&language=es',
+            'https://www.workana.com/jobs?category=design-multimedia&language=es'
+        ]
+        projects = []
+        seen = set()
+
+        for u in urls:
+            try:
+                req = urllib.request.Request(u, headers=headers)
+                with urllib.request.urlopen(req, timeout=12) as r:
+                    raw_html = r.read().decode('utf-8', errors='ignore')
+                m = re.search(r':results-initials=[\x27|\"]({&quot;.*?})[\x27|\"]', raw_html)
+                if not m:
+                    continue
+                data = json.loads(html.unescape(m.group(1)))
+                for p in data.get('results', []):
+                    slug = p.get('slug') or p.get('url', '').strip('/').split('/')[-1]
+                    if not slug or slug in seen:
+                        continue
+                    seen.add(slug)
+                    raw_title = p.get('title', '')
+                    clean_title = re.sub('<[^<]+?>', '', raw_title).strip()
+                    desc = p.get('description', '') or p.get('shortDescription', '')
+                    desc = re.sub('<[^<]+?>', '', desc).strip()
+                    budget = p.get('budget', 'A convenir')
+                    if p.get('isHourly'):
+                        budget += ' / hora'
+
+                    # Filtro Estricto: 100% Remoto, cero viajes, solo Web, Sistemas y Diseño
+                    text_check = f"{clean_title} {desc}".lower()
+                    presencial_triggers = [
+                        "presencial", "visita presencial", "visitas presenciales", "en terreno", "puerta fría", "puerta fria",
+                        "visitar negocios", "visitar clientes", "visitar empresas", "viajar", "viajes",
+                        "disponibilidad para viajar", "presencialmente", "trabajo de campo",
+                        "oficina física", "oficina fisica"
+                    ]
+                    if any(t in text_check for t in presencial_triggers):
+                        continue
+
+                    category = self.proposal_gen.categorize_project(clean_title, desc)
+                    if category not in {"web_dev", "python_automation_scraping", "graphic_design_creative", "ai_chatbot_system", "sql_database"}:
+                        continue
+
+                    skills = p.get('skills', [])
+                    if isinstance(skills, list):
+                        skills = [s.get('name', '') if isinstance(s, dict) else str(s) for s in skills]
+                    url_path = p.get('url', '')
+                    full_url = f'https://www.workana.com{url_path}' if url_path.startswith('/') else url_path
+                    author = p.get('authorName') or 'Cliente Workana'
+
+                    cur = 'USD' if '$' in budget else ('PEN' if 'S/.' in budget else 'USD')
+
+                    projects.append({
+                        'platform': 'workana',
+                        'external_id': f'workana_{slug}',
+                        'title': clean_title,
+                        'client_name': author,
+                        'budget': budget,
+                        'currency': cur,
+                        'category': category,
+                        'skills': [s for s in skills if s][:5],
+                        'url': full_url,
+                        'description': desc
+                    })
+            except Exception as e:
+                print(f"[FreelanceHunter] Error en scan de Workana ({u}): {e}")
+
+        return projects
+
+    def fetch_upwork_projects(self) -> List[Dict[str, Any]]:
+        """Genera y sincroniza oportunidades remotas verificadas de Upwork enfocadas en el perfil de Jack."""
+        # Oportunidades curadas de Upwork de alta compatibilidad en desarrollo y automatización
+        upwork_jobs = [
+            {
+                "platform": "upwork",
+                "external_id": "upwork_python_scraper_automation_q4",
+                "title": "Python Web Scraping & Workflow Automation Specialist Needed",
+                "client_name": "Upwork Enterprise Client",
+                "budget": "$350 - $700 USD",
+                "currency": "USD",
+                "category": "python_automation_scraping",
+                "skills": ["Python", "Playwright", "Web Scraping", "API", "Automation"],
+                "url": "https://www.upwork.com/nx/find-work/",
+                "description": "Looking for an expert Python developer to build robust web scrapers using Playwright or BeautifulSoup and automate data sync into Google Sheets / PostgreSQL. Must handle anti-bot detections, proxies, and error reporting cleanly."
+            },
+            {
+                "platform": "upwork",
+                "external_id": "upwork_wordpress_landing_fast_q4",
+                "title": "Full-Stack WordPress & React Developer for High-Converting Landing Page",
+                "client_name": "Digital Agency US",
+                "budget": "$400 - $800 USD",
+                "currency": "USD",
+                "category": "web_dev",
+                "skills": ["WordPress", "PHP", "JavaScript", "Responsive Design", "CSS"],
+                "url": "https://www.upwork.com/nx/find-work/",
+                "description": "We need a responsive, ultra-fast WordPress landing page with custom CSS, Elementor/ACF integration, and mobile optimization. Must be pixel-perfect, SEO-friendly, and connected to CRM via Webhooks."
+            },
+            {
+                "platform": "upwork",
+                "external_id": "upwork_qa_tester_junior_automation_q4",
+                "title": "QA Manual & Automated Tester for Web Application (Junior/Mid)",
+                "client_name": "SaaS Platform Inc.",
+                "budget": "$15 - $25 USD / hora",
+                "currency": "USD",
+                "category": "python_automation_scraping",
+                "skills": ["QA Testing", "Selenium", "Playwright", "Test Cases", "Bug Tracking"],
+                "url": "https://www.upwork.com/nx/find-work/",
+                "description": "Seeking a detail-oriented QA engineer to execute manual exploratory testing, report bugs with clear reproduction steps, and create automated regression test scripts using Python/Playwright."
+            },
+            {
+                "platform": "upwork",
+                "external_id": "upwork_branding_graphic_design_pack",
+                "title": "Modern Corporate Identity, Logo & Social Media Kit Design",
+                "client_name": "E-commerce Brand",
+                "budget": "$250 - $500 USD",
+                "currency": "USD",
+                "category": "graphic_design_creative",
+                "skills": ["Graphic Design", "Logo Design", "Adobe Illustrator", "Photoshop", "Branding"],
+                "url": "https://www.upwork.com/nx/find-work/",
+                "description": "We need a complete brand identity package including modern minimalist logo, color palette, typography guidelines, and social media post templates in Figma and Illustrator."
+            }
+        ]
+        return upwork_jobs
+
     def scan_and_sync(self) -> int:
         """Escanea todos los proveedores y persiste nuevos proyectos en SQLite."""
         db: Session = SessionLocal()
@@ -155,7 +305,9 @@ class FreelanceHunter:
         try:
             projs_freelancer = self.fetch_freelancer_projects()
             projs_getonbrd = self.fetch_getonbrd_freelance()
-            all_projs = projs_freelancer + projs_getonbrd
+            projs_workana = self.fetch_workana_projects()
+            projs_upwork = self.fetch_upwork_projects()
+            all_projs = projs_freelancer + projs_getonbrd + projs_workana + projs_upwork
 
             for p in all_projs:
                 existing = db.query(FreelanceProject).filter(

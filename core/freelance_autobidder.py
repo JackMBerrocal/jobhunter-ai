@@ -5,6 +5,8 @@ import re
 import urllib.request
 import urllib.parse
 import subprocess
+import time as time_mod
+import requests
 from datetime import datetime, date, time
 from typing import Dict, Any, List, Optional
 from pathlib import Path
@@ -67,6 +69,13 @@ class FreelanceAutoBidder:
         self.notified_thread_ids = set()
         self._user_skill_ids: Optional[set] = None
         self.my_user_id = 29738534
+        self.discarded_pids = set()
+        self.session = requests.Session()
+        self.session.headers.update({
+            "User-Agent": "JobHunter-AI/2.0",
+            "Accept-Encoding": "gzip, deflate",
+            "Connection": "keep-alive"
+        })
         self.replied_message_ids_file = Path("/home/jack/.gemini/antigravity-ide/scratch/jobhunter-ai/data/replied_message_ids.json")
         self.replied_message_ids = self._load_replied_message_ids()
 
@@ -341,7 +350,7 @@ class FreelanceAutoBidder:
             except Exception as e:
                 self.log(f"❌ Error en ciclo de auto-bid: {e}")
 
-            await asyncio.sleep(self.get_config().get("check_interval_seconds", 75))
+            await asyncio.sleep(self.get_config().get("check_interval_seconds", 15))
 
     async def _check_freelancer_inbox_and_alerts(self, cfg: Dict[str, Any]):
         """Verifica la bandeja de mensajes de Freelancer.com y responde automáticamente si un cliente escribe."""
@@ -882,59 +891,75 @@ class FreelanceAutoBidder:
         # Prioridad 2: Mayor frescura (time_submitted descendente)
         new_projects.sort(key=lambda x: (x.get("bid_count", 999), -x.get("time_submitted", 0)))
 
-        # 3. Evaluar y postular automáticamente según cupo diario (Ritmo suave con protección térmica)
-        evaluated_count = 0
+        # 3. Evaluar y postular automáticamente según cupo diario
+        # Filtro en memoria instantáneo (0% CPU local) que examina candidatos reales
+        # sin bloquearse si los primeros son descartados por filtros
+        bids_placed = 0
+        attempts_in_cycle = 0
+
         for p in new_projects:
             bids_today = self.get_bids_today_count()
             if bids_today >= cfg.get("max_daily_bids", 4):
-                self.log("🛑 Cupo diario completado durante el ciclo. Pausando auto-bids por hoy.")
+                self.log(f"🛑 Cupo diario completado ({bids_today}/{cfg.get('max_daily_bids', 4)}). Pausando auto-bids por hoy.")
                 break
 
-            if evaluated_count >= 2:
-                # Máximo 2 evaluaciones por ciclo para mantener la máquina en reposo térmico frío
+            pid = str(p.get("external_id", ""))
+            if pid in self.discarded_pids:
+                continue
+
+            # Si ya colocamos 1 propuesta exitosa en este ciclo, descansamos hasta el siguiente ciclo
+            if bids_placed >= 1:
+                break
+
+            # Si ya hicimos 2 intentos reales de envío en este ciclo, descansamos
+            if attempts_in_cycle >= 2:
                 break
 
             success = await self._evaluate_and_place_bid(p, cfg)
-            evaluated_count += 1
             if success:
-                # Si una oferta fue enviada con éxito, pausamos el ciclo para dar respiro
+                bids_placed += 1
                 break
-            await asyncio.sleep(2)
+            else:
+                self.discarded_pids.add(pid)
 
     def _fetch_recent_projects(self) -> List[Dict[str, Any]]:
         """
         Consulta la API de Freelancer.com en tiempo real (proyectos de hoy).
-        Prioriza proyectos de alto ticket y descarta micro-gigs de centavos.
+        Utiliza el token autenticado para máxima prioridad y evita HTTP 429
+        consultando el stream completo en tiempo real y una consulta rotativa.
         """
         cfg = self.get_config()
-        # NOTA: Para buscar proyectos activos públicos NO enviamos el OAuth token personal,
-        # evitando agotar la cuota de peticiones por minuto (HTTP 429). El token se usa exclusivamente al postular.
-        headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+        token = cfg.get("freelancer_api_token")
+        headers = {
+            "User-Agent": "JobHunter-AI/1.0"
+        }
+        if token and len(token) > 10:
+            headers["freelancer-oauth-v1"] = token
 
-        queries = [
-            "",  # Stream general de más recientes en español (tiempo real)
-            "web", "wordpress", "landing page", "shopify", "woocommerce",
-            "python", "bot", "scraping", "automatizacion", "software",
-            "qa", "testing", "soporte ti", "sql", "react", "fastapi",
-            "app", "aplicacion", "sistemas", "backend", "frontend",
-            "usabilidad", "ui ux", "javascript", "soporte",
-            "diseno grafico", "logotipo", "logo", "branding", "flyer",
-            "pagina web", "rediseño web", "desarrollo web", "crear web", "bot whatsapp"
+        # Consulta rotativa para cubrir nichos específicos además del stream principal
+        focused_topics = [
+            "web", "python", "wordpress", "software", "qa", "react", "scraping",
+            "bot", "sql", "landing page", "logo", "branding", "automatizacion", "sistemas"
         ]
+        topic = focused_topics[self.cycle_count % len(focused_topics)]
+        encoded_topic = urllib.parse.quote_plus(topic)
+
+        urls = [
+            # 1. Stream global de los proyectos más recientes en español e inglés (tiempo real)
+            "https://www.freelancer.com/api/projects/0.1/projects/active?languages[]=es&languages[]=en&limit=100&full_description=true&job_details=true&upgrades=true&sort_field=time_submitted",
+            # 2. Stream específico del nicho del ciclo
+            f"https://www.freelancer.com/api/projects/0.1/projects/active?query={encoded_topic}&languages[]=es&languages[]=en&limit=25&full_description=true&job_details=true&upgrades=true&sort_field=time_submitted"
+        ]
+
         results = []
         seen_ids = set()
 
-        for q in queries:
+        for url in urls:
             try:
-                if q:
-                    encoded_q = urllib.parse.quote_plus(q)
-                    url = f"https://www.freelancer.com/api/projects/0.1/projects/active?query={encoded_q}&languages[]=es&languages[]=en&limit=25&full_description=true&job_details=true&sort_field=time_submitted"
-                else:
-                    url = "https://www.freelancer.com/api/projects/0.1/projects/active?languages[]=es&languages[]=en&limit=100&full_description=true&job_details=true&sort_field=time_submitted"
-
-                req = urllib.request.Request(url, headers=headers)
-                with urllib.request.urlopen(req, timeout=10) as resp:
-                    data = json.loads(resp.read().decode())
+                resp = self.session.get(url, headers=headers, timeout=8)
+                if resp.status_code != 200:
+                    continue
+                data = resp.json()
 
                 projects = data.get("result", {}).get("projects", [])
                 for p in projects:
@@ -943,8 +968,14 @@ class FreelanceAutoBidder:
                         continue
                     seen_ids.add(pid)
 
+                    # Descartar proyectos que exigen Preferred Freelancer o calificaciones exclusivas
+                    upg = p.get("upgrades", {}) or {}
+                    if upg.get("pf_only") or upg.get("qualified"):
+                        continue
+
                     b = p.get("budget", {})
                     cur = p.get("currency", {}).get("code", "USD")
+                    sign = p.get("currency", {}).get("sign", "$")
                     rate = float(p.get("currency", {}).get("exchange_rate", 1.0) or 1.0)
                     min_b = b.get("minimum", 0)
                     max_b = b.get("maximum", 0)
@@ -954,8 +985,13 @@ class FreelanceAutoBidder:
                     # Conteo de ofertas actuales de competidores
                     bid_count = int(p.get("bid_stats", {}).get("bid_count", 0))
 
-                    # Filtro de velocidad relámpago: descartar proyectos con más de 22 ofertas para centrarse en recién publicados
-                    if bid_count > 22:
+                    # FILTRO RELÁMPAGO ULTRA ESTRICTO: Descartar proyectos con más de 4 ofertas (TOP 1 a 5 absoluto)
+                    if bid_count > 4:
+                        continue
+
+                    # FILTRO DE TIEMPO: Solo proyectos recién publicados en los últimos 15 minutos (900s)
+                    ts = p.get("time_submitted", 0)
+                    if ts and (time_mod.time() - ts > 900):
                         continue
 
                     # Conversión precisa a USD y Soles (PEN):
@@ -982,6 +1018,7 @@ class FreelanceAutoBidder:
                         "description": p.get("description", "") or p.get("preview_description", ""),
                         "budget": budget_str,
                         "currency": cur,
+                        "currency_symbol": sign,
                         "min_budget": float(min_b or 0),
                         "max_budget": float(max_b or 0),
                         "usd_min": float(usd_min),
@@ -998,7 +1035,7 @@ class FreelanceAutoBidder:
                         "client_name": "Cliente Freelance"
                     })
             except Exception as e:
-                pass
+                self.log(f"⚠️ Error escaneando stream Freelancer: {e}")
 
         return results
 
@@ -1017,7 +1054,38 @@ class FreelanceAutoBidder:
         ext_id = proj_data["external_id"]
         bid_count = proj_data.get("bid_count", 0)
 
+        # PASO 0: Si ya fue procesado, postulado o descartado en la BD, omitir de inmediato
+        db = SessionLocal()
+        try:
+            existing = db.query(FreelanceProject).filter(
+                FreelanceProject.platform == "freelancer",
+                FreelanceProject.external_id.in_([str(ext_id), f"freelancer_{ext_id}"])
+            ).first()
+
+            if existing and (existing.status in ("applied", "auto_applied", "dismissed", "not_selected") or existing.auto_applied):
+                self.discarded_pids.add(str(ext_id))
+                return False
+        finally:
+            db.close()
+
         text_check = f"{title} {desc}".lower()
+
+        # FILTRO ESTRICTO ANTI-SCAM, ANTI-SPAM Y PROTECCIÓN DE CRÉDITOS
+        # Descarta de inmediato estafas de Telegram/WhatsApp, cobros por trabajar, tareas académicas ilegales y hacking
+        scam_patterns = [
+            r"\b(?:t\.me\/|telegram\b|tele\s*gram|@telegram|\bwhatsapp\s+(?:me|at|\+?\d)|contact\s+(?:me\s+)?(?:via|on|at|outside)\s+(?:telegram|whatsapp|email|gmail))\b",
+            r"\b(?:dm\s+(?:me\s+)?on\s+(?:instagram|telegram|whatsapp|skype)|reach\s+(?:me\s+)?on\s+(?:telegram|whatsapp|skype))\b",
+            r"\b(?:send\s+(?:an?\s+)?email\s+to\s+[\w\.-]+@|contact\s+at\s+[\w\.-]+@[\w\.-]+)\b",
+            r"\b(?:registration\s+fee|security\s+deposit|refundable\s+fee|pay\s+first\s+to\s+get|crypto\s+deposit)\b",
+            r"\b(?:unpaid\s+test|test\s+task\s+unpaid|free\s+trial\s+test|do\s+a\s+free\s+sample|sample\s+without\s+pay)\b",
+            r"\b(?:academic\s+exam|university\s+exam|take\s+my\s+exam|do\s+my\s+homework|cheat\s+on\s+exam)\b",
+            r"\bhack\s+.*?\b(?:instagram|facebook|whatsapp|snapchat|gmail)\b",
+            r"\b(?:carding|credit\s+card\s+dump|dumps\s+with\s+pin)\b"
+        ]
+        for spat in scam_patterns:
+            if re.search(spat, text_check):
+                self.log(f"🛡️ [Anti-Scam / Protección de Crédito] Proyecto descartado '{title[:32]}...': Detectado patrón sospechoso/estafa/contacto externo. Protegiendo créditos.")
+                return False
 
         # FILTRO ESTRICTO 0: CERO RECUPERACIÓN DE CUENTAS / CONTRASEÑAS / CUENTAS BANEADAS
         # No es ingeniería de software ni desarrollo; son trámites de soporte de usuario (Gmail, Facebook, Instagram, etc.)
@@ -1182,6 +1250,18 @@ class FreelanceAutoBidder:
                     self.log(f"🛡️ [Solo Diseño Gráfico] Proyecto descartado '{title[:32]}...': Involucra video/reels/edición. La esposa de Jack hace diseño gráfico 2D (logos, banners, branding, Photoshop, Illustrator).")
                     return False
 
+            disallowed_extra_design = [
+                r"\bindesign\b", r"\badobe indesign\b", r"\bbrochure\b", r"\bfolleto\b", r"\btr[ií]ptico\b", r"\bd[ií]ptico\b",
+                r"\bpackaging\b", r"\bempaque\b", r"\betiqueta\b", r"\blabel design\b",
+                r"\bt-shirt\b", r"\bcamiseta\b", r"\bropa\b", r"\bapparel\b",
+                r"\bbook layout\b", r"\bmaquetaci[oó]n de libros?\b", r"\beditorial layout\b",
+                r"\bcorel\s*draw\b", r"\bcanva\b"
+            ]
+            for dpat in disallowed_extra_design:
+                if re.search(dpat, text_check):
+                    self.log(f"🛡️ [Diseño No Registrado] Proyecto descartado '{title[:32]}...': Exige formato o software no registrado en el perfil de Freelancer.")
+                    return False
+
         # 5. FILTRO DE HABILIDADES DEL PERFIL (Garantiza aceptación por Freelancer API)
         user_skills = self.get_user_skill_ids()
         proj_jobs = proj_data.get("job_ids", [])
@@ -1190,17 +1270,11 @@ class FreelanceAutoBidder:
                 self.log(f"🛡️ [Habilidades Perfil] Proyecto descartado '{title[:32]}...': Requiere habilidades no presentes en tu perfil de Freelancer.")
                 return False
 
-        # 6. FILTRO DE POSICIONAMIENTO PRIVILEGIADO: SER DE LOS PRIMEROS (TOP 1 A 15)
-        # NUNCA postular a proyectos saturados donde quedamos enterrados en páginas lejanas.
-        # Jack exige estar entre los primeros postores para máxima probabilidad de respuesta.
-        effective_usd = proj_data.get("usd_max") or proj_data.get("usd_min") or proj_data.get("max_budget", 0)
-        max_allowed_bids = int(cfg.get("max_competition_bids", 12) or 12)
-        # Permitir hasta 18 solo para proyectos excepcionales de alto valor (>= $200 USD / €200 EUR)
-        if effective_usd >= 200:
-            max_allowed_bids = min(max_allowed_bids + 6, 18)
+        # 6. FILTRO DE POSICIONAMIENTO PRIVILEGIADO: SER DE LOS PRIMEROS (TOP 1 A 10)
+        max_allowed_bids = int(cfg.get("max_competition_bids", 10) or 10)
 
         if bid_count > max_allowed_bids:
-            self.log(f"🛡️ [Anti-Saturación / Top Primeros] Proyecto descartado '{title[:32]}...': Ya tiene {bid_count} ofertas (máx permitido: {max_allowed_bids}). Priorizamos exclusivamente ser de los primeros postores (TOP 1 a {max_allowed_bids}).")
+            self.log(f"🛡️ [Anti-Saturación / Top 1-10] Proyecto descartado '{title[:32]}...': Ya tiene {bid_count} ofertas (máx permitido: {max_allowed_bids}). Priorizamos posicionar a Jack entre los primeros postores.")
             return False
 
         self.log(f"⚡ [Oportunidad Temprana] '{title[:32]}...' tiene apenas {bid_count} ofertas. ¡Postulando de inmediato para posicionar a Jack en el TOP {bid_count + 1}!")
@@ -1250,7 +1324,9 @@ class FreelanceAutoBidder:
                 description=desc,
                 client_name=proj_data.get("client_name", default_client),
                 budget=budget_str,
-                language=p_lang
+                language=p_lang,
+                currency=proj_data.get("currency"),
+                currency_symbol=proj_data.get("currency_symbol")
             )
             proposal_text = proposal_res["proposal_text"]
             suggested_bid = proposal_res["suggested_bid"]
@@ -1348,7 +1424,8 @@ class FreelanceAutoBidder:
         token = cfg.get("freelancer_api_token")
         proposal_text = strip_all_emojis(proposal_text)
         
-        num_match = re.search(r'(\d+(?:\.\d+)?)', bid_amount_str)
+        clean_amount = (bid_amount_str or "").replace(",", "")
+        num_match = re.search(r'(\d+(?:\.\d+)?)', clean_amount)
         bid_value = float(num_match.group(1)) if num_match else 250.0
 
         # Prioridad 1: Envío instantáneo por API
@@ -1360,36 +1437,36 @@ class FreelanceAutoBidder:
                 numeric_pid = int(pid_clean.group(1))
 
                 url = "https://www.freelancer.com/api/projects/0.1/bids/"
-                payload = json.dumps({
+                payload = {
                     "project_id": numeric_pid,
                     "bidder_id": 29738534,
                     "amount": bid_value,
                     "period": 4,
                     "description": proposal_text,
                     "milestone_percentage": 100
-                }).encode("utf-8")
+                }
 
-                req = urllib.request.Request(
+                resp = self.session.post(
                     url,
-                    data=payload,
+                    json=payload,
                     headers={
                         "freelancer-oauth-v1": token,
                         "Content-Type": "application/json",
-                        "User-Agent": "JobHunter-AI/1.0"
+                        "User-Agent": "JobHunter-AI/2.0"
                     },
-                    method="POST"
+                    timeout=10
                 )
-                with urllib.request.urlopen(req, timeout=12) as resp:
-                    resp_json = json.loads(resp.read().decode())
+                if resp.status_code in (200, 201):
+                    resp_json = resp.json()
                     bid_id = resp_json.get("result", {}).get("id", "OK")
                     return True, f"Bid REAL colocado en Freelancer.com vía API: ID #{bid_id}"
-            except urllib.error.HTTPError as he:
-                try:
-                    err_json = json.loads(he.read().decode())
-                    err_msg = err_json.get("message") or str(err_json)
-                except Exception:
-                    err_msg = f"HTTP {he.code}"
-                return False, f"Error API Freelancer: {err_msg}"
+                else:
+                    try:
+                        err_json = resp.json()
+                        err_msg = err_json.get("message") or str(err_json)
+                    except Exception:
+                        err_msg = f"HTTP {resp.status_code}: {resp.text[:120]}"
+                    return False, f"Error API Freelancer: {err_msg}"
             except Exception as e:
                 return False, f"Error en API Freelancer: {e}"
 
