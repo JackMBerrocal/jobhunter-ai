@@ -3909,8 +3909,11 @@
           renderFreelanceProjects(freelanceProjectsData);
         }
       } catch (err) {
-        console.error('Error fetching freelance projects:', err);
-        container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 30px; color: #ef4444;">Error al cargar proyectos: ${escapeHtml(err.message)}</div>`;
+        console.warn('Nota en sincronización de proyectos freelance (reintentando...):', err);
+        if (!freelanceProjectsData || freelanceProjectsData.length === 0) {
+          container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 30px; color: var(--text-muted);"><span class="health-indicator pulse" style="display:inline-block; margin-right:8px;"></span> Conectando con el motor freelance y sincronizando radar...</div>`;
+        }
+        setTimeout(fetchFreelanceProjects, 3500);
       }
     }
 

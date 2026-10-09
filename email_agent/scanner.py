@@ -26,6 +26,10 @@ class EmailScanner:
         if not self.browser_manager:
             return []
 
+        # En Render u otros entornos de nube sin sesión interactiva de Google, omitir carga pesada de Gmail (ahorra 350MB RAM)
+        if os.environ.get("RENDER"):
+            return []
+
         import hashlib
         import urllib.parse
         page = await self.browser_manager.new_page_with_stealth()

@@ -37,13 +37,28 @@ class BrowserManager:
                 except Exception:
                     pass
 
-        # Argumentos para apariencia de navegador real de usuario
+        # Argumentos optimizados para apariencia de usuario real y mínimo consumo de RAM (< 120MB)
         args = [
             "--disable-blink-features=AutomationControlled",
             "--no-sandbox",
             "--disable-dev-shm-usage",
             "--disable-infobars",
-            "--start-maximized",
+            "--disable-gpu",
+            "--disable-software-rasterizer",
+            "--disable-extensions",
+            "--mute-audio",
+            "--disable-background-networking",
+            "--disable-background-timer-throttling",
+            "--disable-backgrounding-occluded-windows",
+            "--disable-breakpad",
+            "--disable-component-update",
+            "--disable-default-apps",
+            "--disable-sync",
+            "--disable-translate",
+            "--hide-scrollbars",
+            "--metrics-recording-only",
+            "--no-first-run",
+            "--js-flags=--max-old-space-size=128",
             "--lang=es-419,es,en-US,en"
         ]
 

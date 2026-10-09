@@ -171,6 +171,18 @@ class FreelanceAutoBidConfig(Base):
 
 
 def init_db():
+    from pathlib import Path
+    import shutil
+    db_file = Path("data/jobhunter.db")
+    seed_file = Path("data/seed_jobhunter.db")
+    if (not db_file.exists() or db_file.stat().st_size < 1000) and seed_file.exists():
+        db_file.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            shutil.copyfile(seed_file, db_file)
+            print("[init_db] Base de datos restaurada desde semilla seed_jobhunter.db con historial completo.")
+        except Exception as se:
+            print(f"[init_db] Nota al restaurar semilla: {se}")
+
     Base.metadata.create_all(bind=engine)
     # Migración defensiva para columnas nuevas en bases de datos existentes
     try:
