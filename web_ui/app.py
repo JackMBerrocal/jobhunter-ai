@@ -4,7 +4,13 @@ import json
 import asyncio
 import subprocess
 from datetime import datetime
+import sys
 from pathlib import Path
+
+# Asegurar que la raíz del proyecto esté en sys.path para imports como core, adapters, etc.
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 from typing import Optional, List, Dict, Any
 from fastapi import FastAPI, Depends, Request, BackgroundTasks, UploadFile, File
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse

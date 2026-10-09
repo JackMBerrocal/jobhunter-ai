@@ -10,6 +10,7 @@ FROM python:3.12-slim-bookworm
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 ENV HEADLESS=true
+ENV PYTHONPATH=/app
 
 # Instalar dependencias del sistema requeridas por Chromium / Playwright
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -55,4 +56,4 @@ RUN mkdir -p /app/data
 EXPOSE 8000
 
 # Comando de inicio: Uvicorn con el agente autónomo habilitado
-CMD ["python", "web_ui/app.py"]
+CMD ["python", "main.py"]
