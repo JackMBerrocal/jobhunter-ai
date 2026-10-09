@@ -64,8 +64,9 @@ def main():
     elif args.daemon:
         asyncio.run(run_daemon())
     else:
-        print(f"🚀 Iniciando Dashboard de JobHunter AI en http://localhost:{args.port}")
-        uvicorn.run("web_ui.app:app", host=args.host, port=args.port, reload=False)
+        port = int(os.environ.get("PORT", args.port))
+        print(f"🚀 Iniciando Dashboard de JobHunter AI en http://{args.host}:{port}")
+        uvicorn.run("web_ui.app:app", host=args.host, port=port, reload=False)
 
 
 if __name__ == "__main__":

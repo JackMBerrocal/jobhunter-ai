@@ -2513,3 +2513,12 @@ async def toggle_continuous_hunter(request: Request):
 async def get_continuous_status():
     return autonomous_hunter.get_status()
 
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))
+    host = os.environ.get("HOST", "0.0.0.0")
+    print(f"🚀 Iniciando JobHunter AI en http://{host}:{port}")
+    uvicorn.run("web_ui.app:app", host=host, port=port, reload=False)
+
+
